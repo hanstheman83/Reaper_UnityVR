@@ -7,35 +7,46 @@ using Core.IO;
 public class HitInteractor : MonoBehaviour
 {
     [SerializeField] private MTransmitter transmitter;
+    [SerializeField][Range(1,127)] private int midiNote;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public int MidiNote {get => midiNote; set => midiNote = value;}
+    public MTransmitter Transmitter {set => transmitter = value;}
+    
+    
 
     private void OnCollisionEnter(Collision collision){
         Debug.Log("Collision");
 
     }
 
-    private void OnTriggerEnter(Collider other){
+    // private void OnTriggerEnter(Collider other){
+    //     Debug.Log("Triggered!");
+    //     //GetComponent<Renderer>().material.color = Color.red;
+    //     // start note
+    //     transmitter.TransmitMidi(true, midiNote);
+
+    // }
+
+    public void PullTrigger(Collider other){
         Debug.Log("Triggered!");
-        GetComponent<Renderer>().material.color = Color.red;
+        //GetComponent<Renderer>().material.color = Color.red;
         // start note
-        transmitter.TransmitMidi(true, 80);
+        transmitter.TransmitMidi(true, midiNote, 80);
 
     }
-    private void OnTriggerExit(Collider other){
+
+
+
+
+    // private void OnTriggerExit(Collider other){
+    //     Debug.Log("Triggered Exiting!");
+    //     //GetComponent<Renderer>().material.color = Color.blue;
+    //     transmitter.TransmitMidi(false, midiNote);
+    // }
+    public void ResetTrigger(Collider other){
         Debug.Log("Triggered Exiting!");
-        GetComponent<Renderer>().material.color = Color.blue;
-        transmitter.TransmitMidi(false, 80);
+        //GetComponent<Renderer>().material.color = Color.blue;
+        transmitter.TransmitMidi(false, midiNote, 0);
     }
 
     

@@ -15,3 +15,5 @@ MonoBehaviour:
   firstNote: 30
   lastNote: 80
   distanceBetweenStrings: 0.05
+  stringWidth: 0.01
+  stringLength: 0.8

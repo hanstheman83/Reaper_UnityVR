@@ -6,5 +6,5 @@ using UnityEngine;
 public class Harp : ScriptableObject
 {
     public int firstNote, lastNote;
-    public float distanceBetweenStrings;
+    public float distanceBetweenStrings, stringWidth, stringLength;
 }

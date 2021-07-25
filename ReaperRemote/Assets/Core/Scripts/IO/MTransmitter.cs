@@ -29,11 +29,13 @@ namespace Core.IO // todo check that this namespace has access to Core; ??
 		#endregion
 
 		#region Public Methods
-		public void TransmitMidi(bool state, int note){
+		public void TransmitMidi(bool state, int note, int velocity){
 			// string midiNoteMessage = "/vkb_midi/0/note/80";
 			string midiNoteMessage = $"/vkb_midi/0/note/{note}";
 			var message = new OSCMessage(midiNoteMessage);
-			message.AddValue(OSCValue.Int(state ? 1 : 0));
+			message.AddValue(OSCValue.Int(state ? velocity : 0));
+			//message.AddValue(OSCValue.Int(100));
+
 			// message.AddValue(OSCValue.Int(1));
 			// Transmitter.SendMessage(message);
 			Transmitter.Send(message);
