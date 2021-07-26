@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8043d561cfb4324cb684a65bb50ad4e, type: 3}
   m_Name: SmallHarp
   m_EditorClassIdentifier: 
+  instrumentName: Cool Harp
   firstNote: 30
   lastNote: 80
   distanceBetweenStrings: 0.05

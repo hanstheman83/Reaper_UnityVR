@@ -4,5 +4,5 @@ using UnityEngine;
 
 public class Instrument : ScriptableObject
 {
-    
+    public string instrumentName;
 }
