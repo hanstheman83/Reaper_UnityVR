@@ -41,17 +41,18 @@ public class InstrumentGenerator : MonoBehaviour
                 // displace from zero at newHarp
                 float stringOffset = harp.stringLength/2;
                 newString.transform.localPosition = new Vector3(i * harp.distanceBetweenStrings, stringOffset, 0);
-                GameObject cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                cylinder.transform.SetParent(newString.transform);
-                cylinder.transform.localPosition = Vector3.zero;
+                GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                cube.transform.SetParent(newString.transform);
+                cube.transform.localPosition = Vector3.zero;
                 // cylinder is 2m height by default
-                cylinder.transform.localScale = new Vector3(harp.stringWidth, harp.stringLength/2, harp.stringWidth);
+                cube.transform.localScale = new Vector3(harp.stringWidth, harp.stringLength, harp.stringWidth);
                 // 
-                cylinder.GetComponent<Collider>().isTrigger = true;
+                cube.GetComponent<Collider>().isTrigger = true;
                 HitInteractor hitInteractor = newString.AddComponent<HitInteractor>();
                 hitInteractor.MidiNote = currentString;
                 hitInteractor.Transmitter = FindObjectOfType<MTransmitter>();
-                cylinder.AddComponent<ChildTrigger>();
+                cube.AddComponent<ChildTrigger>();
+                cube.layer = LayerMask.NameToLayer("MusicInteraction");
 
                 currentString++;
             }
