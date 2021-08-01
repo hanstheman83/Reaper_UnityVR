@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Core.IO;
+using Core.Data;
 
 
 public class InstrumentGenerator : MonoBehaviour
@@ -15,6 +16,8 @@ public class InstrumentGenerator : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Data.Init();
+
         GenerateInstrument();
 
         void GenerateInstrument(){
@@ -25,8 +28,12 @@ public class InstrumentGenerator : MonoBehaviour
             // create 
 
             // # harp strings
-            int numStrings = harp.lastNote - harp.firstNote;
-            int currentString = harp.firstNote;
+            int numStrings = harp.numStrings;
+            // A0: midi note 21, C3 : Midi note 48, 
+            // int currentString = harp.firstNote;
+            int currentString = 10;
+
+            // pattern for scale.. 
             
             GameObject newHarp = new GameObject("new harp");
             newHarp.transform.position = positionTransform.position;
