@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Core.IO;
-using Core.Data;
+using DataTransfer = Core.IO;
+using Data = Core.Data;
 
 
 public class InstrumentGenerator : MonoBehaviour
@@ -11,26 +11,24 @@ public class InstrumentGenerator : MonoBehaviour
     [SerializeField] private Transform positionTransform;
     [SerializeField] private Harp harp;
     private Vector3 position;
-
+    
 
     // Start is called before the first frame update
     void Start()
     {
-        Data.Init();
+        Data::Data.Init();
 
-        GenerateInstrument();
+        GenerateInstrument2();
+
+        void GenerateInstrument2(){
+            
+        }
+
+
 
         void GenerateInstrument(){
-            // from harp.firstNote;
-            // to harp.lastNote;
-            // harp.distanceBetweenStrings;
-            
-            // create 
-
-            // # harp strings
             int numStrings = harp.numStrings;
             // A0: midi note 21, C3 : Midi note 48, 
-            // int currentString = harp.firstNote;
             int currentString = 10;
 
             // pattern for scale.. 
@@ -57,7 +55,7 @@ public class InstrumentGenerator : MonoBehaviour
                 cube.GetComponent<Collider>().isTrigger = true;
                 HitInteractor hitInteractor = newString.AddComponent<HitInteractor>();
                 hitInteractor.MidiNote = currentString;
-                hitInteractor.Transmitter = FindObjectOfType<MTransmitter>();
+                hitInteractor.Transmitter = FindObjectOfType<DataTransfer::MTransmitter>();
                 cube.AddComponent<ChildTrigger>();
                 cube.layer = LayerMask.NameToLayer("MusicInteraction");
 
