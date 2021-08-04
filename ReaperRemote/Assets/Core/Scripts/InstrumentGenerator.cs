@@ -20,7 +20,13 @@ public class InstrumentGenerator : MonoBehaviour
 
         GenerateInstrument2();
 
-        void GenerateInstrument2(){
+        void GenerateInstrument2()
+        {
+            GameObject newInstrument = new GameObject("new harp");
+            newInstrument.transform.position = positionTransform.position;
+            newInstrument.transform.SetParent(instrumentsLocation.transform);
+            
+            
             
         }
 

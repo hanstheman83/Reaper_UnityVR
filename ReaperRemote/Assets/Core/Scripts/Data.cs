@@ -40,7 +40,8 @@ public static class Data{ // need init from GameObject
         void InitScales(){
             scales = new Dictionary<Scale, int[]>(){
                 {Scale.Major, new[] {1,3,5,6,8,10,12}},
-                {Scale.Minor7, new[] {1,3,4,6,8,9,11}}
+                {Scale.Minor7, new[] {1,3,4,6,8,9,11}},
+                {Scale.MinorHarmonic, new[] {1,3,4,6,8,9,12}},
             }; // #s in scale (all 12 tones in octave), root = 1, note before octave = 12
         }    
 
