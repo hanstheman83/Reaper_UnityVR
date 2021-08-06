@@ -4,31 +4,39 @@ using UnityEngine;
 using System.Linq;
 
 namespace Core.Data{
+    /// <summary>
+    /// All 12 notes in the western chromatic musical scale.
+    /// Contains duplicate notes eg. C_Sharp and D_Flat
+    /// </summary>
     public enum RootNote{
         C, C_Sharp, D_Flat, D, D_Sharp, E_Flat, E, F, F_Sharp, G_Flat, G, G_Sharp, A_Flat, A, A_Sharp, B_Flat, B 
     }
+    /// <summary>
+    /// Common scales.
+    /// </summary>
     public enum Scale{
         Major, Minor7, MinorHarmonic 
     }
 
 
 public static class Data{ // need init from GameObject
-    // private struct ScaleObject{
-    //     int[] Scale;
-        
-    // }
     private static bool init = false;
-    
     private static Dictionary<Scale, int[]> scales; // # in scale (all 12 tones in octave), root = 1, note before octave = 12
+    /// <summary>
+    /// Dictionary that holds all scales as integer arrays.
+    /// </summary>
     public static Dictionary<Scale, int[]> Scales {
         get => scales;
     }
     private static Dictionary<RootNote, Dictionary<int, int>> rootNotes; // get all octaves and midiNotes for a root note. (inner dictionary : Octave, midiNote) 
+    /// <summary>
+    /// Dictionary that holds another dictionary with key:Octave, value:MidiNote 
+    /// </summary>
     public static Dictionary<RootNote, Dictionary<int, int>> RootNotes {
         get => rootNotes;
     }
 
-    // called from Unity Scene
+    // called from Unity Scene. You cannot use normal constructor since it is never called!
     static public void Init(){
         if(init) {Debug.LogError("Data class already initialized!");}
         init = true; 
