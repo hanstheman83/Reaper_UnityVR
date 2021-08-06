@@ -24,46 +24,50 @@ public class InstrumentGenerator : MonoBehaviour
         {
             GameObject newInstrument = new GameObject("new harp");
             newInstrument.transform.position = positionTransform.position;
-            newInstrument.transform.SetParent(instrumentsLocation.transform);
-            // start octave
-            // # strings
-            // root note 
-            // scale
-            // 
-            
+            newInstrument.transform.SetParent(instrumentsLocation.transform); 
             if(!Data.RootNotes.TryGetValue(harp.rootNote, out var innerDic)){ Debug.LogError("No key found!"); }
-            if(!innerDic.TryGetValue(harp.startOctave, out int midiNote)){ Debug.LogError("No key found!"); }
+            if(!innerDic.TryGetValue(harp.startOctave, out int firstMidiNote)){ Debug.LogError("No key found!"); } // first midiNote is the root note in specified octave
+            int midiNote = firstMidiNote;
             Debug.Log("First midi note " + midiNote);
-            int j = 0;
             if(!Data.Scales.TryGetValue(harp.scale, out int[] scale)) { Debug.LogError("No key found!"); }
+            int j = 0; int k = 0;
 
+            // TODO recreate as IEnumerable with foreach ??
             for(int i = 0; i < harp.numStrings; i++){
+                if(midiNote >= 127) { break; } // range is 0 - 126
+                // name GO as midiNote!
+                GameObject newString = new GameObject("String MidiNote " + midiNote); // new GameObject same as Instantiate (creates in scene..)
+
+                newString.transform.SetParent(newInstrument.transform);
+                newString.transform.localPosition = Vector3.zero;
+                // displace from zero at newHarp
+                float stringOffset = harp.stringLength/2;
+                newString.transform.localPosition = new Vector3(i * harp.distanceBetweenStrings, stringOffset, 0);
+                GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                cube.transform.SetParent(newString.transform);
+                cube.transform.localPosition = Vector3.zero;
+                // cylinder is 2m height by default
+                cube.transform.localScale = new Vector3(harp.stringWidth, harp.stringLength, harp.stringWidth);
+                // 
+                cube.GetComponent<Collider>().isTrigger = true;
+                HitInteractor hitInteractor = newString.AddComponent<HitInteractor>();
+                hitInteractor.MidiNote = midiNote;
+                hitInteractor.Transmitter = FindObjectOfType<DataTransfer::MTransmitter>();
+                cube.AddComponent<ChildTrigger>();
+                cube.layer = LayerMask.NameToLayer("MusicInteraction");
+                // Calc next midiNote
+                // from root note ? octave ?
+                if(j < scale.Length -1) { j++; } else { j = 0; k++; }
+                Debug.Log($"j : {j}, k : {k}");
+                //if(j == 0) { midiNote += scale[j]; } else { midiNote += scale[j] - scale[j-1]; } 
+                midiNote = (firstMidiNote + (k * 12)) + scale[j] - 1;
+                
+                
                 // create first string plus scales[j] 
                 // iterate j : next in scales.. reset if scales.length.
-                // calc midiNote : plus j in scale.. 
+                // calc new midiNote : plus j in scale.. 
                 // iterate scale : add (result -1) for correct distance
                 
-                // name GO as midiNote!
-
-                // GameObject newString = new GameObject();
-                // //newString = Instantiate(newString, Vector3.zero, Quaternion.identity);
-                // newString.transform.SetParent(newHarp.transform);
-                // newString.transform.localPosition = Vector3.zero;
-                // // displace from zero at newHarp
-                // float stringOffset = harp.stringLength/2;
-                // newString.transform.localPosition = new Vector3(i * harp.distanceBetweenStrings, stringOffset, 0);
-                // GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                // cube.transform.SetParent(newString.transform);
-                // cube.transform.localPosition = Vector3.zero;
-                // // cylinder is 2m height by default
-                // cube.transform.localScale = new Vector3(harp.stringWidth, harp.stringLength, harp.stringWidth);
-                // // 
-                // cube.GetComponent<Collider>().isTrigger = true;
-                // HitInteractor hitInteractor = newString.AddComponent<HitInteractor>();
-                // hitInteractor.MidiNote = currentString;
-                // hitInteractor.Transmitter = FindObjectOfType<DataTransfer::MTransmitter>();
-                // cube.AddComponent<ChildTrigger>();
-                // cube.layer = LayerMask.NameToLayer("MusicInteraction");
             }
             
             

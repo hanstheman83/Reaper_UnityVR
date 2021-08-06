@@ -7,7 +7,7 @@ using Core.IO;
 public class HitInteractor : MonoBehaviour
 {
     [SerializeField] private MTransmitter transmitter;
-    [SerializeField][Range(1,127)] private int midiNote;
+    [SerializeField][Range(0,126)] private int midiNote;
 
     public int MidiNote {get => midiNote; set => midiNote = value;}
     public MTransmitter Transmitter {set => transmitter = value;}
