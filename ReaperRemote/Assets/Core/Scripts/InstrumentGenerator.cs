@@ -18,7 +18,35 @@ public class InstrumentGenerator : MonoBehaviour
     {
         Data.Init();
 
-        GenerateInstrument2();
+        GenerateInstrument3();
+
+        void GenerateInstrument3(){
+
+            GameObject newInstrument = new GameObject("new harp");
+            newInstrument.transform.position = positionTransform.position;
+            newInstrument.transform.SetParent(instrumentsLocation.transform); 
+            List<int> allMidiNotesInScale = Data.GetMidiNotesInScale(harp.scale, harp.rootNote, harp.firstOctave, harp.numberOfStrings);
+
+            for(int i = 0; i < allMidiNotesInScale.Count; i++){
+                GameObject newString = new GameObject("String MidiNote " + allMidiNotesInScale[i]); // new GameObject same as Instantiate (creates in scene..)
+                newString.transform.SetParent(newInstrument.transform);
+                newString.transform.localPosition = Vector3.zero;
+                // displace from zero at newHarp
+                float stringOffset = harp.stringLength/2;
+                newString.transform.localPosition = new Vector3(i * harp.distanceBetweenStrings, stringOffset, 0);
+                GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                cube.transform.SetParent(newString.transform);
+                cube.transform.localPosition = Vector3.zero;
+                // cylinder is 2m height by default
+                cube.transform.localScale = new Vector3(harp.stringWidth, harp.stringLength, harp.stringWidth);
+                cube.GetComponent<Collider>().isTrigger = true;
+                HitInteractor hitInteractor = newString.AddComponent<HitInteractor>();
+                hitInteractor.MidiNote = allMidiNotesInScale[i];
+                hitInteractor.Transmitter = FindObjectOfType<DataTransfer::MTransmitter>();
+                cube.AddComponent<ChildTrigger>();
+                cube.layer = LayerMask.NameToLayer("MusicInteraction");
+            }
+        }
 
         void GenerateInstrument2()
         {
@@ -26,14 +54,13 @@ public class InstrumentGenerator : MonoBehaviour
             newInstrument.transform.position = positionTransform.position;
             newInstrument.transform.SetParent(instrumentsLocation.transform); 
             if(!Data.RootNotes.TryGetValue(harp.rootNote, out var innerDic)){ Debug.LogError("No key found!"); }
-            if(!innerDic.TryGetValue(harp.startOctave, out int firstMidiNote)){ Debug.LogError("No key found!"); } // first midiNote is the root note in specified octave
+            if(!innerDic.TryGetValue(harp.firstOctave, out int firstMidiNote)){ Debug.LogError("No key found!"); } // first midiNote is the root note in specified octave
             int midiNote = firstMidiNote;
             Debug.Log("First midi note " + midiNote);
             if(!Data.Scales.TryGetValue(harp.scale, out int[] scale)) { Debug.LogError("No key found!"); }
             int j = 0; int k = 0;
 
-            // TODO recreate as IEnumerable with foreach ??
-            for(int i = 0; i < harp.numStrings; i++){
+            for(int i = 0; i < harp.numberOfStrings; i++){
                 if(midiNote >= 127) { break; } // range is 0 - 126
                 // name GO as midiNote!
                 GameObject newString = new GameObject("String MidiNote " + midiNote); // new GameObject same as Instantiate (creates in scene..)
@@ -76,7 +103,7 @@ public class InstrumentGenerator : MonoBehaviour
 
 
         void GenerateInstrument(){
-            int numStrings = harp.numStrings;
+            int numStrings = harp.numberOfStrings;
             // A0: midi note 21, C3 : Midi note 48, 
             int currentString = 10;
 
@@ -113,11 +140,5 @@ public class InstrumentGenerator : MonoBehaviour
 
 
         }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

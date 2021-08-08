@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.bluemanoid.uniticons": {
+      "version": "https://github.com/Bluemanoid/Uniticons.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "d06fbf58bf5d66dc292a1ae59ffef7bb03946974"
+    },
     "com.unity.collab-proxy": {
       "version": "1.5.7",
       "depth": 0,

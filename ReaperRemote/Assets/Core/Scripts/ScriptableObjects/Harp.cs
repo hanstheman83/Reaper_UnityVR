@@ -8,8 +8,8 @@ using Core.Data;
 
 public class Harp : Instrument
 {
-    public int numStrings;
-    public int startOctave; // A0 = midi note 21
+    public int numberOfStrings;
+    public int firstOctave; // A0 = midi note 21
     public RootNote rootNote;
     public Scale scale;
     public float distanceBetweenStrings, stringWidth, stringLength;

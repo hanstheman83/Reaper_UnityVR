@@ -97,8 +97,56 @@ public static class Data{ // need init from GameObject
                 }
             }
         }
+    
+        void InitNoteRelationships(){
+            // midiNote, relationship, midiNote, eg. (60, MajorThird, 56)
+            // ? 
+        }
     } // end Init()
 
+    /// <summary>
+    /// Creates a scale from specified parameters.
+    /// </summary>
+    /// <returns>Midi Notes in scale (int[])</returns>
+    static public List<int> GetMidiNotesInScale(Scale scale, RootNote rootNote, int firstOctave, int numberOfNotes){
+        List<int> newIntList = new List<int>();
+        if(rootNotes.TryGetValue(rootNote, out var innerDic)){ Debug.LogError("No key found!"); }
+        if(!innerDic.TryGetValue(firstOctave, out int firstMidiNote)){ Debug.LogError("No key found!"); } // first midiNote is the root note in specified octave
+        int midiNote = firstMidiNote;
+        Debug.Log("First midi note " + midiNote);
+        if(scales.TryGetValue(scale, out int[] scaleArray)) { Debug.LogError("No key found!"); }
+        int j = 0; int k = 0;
+
+        for(int i = 0; i < numberOfNotes; i++){
+            if(midiNote >= 127) { break; } // range is 0 - 126
+            newIntList.Add(midiNote);
+            if(j < scaleArray.Length -1) { j++; } else { j = 0; k++; }
+            Debug.Log($"j : {j}, k : {k}");
+            //if(j == 0) { midiNote += scale[j]; } else { midiNote += scale[j] - scale[j-1]; } 
+            midiNote = (firstMidiNote + (k * 12)) + scaleArray[j] - 1;
+        }
+
+        return newIntList; // TODO copy into array of exact size!
+    }
+
+    static public int[] GetMidiNotesInChord(){ // Chord chord, Root, scale, numNotes
+        //  create a (chord, relationship, chord) tuple list! -- relationships can be of same scale diatonic etc...
+        // Study some music theory for inspiration!!
+        // Advanced relations ?? 
+
+        int[] newArray = new int[0];
+        
+
+        return newArray;
+    }
+    /// <summary>
+    /// Input a midinote, a relation(eg. MajorThird), the relative octave(0 for current, -1 for previous, 1 for next)
+    /// Note : A MajorThird in the previous octave is the MajorThird minus an octave. The Ninth is the Second plus an octave.
+    /// </summary>
+    /// <returns>The other midinote in the relation (int)</returns>
+    static public int GetMidiNoteInRelation(){ // int midiNote, relation, relative octave (0 for current) 
+        return 0;
+    }
     
 }
 
