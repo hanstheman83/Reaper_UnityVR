@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: SmallHarp
   m_EditorClassIdentifier: 
   instrumentName: Cool Harp
-  numStrings: 60
-  startOctave: 1
+  numberOfStrings: 50
+  firstOctave: 1
   rootNote: 3
   scale: 1
   distanceBetweenStrings: 0.04
