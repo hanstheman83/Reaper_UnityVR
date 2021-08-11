@@ -8,11 +8,25 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs;
 
 namespace Core.Controls{
 
-public class CustomMoveProvider : ActionBasedContinuousMoveProvider
+/// <summary>
+/// Custom version of ActionBasedContinuousMoveProvider from Unity XR
+/// </summary>
+public class CustomMoveProvider : ActionBasedContinuousMoveProvider, IXR_CustomControls
 {
     public bool isDisabled = false;
     private bool oldState = false;
     [SerializeField]private ControlScheme_01 controlScheme_01;
+
+    /// <summary>
+    /// Pass in and activate controls for continous movement
+    /// </summary>
+    /// <param name="moveAction"></param>
+    public void ActivateMovement(InputActionProperty moveAction){ 
+        // enum for right/left hand
+    }
+    public void DeactivateMovement(){
+        // enum only
+    }
 
     protected new void OnEnable(){ // should prevent base OnEnable from being called..
         leftHandMoveAction = controlScheme_01.leftHandMoveAction;
@@ -39,6 +53,10 @@ public class CustomMoveProvider : ActionBasedContinuousMoveProvider
             }
         }
         oldState = isDisabled;
+    }
+
+    public void DisableAllControls(){
+
     }
     
 }

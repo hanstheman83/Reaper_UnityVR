@@ -2012,8 +2012,7 @@ PrefabInstance:
       propertyPath: UICanvasGameobject
       value: 
       objectReference: {fileID: 109888741}
-    m_RemovedComponents:
-    - {fileID: 1684297986, guid: adb76aa30dcfb7140a19435a84c05e67, type: 3}
+    m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: adb76aa30dcfb7140a19435a84c05e67, type: 3}
 --- !u!1001 &6076164336697666818
 PrefabInstance:
