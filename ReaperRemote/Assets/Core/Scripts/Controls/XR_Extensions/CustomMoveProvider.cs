@@ -13,51 +13,74 @@ namespace Core.Controls{
 /// </summary>
 public class CustomMoveProvider : ActionBasedContinuousMoveProvider, IXR_CustomControls
 {
-    public bool isDisabled = false;
-    private bool oldState = false;
-    [SerializeField]private ControlScheme_01 controlScheme_01;
+    // public bool isDisabled = false;
+    // private bool oldState = false;
+    // [SerializeField]private ControlScheme_01 controlScheme_01;
 
     /// <summary>
     /// Pass in and activate controls for continous movement
     /// </summary>
-    /// <param name="moveAction"></param>
-    public void ActivateMovement(InputActionProperty moveAction){ 
-        // enum for right/left hand
+    public void ActivateControl(InputActionProperty moveAction, ControllerHand controllerHand){ 
+        switch(controllerHand){
+            case ControllerHand.Left:
+                leftHandMoveAction = moveAction;
+                break;
+            case ControllerHand.Right:
+                rightHandMoveAction = moveAction;
+                break;
+        }
     }
-    public void DeactivateMovement(){
-        // enum only
+    public void DeactivateControl(ControllerHand controllerHand){
+        switch(controllerHand){
+            case ControllerHand.Left:
+                leftHandMoveAction = default;
+                break;
+            case ControllerHand.Right:
+                rightHandMoveAction = default;
+                break;
+        }
     }
 
     protected new void OnEnable(){ // should prevent base OnEnable from being called..
-        leftHandMoveAction = controlScheme_01.leftHandMoveAction;
-        // base.Awake();
-        // base.OnEnable();
+        //leftHandMoveAction = controlScheme_01.leftHandMoveAction;
+    }
+    protected new void OnDisable(){
+
     }
 
     
 
-    new void Update() {
-        base.Update();
-        // toggle
-        if(oldState != isDisabled){
-            if(isDisabled) {
-                leftHandMoveAction = default;
-                base.OnDisable();
-                Debug.Log("disabling input");
-                }
-            else {
-                leftHandMoveAction = controlScheme_01.leftHandMoveAction;
-                base.OnEnable();
+    // new void Update() {
+    //     base.Update();
+    //     // toggle
+    //     if(oldState != isDisabled){
+    //         if(isDisabled) {
+    //             leftHandMoveAction = default;
+    //             base.OnDisable();
+    //             Debug.Log("disabling input");
+    //             }
+    //         else {
+    //             leftHandMoveAction = controlScheme_01.leftHandMoveAction;
+    //             base.OnEnable();
 
-                Debug.Log("enabling input");
-            }
-        }
-        oldState = isDisabled;
-    }
+    //             Debug.Log("enabling input");
+    //         }
+    //     }
+    //     oldState = isDisabled;
+    // }
 
     public void DisableAllControls(){
 
     }
-    
+
+    public void DeactivateComponent()
+    {
+        this.enabled = false;
+    }
+
+    public void ActivateComponent()
+    {
+        this.enabled = true;
+    }
 }
 }

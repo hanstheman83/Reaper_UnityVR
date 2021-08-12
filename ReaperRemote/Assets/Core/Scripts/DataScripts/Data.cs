@@ -18,6 +18,8 @@ namespace Core.Data{
         Major, Minor7, MinorHarmonic 
     }
 
+    
+
 
 public static class Data{ // need init from GameObject
     private static bool init = false;

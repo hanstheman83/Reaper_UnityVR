@@ -36,8 +36,8 @@ public class ActionBasedControllerManager : MonoBehaviour
     /// <summary>
     /// Use this class to create a controller state and set up its enter, update, and exit events.
     /// </summary>
-    [Serializable]
-    public class ControllerState
+    [Serializable] // 
+    public class ControllerState // Inner class
     {
         [SerializeField] 
         [Tooltip("Sets the controller state to be active. " +
@@ -99,7 +99,7 @@ public class ActionBasedControllerManager : MonoBehaviour
         }
 
         public ControllerState(StateId defaultId = StateId.None) => this.id = defaultId;
-    }
+    } // End Inner Class
     
     [Space]
     [Header("Controller GameObjects") ]
@@ -283,8 +283,9 @@ public class ActionBasedControllerManager : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    protected void Start()
+    public void Start()
     {
+        Debug.Log("ActionBased manager called!");
         // Add states to the list
         m_DefaultStates.Add(m_SelectState);
         m_DefaultStates.Add(m_TeleportState);
