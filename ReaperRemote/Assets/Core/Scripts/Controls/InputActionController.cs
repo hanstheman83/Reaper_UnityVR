@@ -48,6 +48,13 @@ public class InputActionController : MonoBehaviour
         customSnapTurnProvider = FindObjectOfType<CustomSnapTurnProvider>();
     }
 
+    private void Start() {
+        // init
+        
+    }
+
+    
+
 
     void Update() {
         // toggle
@@ -83,8 +90,8 @@ public class InputActionController : MonoBehaviour
 
                 leftUI_Controller.SetActive(false);
                 leftTeleportController.SetActive(true);
-                leftActionBasedControllerManager.enabled = true;
-                leftActionBasedControllerManager.Start(); // TODO add this to right controller if script starts disabled...
+                
+                leftActionBasedControllerManager.enabled = true; // TODO add this to right controller if script starts disabled...
                 leftUI_InteractionController.enabled = false;
                 
                 rightActionBasedControllerManager.enabled = false;
