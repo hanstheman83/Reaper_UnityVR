@@ -155,7 +155,7 @@ RectTransform:
   m_Children:
   - {fileID: 1465367951}
   m_Father: {fileID: 2124762697}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1636,13 +1636,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 10
-  m_fontSizeBase: 10
+  m_fontSize: 6
+  m_fontSizeBase: 6
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -4194,7 +4194,7 @@ RectTransform:
   m_LocalScale: {x: 0.05, y: 0.06, z: 0.06}
   m_Children: []
   m_Father: {fileID: 2124762697}
-  m_RootOrder: 5
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -6046,7 +6046,7 @@ RectTransform:
   - {fileID: 1146033950}
   - {fileID: 2003572364}
   m_Father: {fileID: 2124762697}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -6234,9 +6234,6 @@ MonoBehaviour:
   instrumentsLocation: {fileID: 522926634}
   positionTransform: {fileID: 993298096}
   harp: {fileID: 11400000, guid: 608be5a5f1bcf654dac13a4f5ae059ee, type: 2}
-  rootDropdown: {fileID: 0}
-  scaleDropdown: {fileID: 0}
-  firstOctaveDropdown: {fileID: 0}
 --- !u!1 &1890604349
 GameObject:
   m_ObjectHideFlags: 0
@@ -7145,9 +7142,9 @@ RectTransform:
   - {fileID: 2103188238}
   - {fileID: 1355572397}
   - {fileID: 847577586}
+  - {fileID: 1307171063}
   - {fileID: 1756956705}
   - {fileID: 20736449}
-  - {fileID: 1307171063}
   - {fileID: 309200141}
   - {fileID: 1578665404}
   m_Father: {fileID: 993298096}
@@ -7253,6 +7250,7 @@ MonoBehaviour:
   rootDropdown: {fileID: 1355572398}
   scaleDropdown: {fileID: 847577587}
   firstOctaveDropdown: {fileID: 1756956706}
+  instrumentGenerator: {fileID: 1832532884}
 --- !u!1 &2134580153
 GameObject:
   m_ObjectHideFlags: 0
@@ -7337,13 +7335,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 10
-  m_fontSizeBase: 10
+  m_fontSize: 6
+  m_fontSizeBase: 6
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535

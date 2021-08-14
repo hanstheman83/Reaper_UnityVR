@@ -112,11 +112,11 @@ public static class Data{ // need init from GameObject
     /// <returns>Midi Notes in scale (int[])</returns>
     static public List<int> GetMidiNotesInScale(Scale scale, RootNote rootNote, int firstOctave, int numberOfNotes){
         List<int> newIntList = new List<int>();
-        if(rootNotes.TryGetValue(rootNote, out var innerDic)){ Debug.LogError("No key found!"); }
+        if(!rootNotes.TryGetValue(rootNote, out var innerDic)){ Debug.LogError("No key found!"); }
         if(!innerDic.TryGetValue(firstOctave, out int firstMidiNote)){ Debug.LogError("No key found!"); } // first midiNote is the root note in specified octave
         int midiNote = firstMidiNote;
         Debug.Log("First midi note " + midiNote);
-        if(scales.TryGetValue(scale, out int[] scaleArray)) { Debug.LogError("No key found!"); }
+        if(!scales.TryGetValue(scale, out int[] scaleArray)) { Debug.LogError("No key found!"); }
         int j = 0; int k = 0;
 
         for(int i = 0; i < numberOfNotes; i++){
