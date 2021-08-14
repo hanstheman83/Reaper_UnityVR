@@ -46,7 +46,7 @@ public class HitInteractor : MonoBehaviour
     public void ResetTrigger(Collider other){
         Debug.Log("Triggered Exiting!");
         //GetComponent<Renderer>().material.color = Color.blue;
-        transmitter.TransmitMidi(false, midiNote, 0);
+        transmitter.TransmitMidi(false, midiNote, 0); // 0 is velocity 0, also note off event
     }
 
     

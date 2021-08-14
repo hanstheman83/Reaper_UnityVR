@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-namespace Core.Data{
+namespace Core{
     /// <summary>
     /// All 12 notes in the western chromatic musical scale.
     /// Contains duplicate notes eg. C_Sharp and D_Flat

@@ -2,8 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DataTransfer = Core.IO;
-using Core.Data;
 
+namespace Core.Instruments{
 
 public class InstrumentGenerator : MonoBehaviour
 {
@@ -11,11 +11,16 @@ public class InstrumentGenerator : MonoBehaviour
     [SerializeField] private Transform positionTransform;
     [SerializeField] private Harp harp;
     private Vector3 position;
+    private List<GameObject> listStrings;
+    
     
 
     // Start is called before the first frame update
     void Start()
     {
+        listStrings = new List<GameObject>();
+
+
         Data.Init();
 
         GenerateInstrument3();
@@ -29,6 +34,7 @@ public class InstrumentGenerator : MonoBehaviour
 
             for(int i = 0; i < allMidiNotesInScale.Count; i++){
                 GameObject newString = new GameObject("String MidiNote " + allMidiNotesInScale[i]); // new GameObject same as Instantiate (creates in scene..)
+                listStrings.Add(newString);
                 newString.transform.SetParent(newInstrument.transform);
                 newString.transform.localPosition = Vector3.zero;
                 // displace from zero at newHarp
@@ -48,6 +54,8 @@ public class InstrumentGenerator : MonoBehaviour
             }
         }
 
+
+        #region old code
         void GenerateInstrument2()
         {
             GameObject newInstrument = new GameObject("new harp");
@@ -100,8 +108,6 @@ public class InstrumentGenerator : MonoBehaviour
             
         }
 
-
-
         void GenerateInstrument(){
             int numStrings = harp.numberOfStrings;
             // A0: midi note 21, C3 : Midi note 48, 
@@ -138,7 +144,33 @@ public class InstrumentGenerator : MonoBehaviour
                 currentString++;
             }
 
+        #endregion old code
 
         }
+    } // end Start()
+
+    #region UI Callbacks
+    public void ChangeScale(RootNote root, Scale scale, int firstOctave){
+        // loop through list and change midinotes
+        List<int> allMidiNotesInScale = Data.GetMidiNotesInScale(scale, root, firstOctave, listStrings.Count);
+        for(int i = 0; i < allMidiNotesInScale.Count; i++){
+            GameObject someString = listStrings[i];
+            someString.GetComponent<HitInteractor>().MidiNote = allMidiNotesInScale[i];
+            someString.name = "String MidiNote " + allMidiNotesInScale[i];
+        }
     }
+
+    
+    
+    
+    
+    
+    
+    #endregion UI Callbacks
+
+
+
+
+
+} // end Class 
 }

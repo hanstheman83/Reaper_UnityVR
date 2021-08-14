@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Core.Data;
+
+namespace Core.Instruments{
 
 public class Instrument : ScriptableObject
 {
     public string instrumentName;
+}
+
 }

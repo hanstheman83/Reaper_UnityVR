@@ -1,11 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Core.Data;
+
+namespace Core.Instruments{
 
 [CreateAssetMenu(fileName = "Harp", menuName = "Instruments/harp")]
-
-
 public class Harp : Instrument
 {
     public int numberOfStrings;
@@ -13,4 +12,6 @@ public class Harp : Instrument
     public RootNote rootNote;
     public Scale scale;
     public float distanceBetweenStrings, stringWidth, stringLength;
+}
+
 }
