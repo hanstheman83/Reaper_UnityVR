@@ -9,7 +9,7 @@ namespace Core.IO
 	{
 		#region Public Vars
 
-		public string Address = "/example/1";
+		public string Address = "/play";
 
 		[Header("OSC Settings")]
 		public OSCReceiver Receiver;
@@ -29,6 +29,7 @@ namespace Core.IO
 
 		private void ReceivedMessage(OSCMessage message)
 		{
+			Debug.Log("Message received");
 			Debug.LogFormat("Received: {0}", message);
 		}
 
