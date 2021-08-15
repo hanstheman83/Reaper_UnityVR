@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DataTransfer = Core.IO;
+using Core.Interactions;
 
 namespace Core.Instruments{
 
@@ -10,6 +11,7 @@ public class InstrumentGenerator : MonoBehaviour
     [SerializeField] private GameObject instrumentsLocation;
     [SerializeField] private Transform positionTransform;
     [SerializeField] private Harp harp;
+    [SerializeField] private GameObject stringObject;
     private Vector3 position;
     private List<GameObject> listStrings;
     
@@ -23,9 +25,37 @@ public class InstrumentGenerator : MonoBehaviour
 
         Data.Init();
 
-        GenerateInstrument3();
+        GenerateInstrument4();
 
-        void GenerateInstrument3(){
+        void GenerateInstrument4(){ // with string prefab
+            Debug.Log("Generating instrument".Colorize(Color.cyan));
+            GameObject newInstrument = new GameObject("new harp");
+            newInstrument.transform.position = positionTransform.position;
+            newInstrument.transform.SetParent(instrumentsLocation.transform); 
+            List<int> allMidiNotesInScale = Data.GetMidiNotesInScale(harp.scale, harp.rootNote, harp.firstOctave, harp.numberOfStrings);
+            for(int i = 0; i < allMidiNotesInScale.Count; i++){
+                GameObject newString = Instantiate(stringObject, newInstrument.transform);
+                Debug.Log("newString instantiated..".Colorize(Color.blue));
+                newString.name = "String MidiNote " + allMidiNotesInScale[i]; // new GameObject same as Instantiate (creates in scene..)
+                listStrings.Add(newString);
+                // newString.transform.SetParent(newInstrument.transform);
+                newString.transform.localPosition = Vector3.zero;
+                // change size etc.. child cube is scaled.
+                // displace from zero at newHarp
+                float stringOffset = harp.stringLength/2;
+                newString.transform.localPosition = new Vector3(i * harp.distanceBetweenStrings, stringOffset, 0);
+                GameObject cube = newString.transform.Find("Cube").gameObject;
+                Debug.Log("cube found ? ".Colorize(Color.blue)+ (cube ? "found" : "not found").Colorize(Color.green));
+                cube.transform.localScale = new Vector3(harp.stringWidth, harp.stringLength, harp.stringWidth);
+                HitInteractor hitInteractor = newString.GetComponent<HitInteractor>();
+                hitInteractor.MidiNote = allMidiNotesInScale[i];
+                hitInteractor.Transmitter = FindObjectOfType<DataTransfer::MTransmitter>();
+                // set transmitter
+            }
+
+        }
+
+        void GenerateInstrument3(){ // Generate without prefab
 
             GameObject newInstrument = new GameObject("new harp");
             newInstrument.transform.position = positionTransform.position;
@@ -46,10 +76,11 @@ public class InstrumentGenerator : MonoBehaviour
                 // cylinder is 2m height by default
                 cube.transform.localScale = new Vector3(harp.stringWidth, harp.stringLength, harp.stringWidth);
                 cube.GetComponent<Collider>().isTrigger = true;
+                ChildTrigger childTrigger = cube.AddComponent<ChildTrigger>();
                 HitInteractor hitInteractor = newString.AddComponent<HitInteractor>();
+
                 hitInteractor.MidiNote = allMidiNotesInScale[i];
                 hitInteractor.Transmitter = FindObjectOfType<DataTransfer::MTransmitter>();
-                cube.AddComponent<ChildTrigger>();
                 cube.layer = LayerMask.NameToLayer("MusicInteraction");
             }
         }
