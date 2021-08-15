@@ -162,6 +162,14 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "Trigger Velocity",
+                    "type": "Value",
+                    "id": "5fa0d4d2-2af5-48af-a728-bf78097a291f",
+                    "expectedControlType": "Axis",
+                    "processors": "AxisDeadzone",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -503,6 +511,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Switch UI",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1b3b5f59-4304-4337-941c-0ad86a3d7c5b",
+                    "path": "<XRController>{LeftHand}/triggerPressed",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Trigger Velocity",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -1028,6 +1047,11 @@
                     "isOR": false
                 }
             ]
+        },
+        {
+            "name": "Musical Interaction",
+            "bindingGroup": "Musical Interaction",
+            "devices": []
         }
     ]
 }

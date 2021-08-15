@@ -7478,13 +7478,25 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: mainAsset
+      value: 
+      objectReference: {fileID: -944628639613478452, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
       propertyPath: rightIsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: leftXRIMap.m_Id
+      value: ce610aab-e7f0-4d79-97b3-dbb4b47adb98
       objectReference: {fileID: 0}
     - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
       propertyPath: leftUI_Controller
       value: 
       objectReference: {fileID: 1647850898}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: leftXRIMap.m_Name
+      value: Left XRI Map
+      objectReference: {fileID: 0}
     - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
       propertyPath: rightUI_Controller
       value: 
@@ -7506,6 +7518,10 @@ PrefabInstance:
       value: 168cca62-a3bc-4d0d-8122-c4b6c4d541ea
       objectReference: {fileID: 0}
     - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: leftTrigger.m_Reference
+      value: 
+      objectReference: {fileID: 3365778555929430344, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
       propertyPath: leftTurn.m_UseReference
       value: 1
       objectReference: {fileID: 0}
@@ -7526,25 +7542,81 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: leftTrigger.m_Action.m_Id
+      value: 04f2ab8f-0029-421f-b92f-329cabf11d6d
+      objectReference: {fileID: 0}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
       propertyPath: rightMove.m_Action.m_Name
       value: Right Move
+      objectReference: {fileID: 0}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: leftTrigger.m_UseReference
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: rightTrigger.m_Action.m_Id
+      value: d5819f61-2755-4894-95c3-2ffbc4c7bd36
+      objectReference: {fileID: 0}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: leftTrigger.m_Action.m_Name
+      value: Left Trigger
+      objectReference: {fileID: 0}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: rightTrigger.m_UseReference
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
       propertyPath: leftUI_InteractionController
       value: 
       objectReference: {fileID: 2061610441}
     - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: rightTrigger.m_Action.m_Name
+      value: Right Trigger
+      objectReference: {fileID: 0}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
       propertyPath: rightUI_InteractionController
       value: 
       objectReference: {fileID: 806645728}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: leftXRIMap.m_Actions.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
       propertyPath: leftActionBasedControllerManager
       value: 
       objectReference: {fileID: 2061610442}
     - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: leftXRIMap.m_Bindings.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
       propertyPath: rightActionBasedControllerManager
       value: 
       objectReference: {fileID: 806645727}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: leftXRIMap.m_Actions.Array.data[0].m_Id
+      value: 25109f34-2748-45ce-9599-0b08f13b096b
+      objectReference: {fileID: 0}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: leftXRIMap.m_Bindings.Array.data[0].m_Id
+      value: a3001070-fa23-48c2-a693-970d7363d501
+      objectReference: {fileID: 0}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: leftXRIMap.m_Actions.Array.data[0].m_Name
+      value: New action
+      objectReference: {fileID: 0}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: leftXRIMap.m_Actions.Array.data[0].m_Type
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: leftXRIMap.m_Bindings.Array.data[0].m_Action
+      value: New action
+      objectReference: {fileID: 0}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: leftXRIMap.m_Actions.Array.data[0].m_ExpectedControlType
+      value: Button
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
 --- !u!1001 &6076164336697666818
