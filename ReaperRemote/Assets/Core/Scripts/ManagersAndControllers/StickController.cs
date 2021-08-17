@@ -14,8 +14,17 @@ public class StickController : MonoBehaviour, IContinousTrigger
     [SerializeField] private Renderer rendererOfStickHead;
     public string NameOfTriggerController {get => nameOfTriggerController;} // name accessible from list of all controllers implementing IContinousTrigger
     private DataHandler triggerDataFlow;
+    // private string interactorName;
+    private ControllerHand controlledBy;
+    public ControllerHand ControlledBy {get => controlledBy;}
     public DataHandler TriggerDataFlow {get => triggerDataFlow;}
     [SerializeField] private XRGrabInteractable grabInteractable;
+
+
+    private void Awake() {
+        controlledBy = ControllerHand.None;
+    }
+
 
     // need both controllers registered - will filter on hand attachment!
     public void RegisterTriggerControl(InputActionController inputActionController, ControllerHand hand, DataHandler dataFlow)
@@ -36,12 +45,20 @@ public class StickController : MonoBehaviour, IContinousTrigger
     private void ProcessInput(float val, ControllerHand hand){
         switch(hand){
             case ControllerHand.Left:
-                // check lefthand is holding stick
+                if(controlledBy == ControllerHand.Left){
+                    Debug.Log("Left Trigger processing".Colorize(Color.green) + (" val : "+val).Colorize(Color.white) );
+                }
+                // check lefthand is holding stick or ignore
                 //grabInteractable.
                 // https://forum.unity.com/threads/how-to-get-which-hand-is-grabbing-an-xr-grab-interactable-object.946045/
                 // process input
                 break;
             case ControllerHand.Right:
+                if(controlledBy == ControllerHand.Right){
+                    Debug.Log("Right Trigger processing".Colorize(Color.green) + (" val : "+val).Colorize(Color.white) );
+                }
+                break;
+            case ControllerHand.None:
                 break;
         }
 
@@ -53,11 +70,22 @@ public class StickController : MonoBehaviour, IContinousTrigger
         // process based on triggerDataFlow
         // Debug.Log($"val : {val}".Colorize(Color.black));
     }
-    
+
+    // TODO implement shared interface for direct and ray interactor    
     public void OnSelected(SelectEnterEventArgs args){
         // set hand holding it
-        string interactorName = args.interactor.name;
-        Debug.Log("interactorName".Colorize(Color.green) + interactorName.Colorize(Color.red));
+        CustomDirectInteractor customDirectInteractor = (CustomDirectInteractor)args.interactor;
+        controlledBy = customDirectInteractor.ControllerHand;        
+    }
+
+    public void OnDeselected(SelectExitEventArgs args){
+        CustomDirectInteractor customDirectInteractor = (CustomDirectInteractor)args.interactor;
+        if( customDirectInteractor.ControllerHand != controlledBy){
+            Debug.LogError("Name mismatch!");
+        }
+        // can the other controller steal the stick, prevent stealing from changing interaction layer ? 
+        controlledBy = ControllerHand.None;
+        
     }
 
 

@@ -164,11 +164,11 @@
                     "interactions": ""
                 },
                 {
-                    "name": "Trigger Velocity",
+                    "name": "Trigger Continous",
                     "type": "Value",
                     "id": "5fa0d4d2-2af5-48af-a728-bf78097a291f",
                     "expectedControlType": "",
-                    "processors": "AxisDeadzone",
+                    "processors": "",
                     "interactions": ""
                 }
             ],
@@ -497,9 +497,9 @@
                     "id": "1fd42313-ab6c-4e4d-b1c1-6cd6cc58cb15",
                     "path": "<XRController>{LeftHand}/trigger",
                     "interactions": "",
-                    "processors": "",
+                    "processors": "AxisDeadzone",
                     "groups": "",
-                    "action": "Trigger Velocity",
+                    "action": "Trigger Continous",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -640,6 +640,14 @@
                     "type": "Button",
                     "id": "3de21e25-f07b-433c-baac-4c44bc46bfbd",
                     "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Trigger Continous",
+                    "type": "Value",
+                    "id": "ab6c3951-b80d-4c39-a453-fc48d3829d0d",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": ""
                 }
@@ -983,6 +991,17 @@
                     "processors": "StickDeadzone",
                     "groups": "Continuous Move",
                     "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0d662597-9818-495b-b0ce-daa972843cee",
+                    "path": "<XRController>{RightHand}/trigger",
+                    "interactions": "",
+                    "processors": "AxisDeadzone",
+                    "groups": "",
+                    "action": "Trigger Continous",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

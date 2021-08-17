@@ -43,6 +43,7 @@ public class InputActionController : MonoBehaviour
     // InputActionReferences for own Input manipulations
     // https://docs.unity3d.com/Manual/xr_input.html
     [SerializeField] private InputActionReference XR_leftTriggerPress;
+    [SerializeField] private InputActionReference XR_rightTriggerPress;
 
     private List<IContinousTrigger> continousTriggers; // TODO also implement left/right
     public delegate void LeftTriggerPressed(float val, ControllerHand controllerHand);
@@ -57,6 +58,7 @@ public class InputActionController : MonoBehaviour
         customMoveProvider = FindObjectOfType<CustomMoveProvider>();
         customSnapTurnProvider = FindObjectOfType<CustomSnapTurnProvider>();
         XR_leftTriggerPress.action.performed += ProcessLeftTrigger;
+        XR_rightTriggerPress.action.performed += ProcessRightTrigger;
         
         // All prefabs implementing interface! - so can assign different controls per gameobject!
         // problem : filtering in UI, can filter by type.
@@ -70,10 +72,16 @@ public class InputActionController : MonoBehaviour
 
     private void Start() {
         continousTriggers[0].RegisterTriggerControl(this, ControllerHand.Left, DataHandler.Reversed);
+        continousTriggers[0].RegisterTriggerControl(this, ControllerHand.Right, DataHandler.Reversed);
+        continousTriggers[1].RegisterTriggerControl(this, ControllerHand.Left, DataHandler.Reversed);
+        continousTriggers[1].RegisterTriggerControl(this, ControllerHand.Right, DataHandler.Reversed);
     }
 
     private void ProcessLeftTrigger(InputAction.CallbackContext obj){
         leftTriggerPressed(obj.ReadValue<float>(), ControllerHand.Left);
+    }
+    private void ProcessRightTrigger(InputAction.CallbackContext obj){
+        rightTriggerPressed(obj.ReadValue<float>(), ControllerHand.Right);
     }
 
     void Test(InputAction.CallbackContext obj){
