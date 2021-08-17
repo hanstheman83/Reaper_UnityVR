@@ -8,14 +8,12 @@ using System;
 
 public class UI_InteractionController : MonoBehaviour
 {
-    [SerializeField]
-    GameObject UIController;
+    [SerializeField] GameObject UIController;
 
-    [SerializeField]
-    GameObject BaseController;
+    [SerializeField] GameObject BaseController;
 
-    [SerializeField]
-    InputActionReference inputActionReference_UISwitcher;
+    // TODO implement new interface - main buttons (a,b,x,y)
+    [SerializeField] InputActionReference inputActionReference_UISwitcher;
 
     bool isUICanvasActive = false;
 

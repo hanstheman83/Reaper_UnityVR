@@ -167,7 +167,7 @@
                     "name": "Trigger Velocity",
                     "type": "Value",
                     "id": "5fa0d4d2-2af5-48af-a728-bf78097a291f",
-                    "expectedControlType": "Axis",
+                    "expectedControlType": "",
                     "processors": "AxisDeadzone",
                     "interactions": ""
                 }
@@ -258,28 +258,6 @@
                     "processors": "",
                     "groups": "Generic XR Controller",
                     "action": "Teleport Mode Cancel",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "95fa1419-ca7b-4c8a-8d15-7d46e58d82e3",
-                    "path": "<XRController>{LeftHand}/Primary2DAxis",
-                    "interactions": "Sector(directions=-1,sweepBehavior=3)",
-                    "processors": "",
-                    "groups": "Noncontinuous Move",
-                    "action": "Teleport Select",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "14a27f53-867e-4d15-92d9-3e36deb55b1b",
-                    "path": "<XRController>{LeftHand}/primaryButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Generic XR Controller",
-                    "action": "Teleport Select",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -516,12 +494,34 @@
                 },
                 {
                     "name": "",
-                    "id": "1b3b5f59-4304-4337-941c-0ad86a3d7c5b",
-                    "path": "<XRController>{LeftHand}/triggerPressed",
+                    "id": "1fd42313-ab6c-4e4d-b1c1-6cd6cc58cb15",
+                    "path": "<XRController>{LeftHand}/trigger",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Trigger Velocity",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "95fa1419-ca7b-4c8a-8d15-7d46e58d82e3",
+                    "path": "<XRController>{LeftHand}/Primary2DAxis",
+                    "interactions": "Sector(directions=-1,sweepBehavior=3)",
+                    "processors": "",
+                    "groups": "Noncontinuous Move",
+                    "action": "Teleport Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "14a27f53-867e-4d15-92d9-3e36deb55b1b",
+                    "path": "<XRController>{LeftHand}/primaryButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "Teleport Select",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

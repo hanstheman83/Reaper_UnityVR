@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Linq;
 
 
 
@@ -14,9 +15,6 @@ public class InputActionController : MonoBehaviour
 {
     public bool rightIsActive = true;
     private bool oldState = false;
-
-    //[SerializeField] private InputActionMap leftXRIMap; // setup of combinable actions
-    //[SerializeField] InputActionAsset mainAsset;
 
     [SerializeField] private ActionBasedControllerManager leftActionBasedControllerManager;
     [SerializeField] private ActionBasedControllerManager rightActionBasedControllerManager;
@@ -34,46 +32,50 @@ public class InputActionController : MonoBehaviour
     // dictionary of xr control to action
     // problem : some controls use multiple controls ?
 
-    [SerializeField]private InputActionProperty leftMove;
-    [SerializeField]private InputActionProperty rightMove;
-    [SerializeField]private InputActionProperty leftTurn;
-    [SerializeField]private InputActionProperty rightTurn;
-    [SerializeField]private InputActionProperty leftTrigger;
-    [SerializeField]private InputActionProperty rightTrigger;
+    // InputActionProperties for XR components
+    [SerializeField] private InputActionProperty leftMove;
+    [SerializeField] private InputActionProperty rightMove;
+    [SerializeField] private InputActionProperty leftTurn;
+    [SerializeField] private InputActionProperty rightTurn;
+    [SerializeField] private InputActionProperty leftTrigger;
+    [SerializeField] private InputActionProperty rightTrigger;
 
-    private InputAction combined;
+    // InputActionReferences for own Input manipulations
+    // https://docs.unity3d.com/Manual/xr_input.html
+    [SerializeField] private InputActionReference XR_leftTriggerPress;
 
-
-    // perhaps use these as a compilation/set of controls
-
-    // control components should start disactivated
+    private List<IContinousTrigger> continousTriggers; // TODO also implement left/right
+    public delegate void LeftTriggerPressed(float val, ControllerHand controllerHand);
+    public delegate void RightTriggerPressed(float val, ControllerHand controllerHand);
+    // https://stackoverflow.com/questions/3028724/why-do-we-need-the-event-keyword-while-defining-events
+    public event LeftTriggerPressed leftTriggerPressed;
+    public event RightTriggerPressed rightTriggerPressed;
+    
     
     private void Awake() {
         // search for components ? or hard-link
         customMoveProvider = FindObjectOfType<CustomMoveProvider>();
         customSnapTurnProvider = FindObjectOfType<CustomSnapTurnProvider>();
-
-        #region old code
-        combined = new InputAction();
-        // Debug.Log(leftTrigger.action.bindings[0].ToString().Colorize(Color.black));
-        combined.AddCompositeBinding("Axis").
-            With("Positive", "<XRController>{RightHand}/triggerPressed").
-            With("Negative", "<XRController>{LeftHand}/triggerPressed");
-        combined.Enable();
-        //    https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/api/UnityEngine.InputSystem.InputAction.html
-        combined.started += context => Debug.Log($"{context.action} started");
-        combined.performed += context => Debug.Log($"{context.action} performed");
-        combined.canceled += context => Debug.Log($"{context.action} canceled");
-        combined.started += Test;
+        XR_leftTriggerPress.action.performed += ProcessLeftTrigger;
         
-        // https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/ActionBindings.html
-        // https://forum.unity.com/threads/trying-to-define-a-custom-composite-to-the-new-unity-input-system-but-failing-somewhere.904889/
-        // new input system still unstable!!
-
-        #endregion old code
-
-        
+        // All prefabs implementing interface! - so can assign different controls per gameobject!
+        // problem : filtering in UI, can filter by type.
+        continousTriggers = new List<IContinousTrigger>(); // list will have different component types implementing the interface
+        var ss = FindObjectsOfType<MonoBehaviour>().OfType<IContinousTrigger>();
+            foreach (IContinousTrigger t in ss) {
+                continousTriggers.Add (t);
+            }
+        Debug.Log($"Number of IContinousTrigger { ss.Count()} "); 
     }
+
+    private void Start() {
+        continousTriggers[0].RegisterTriggerControl(this, ControllerHand.Left, DataHandler.Reversed);
+    }
+
+    private void ProcessLeftTrigger(InputAction.CallbackContext obj){
+        leftTriggerPressed(obj.ReadValue<float>(), ControllerHand.Left);
+    }
+
     void Test(InputAction.CallbackContext obj){
         Debug.Log("Test!".Colorize(Color.black));
         Debug.Log("action type :" + obj.valueType);
@@ -82,15 +84,19 @@ public class InputActionController : MonoBehaviour
         Debug.Log($"value {v}".Colorize(Color.green));
     }
 
-    private void Start() {
-        // init
-        
+    
+    void Test(float val){
+        //Debug.Log("testing..");
     }
+
+
 
     
 
 
     void Update() {
+
+        //leftTriggerPressed(.2f);
         // toggle
         if(oldState != rightIsActive){
             if(rightIsActive) {

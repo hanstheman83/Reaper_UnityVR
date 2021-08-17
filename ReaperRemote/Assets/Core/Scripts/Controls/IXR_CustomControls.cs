@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 namespace Core.Controls{
 
-    public enum ControllerHand{Left, Right} // TODO move to other class!
+    
 
 public interface IXR_CustomControls
 {

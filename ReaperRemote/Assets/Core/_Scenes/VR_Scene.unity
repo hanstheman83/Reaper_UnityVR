@@ -3088,6 +3088,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6343026719722883219, guid: e827dd48d5c6f2b41b45b78ec8ae705f, type: 3}
+      propertyPath: nameOfController
+      value: Another Drum Stick
+      objectReference: {fileID: 0}
+    - target: {fileID: 8931155100034667299, guid: e827dd48d5c6f2b41b45b78ec8ae705f, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e827dd48d5c6f2b41b45b78ec8ae705f, type: 3}
 --- !u!1 &1058558235
@@ -5599,6 +5607,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1578665403}
   m_CullTransparentMesh: 1
+--- !u!114 &1612235067 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6343026719722883219, guid: e827dd48d5c6f2b41b45b78ec8ae705f, type: 3}
+  m_PrefabInstance: {fileID: 7060208111337017516}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f72489a9936684b90b6882c4ecf84d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1646252597
 GameObject:
   m_ObjectHideFlags: 0
@@ -7502,6 +7521,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1419602148}
     - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
+      propertyPath: XR_leftTriggerPress
+      value: 
+      objectReference: {fileID: 3365778555929430344, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+    - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
       propertyPath: leftTurn.m_Reference
       value: 
       objectReference: {fileID: 6972639530819350904, guid: c348712bda248c246b8c49b3db54643f, type: 3}
@@ -7563,7 +7586,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
       propertyPath: rightTrigger.m_UseReference
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5978172690127664223, guid: c853cc5eae4e2244db66859fca0c1870, type: 3}
       propertyPath: leftUI_InteractionController
@@ -7738,6 +7761,34 @@ PrefabInstance:
     - target: {fileID: 4410605242555111277, guid: e827dd48d5c6f2b41b45b78ec8ae705f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8931155100034667299, guid: e827dd48d5c6f2b41b45b78ec8ae705f, type: 3}
+      propertyPath: m_SelectEntered.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8931155100034667299, guid: e827dd48d5c6f2b41b45b78ec8ae705f, type: 3}
+      propertyPath: m_SelectEntered.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8931155100034667299, guid: e827dd48d5c6f2b41b45b78ec8ae705f, type: 3}
+      propertyPath: m_SelectEntered.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1612235067}
+    - target: {fileID: 8931155100034667299, guid: e827dd48d5c6f2b41b45b78ec8ae705f, type: 3}
+      propertyPath: m_SelectEntered.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8931155100034667299, guid: e827dd48d5c6f2b41b45b78ec8ae705f, type: 3}
+      propertyPath: m_SelectEntered.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnSelected
+      objectReference: {fileID: 0}
+    - target: {fileID: 8931155100034667299, guid: e827dd48d5c6f2b41b45b78ec8ae705f, type: 3}
+      propertyPath: m_SelectEntered.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: StickController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 8931155100034667299, guid: e827dd48d5c6f2b41b45b78ec8ae705f, type: 3}
+      propertyPath: m_SelectEntered.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e827dd48d5c6f2b41b45b78ec8ae705f, type: 3}
