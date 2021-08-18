@@ -92,19 +92,7 @@ public class InputActionController : MonoBehaviour
         Debug.Log($"value {v}".Colorize(Color.green));
     }
 
-    
-    void Test(float val){
-        //Debug.Log("testing..");
-    }
-
-
-
-    
-
-
     void Update() {
-
-        //leftTriggerPressed(.2f);
         // toggle
         if(oldState != rightIsActive){
             if(rightIsActive) {

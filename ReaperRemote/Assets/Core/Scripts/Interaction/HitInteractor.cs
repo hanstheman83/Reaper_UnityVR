@@ -33,7 +33,7 @@ public class HitInteractor : MonoBehaviour
         Debug.Log("Triggered!");
         //GetComponent<Renderer>().material.color = Color.red;
         // start note
-        transmitter.TransmitMidi(true, midiNote, 80);
+        transmitter.TransmitMidi(true, midiNote, other.GetComponentInParent<IHitVelocity>().HitVelocity);
 
     }
 

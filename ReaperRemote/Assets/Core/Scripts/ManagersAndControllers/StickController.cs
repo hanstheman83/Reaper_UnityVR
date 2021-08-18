@@ -8,21 +8,29 @@ using System;
 using Core;
 using UnityEngine.XR.Interaction.Toolkit;
 
-public class StickController : MonoBehaviour, IContinousTrigger
-{
+public class StickController : MonoBehaviour, IContinousTrigger, IHitVelocity
+{    
     [SerializeField] private string nameOfTriggerController;
-    [SerializeField] private Renderer rendererOfStickHead;
     public string NameOfTriggerController {get => nameOfTriggerController;} // name accessible from list of all controllers implementing IContinousTrigger
-    private DataHandler triggerDataFlow;
-    // private string interactorName;
+    [SerializeField] private XRGrabInteractable grabInteractable;
+    [SerializeField] private Renderer rendererOfStickHead;
+    
+    [Header("Materials Lerp")]
+    [SerializeField] private Material materialFlat;
+    [SerializeField] private Material materialGlowing;
     private ControllerHand controlledBy;
     public ControllerHand ControlledBy {get => controlledBy;}
+    private DataHandler triggerDataFlow;
     public DataHandler TriggerDataFlow {get => triggerDataFlow;}
-    [SerializeField] private XRGrabInteractable grabInteractable;
+    private int hitVelocity;
+    public int HitVelocity { get => hitVelocity; }
+    
+    private float lerp = 0f;
 
 
     private void Awake() {
         controlledBy = ControllerHand.None;
+        hitVelocity = 0;
     }
 
 
@@ -47,6 +55,7 @@ public class StickController : MonoBehaviour, IContinousTrigger
             case ControllerHand.Left:
                 if(controlledBy == ControllerHand.Left){
                     Debug.Log("Left Trigger processing".Colorize(Color.green) + (" val : "+val).Colorize(Color.white) );
+                    lerp = val;
                 }
                 // check lefthand is holding stick or ignore
                 //grabInteractable.
@@ -56,26 +65,28 @@ public class StickController : MonoBehaviour, IContinousTrigger
             case ControllerHand.Right:
                 if(controlledBy == ControllerHand.Right){
                     Debug.Log("Right Trigger processing".Colorize(Color.green) + (" val : "+val).Colorize(Color.white) );
+                    lerp = val;
                 }
                 break;
             case ControllerHand.None:
+                // flat material
+                lerp = 0;
                 break;
         }
+        rendererOfStickHead.material.Lerp(materialFlat, materialGlowing, lerp);
+        hitVelocity = (int)(Mathf.Round(lerp * 126f));
+    
 
-        // Switch based on Hand holding it..
-        // Get the velocity from this component!
-
+        // changing several materials
         // rendering https://answers.unity.com/questions/1685162/materialcolor-only-changing-one-instance-of-object.html 
-
-        // process based on triggerDataFlow
-        // Debug.Log($"val : {val}".Colorize(Color.black));
     }
 
     // TODO implement shared interface for direct and ray interactor    
     public void OnSelected(SelectEnterEventArgs args){
         // set hand holding it
         CustomDirectInteractor customDirectInteractor = (CustomDirectInteractor)args.interactor;
-        controlledBy = customDirectInteractor.ControllerHand;        
+        controlledBy = customDirectInteractor.ControllerHand;  
+        Debug.Log($"OnSelected. Controlled by : {controlledBy}".Colorize(Color.magenta));      
     }
 
     public void OnDeselected(SelectExitEventArgs args){
@@ -85,6 +96,9 @@ public class StickController : MonoBehaviour, IContinousTrigger
         }
         // can the other controller steal the stick, prevent stealing from changing interaction layer ? 
         controlledBy = ControllerHand.None;
+        rendererOfStickHead.material = materialFlat;
+        Debug.Log($"OnDeselected. Controlled by : {controlledBy}".Colorize(Color.magenta));      
+        lerp = 0;
         
     }
 
