@@ -37,8 +37,6 @@ public class ScaleGeneratorUI : MonoBehaviour
             firstOctaveDropdown.options = tmpList;
         }
 
-
-
         void InitScalesDropdown(){
             var scalesOptions = new List<TMP_Dropdown.OptionData>();
             string[] scalesList = System.Enum.GetNames (typeof(Scale));
@@ -56,7 +54,9 @@ public class ScaleGeneratorUI : MonoBehaviour
             string[] rootsList = System.Enum.GetNames (typeof(RootNote));
             for(int i = 0; i < rootsList.Length; i++){
                 // Debug.Log (rootsList[i]);
-                rootNotesOptions.Add( new TMP_Dropdown.OptionData(rootsList[i]) );
+                //rootNotesOptions.Add( new TMP_Dropdown.OptionData(rootsList[i]) );
+                rootNotesOptions.Add( new TMP_Dropdown.OptionData(
+                    rootsList[i].Replace("_", String.Empty).Replace("Sharp", "#").Replace("Flat", "b") )); 
             }
             rootDropdown.options = rootNotesOptions;
         }
