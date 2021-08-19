@@ -17,6 +17,6 @@ MonoBehaviour:
   firstOctave: 1
   rootNote: 3
   scale: 1
-  distanceBetweenStrings: 0.04
-  stringWidth: 0.01
+  distanceBetweenStrings: 0.022
+  stringWidth: 0.013
   stringLength: 0.8

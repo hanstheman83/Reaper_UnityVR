@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using DataTransfer = Core.IO;
 using Core.Interactions;
+using System;
 
 namespace Core.Instruments{
 
@@ -52,9 +53,11 @@ public class InstrumentGenerator : MonoBehaviour
                 hitInteractor.Transmitter = FindObjectOfType<DataTransfer::MTransmitter>();
                 // set transmitter
             }
+            GC.Collect();
 
         }
 
+        #region old code
         void GenerateInstrument3(){ // Generate without prefab
 
             GameObject newInstrument = new GameObject("new harp");
@@ -86,7 +89,6 @@ public class InstrumentGenerator : MonoBehaviour
         }
 
 
-        #region old code
         void GenerateInstrument2()
         {
             GameObject newInstrument = new GameObject("new harp");

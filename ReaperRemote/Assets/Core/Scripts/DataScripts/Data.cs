@@ -123,12 +123,13 @@ public static class Data{ // need init from GameObject
             if(midiNote >= 127) { break; } // range is 0 - 126
             newIntList.Add(midiNote);
             if(j < scaleArray.Length -1) { j++; } else { j = 0; k++; }
-            Debug.Log($"j : {j}, k : {k}");
+            //Debug.Log($"j : {j}, k : {k}");
             //if(j == 0) { midiNote += scale[j]; } else { midiNote += scale[j] - scale[j-1]; } 
             midiNote = (firstMidiNote + (k * 12)) + scaleArray[j] - 1;
         }
 
         return newIntList; // TODO copy into array of exact size!
+        
     }
 
     static public int[] GetMidiNotesInChord(){ // Chord chord, Root, scale, numNotes
