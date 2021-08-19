@@ -14,6 +14,8 @@ public class HitInteractor : MonoBehaviour
     public int MidiNote {get => midiNote; set => midiNote = value;}
     public MTransmitter Transmitter {set => transmitter = value;}
     private ChildTrigger childTrigger;
+    private bool isOn = false;
+    // VR only pedal : strings remains ON until muted by hit at 0 velocity!
     
     private void Awake() {
         childTrigger = GetComponentInChildren<ChildTrigger>();

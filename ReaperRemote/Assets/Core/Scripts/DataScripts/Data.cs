@@ -17,12 +17,21 @@ namespace Core{
     public enum Scale{
         Major, Minor7, MinorHarmonic 
     }
+    /// <summary>
+    /// When mute pedal is Off strings will keep being On until muted by a hit with 0 velocity. <br/>
+    /// The mute pedal is VR only - not Midi.
+    /// </summary>
+    public enum VRMutePedalState{
+        On, Off
+    }
 
     
-
-
+/// <summary>
+/// Static Data class, holds all basic data.
+/// </summary>
 public static class Data{ // need init from GameObject
     private static bool init = false;
+    public static VRMutePedalState vRMutePedalState = VRMutePedalState.On;
     private static Dictionary<Scale, int[]> scales; // # in scale (all 12 tones in octave), root = 1, note before octave = 12
     /// <summary>
     /// Dictionary that holds all scales as integer arrays.
