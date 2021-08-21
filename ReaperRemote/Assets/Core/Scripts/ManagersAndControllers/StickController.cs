@@ -33,6 +33,10 @@ public class StickController : MonoBehaviour, IContinousTrigger, IHitVelocity
         hitVelocity = 0;
     }
 
+    private void OnDisable() {
+        // 
+    }
+
 
     // need both controllers registered - will filter on hand attachment!
     public void RegisterTriggerControl(InputActionController inputActionController, ControllerHand hand, DataHandler dataFlow)

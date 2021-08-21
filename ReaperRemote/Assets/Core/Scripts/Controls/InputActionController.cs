@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using System.Linq;
 using System;
 
+
 namespace Core.Controls{
 
 /// <summary>
@@ -53,7 +54,6 @@ public class InputActionController : MonoBehaviour
     
     
     private void Awake() {
-        // search for components ? or hard-link
         customMoveProvider = FindObjectOfType<CustomMoveProvider>();
         customSnapTurnProvider = FindObjectOfType<CustomSnapTurnProvider>();
         XR_leftTriggerPress.action.performed += ProcessLeftTrigger;
@@ -63,9 +63,9 @@ public class InputActionController : MonoBehaviour
         // problem : filtering in UI, can filter by type.
         continousTriggers = new List<IContinousTrigger>(); // list will have different component types implementing the interface
         var ss = FindObjectsOfType<MonoBehaviour>().OfType<IContinousTrigger>();
-            foreach (IContinousTrigger t in ss) {
-                continousTriggers.Add (t);
-            }
+        foreach (IContinousTrigger t in ss) {
+            continousTriggers.Add (t);
+        }
         Debug.Log($"Number of IContinousTrigger { ss.Count()} "); 
     }
 
@@ -77,10 +77,12 @@ public class InputActionController : MonoBehaviour
     }
 
     private void ProcessLeftTrigger(InputAction.CallbackContext obj){
-        leftTriggerPressed(obj.ReadValue<float>(), ControllerHand.Left);
+        // leftTriggerPressed(obj.ReadValue<float>(), ControllerHand.Left);
+        leftTriggerPressed?.Invoke(obj.ReadValue<float>(), ControllerHand.Left);
     }
     private void ProcessRightTrigger(InputAction.CallbackContext obj){
-        rightTriggerPressed(obj.ReadValue<float>(), ControllerHand.Right);
+        // rightTriggerPressed(obj.ReadValue<float>(), ControllerHand.Right);
+        rightTriggerPressed?.Invoke(obj.ReadValue<float>(), ControllerHand.Right);
     }
 
     void Test(InputAction.CallbackContext obj){
@@ -149,11 +151,20 @@ public class InputActionController : MonoBehaviour
         oldState = rightIsActive;
     }
 
-
-
-
-
-
+    private void OnDestroy() {
+        //RemoveListenersRightTrigger();
+        rightTriggerPressed = null;
+        leftTriggerPressed = null;
+    }
+    // private void RemoveListenersRightTrigger(){
+    //     if(rightTriggerPressed == null) return;
+    //     foreach(Delegate d in rightTriggerPressed.GetInvocationList())
+    //     {
+    //         rightTriggerPressed -= (RightTriggerPressed)d;
+    //         Debug.Log("Removing Delegates right trigger".Colorize(Color.red));
+    //     }
+    // }
+    
 
     #region UI callbacks
     // change control config and store in playerprefs
