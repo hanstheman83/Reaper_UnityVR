@@ -17,6 +17,9 @@ public class PedalsUIManager : MonoBehaviour
     void Awake()
     {
         mTransmitter = FindObjectOfType<MTransmitter>();
+        autoMutePedal.isOn = false;
+        softPedal.isOn = false;
+        sustainPedal.isOn = false;
     }
     private void OnEnable() {
 
