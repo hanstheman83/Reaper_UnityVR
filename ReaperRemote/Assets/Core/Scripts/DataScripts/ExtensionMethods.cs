@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 namespace Core{
 
 public static class ExtensionMethods
@@ -91,6 +92,21 @@ public static class ExtensionMethods
         ( byte ) ( desiredColor.b * 255f ), text );
     }
     #endregion String
+
+
 }
 
 }
+#region UI
+namespace  Core.UI{
+	using UnityEngine.Events;
+	using UnityEngine.UI;
+public static class UIExtensions{
+	public static void RemoveAllAndAdd(this Button button, UnityAction action)
+	{
+		button.onClick.RemoveAllListeners();
+		button.onClick.AddListener(action);
+	}
+}
+}
+#endregion UI

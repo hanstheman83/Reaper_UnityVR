@@ -36,7 +36,7 @@ public class InstrumentGenerator : MonoBehaviour
             List<int> allMidiNotesInScale = Data.GetMidiNotesInScale(harp.scale, harp.rootNote, harp.firstOctave, harp.numberOfStrings);
             for(int i = 0; i < allMidiNotesInScale.Count; i++){
                 GameObject newString = Instantiate(stringObject, newInstrument.transform);
-                Debug.Log("newString instantiated..".Colorize(Color.blue));
+                // Debug.Log("newString instantiated..".Colorize(Color.blue));
                 newString.name = "String MidiNote " + allMidiNotesInScale[i]; // new GameObject same as Instantiate (creates in scene..)
                 listStrings.Add(newString);
                 // newString.transform.SetParent(newInstrument.transform);
@@ -46,9 +46,12 @@ public class InstrumentGenerator : MonoBehaviour
                 float stringOffset = harp.stringLength/2;
                 newString.transform.localPosition = new Vector3(i * harp.distanceBetweenStrings, stringOffset, 0);
                 GameObject cube = newString.transform.Find("Cube").gameObject;
-                Debug.Log("cube found ? ".Colorize(Color.blue)+ (cube ? "found" : "not found").Colorize(Color.green));
+                // Debug.Log("cube found ? ".Colorize(Color.blue)+ (cube ? "found" : "not found").Colorize(Color.green));
                 cube.transform.localScale = new Vector3(harp.stringWidth, harp.stringLength, harp.stringWidth);
+                cube.GetComponent<Renderer>().material = harp.stringOff;
                 HitInteractor hitInteractor = newString.GetComponent<HitInteractor>();
+                hitInteractor.noteOnMaterial = harp.stringOn;
+                hitInteractor.noteOffMaterial = harp.stringOff;
                 hitInteractor.MidiNote = allMidiNotesInScale[i];
                 hitInteractor.Transmitter = FindObjectOfType<DataTransfer::MTransmitter>();
                 // set transmitter

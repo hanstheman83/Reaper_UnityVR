@@ -31,7 +31,7 @@ namespace Core{
 /// </summary>
 public static class Data{ // need init from GameObject
     private static bool init = false;
-    public static VRMutePedalState vRMutePedalState = VRMutePedalState.On;
+    public static VRMutePedalState VR_MutePedalState = VRMutePedalState.On;
     private static Dictionary<Scale, int[]> scales; // # in scale (all 12 tones in octave), root = 1, note before octave = 12
     /// <summary>
     /// Dictionary that holds all scales as integer arrays.

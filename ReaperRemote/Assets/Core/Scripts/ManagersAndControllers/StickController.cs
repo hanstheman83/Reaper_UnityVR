@@ -43,9 +43,8 @@ public class StickController : MonoBehaviour, IContinousTrigger, IHitVelocity
 
     // two controls can process input eg. trigger and grip
     public void ProcessInput(float val){
-        lerp = val;
-        rendererOfStickHead.material.Lerp(materialFlat, materialGlowing, lerp);
-        hitVelocity = (int)(Mathf.Round(lerp * 126f));
+        rendererOfStickHead.material.Lerp(materialFlat, materialGlowing, val);
+        hitVelocity = (int)(Mathf.Round(val * 126f));
         // changing several materials
         // rendering https://answers.unity.com/questions/1685162/materialcolor-only-changing-one-instance-of-object.html 
     }

@@ -17,7 +17,7 @@ public class PedalsUIManager : MonoBehaviour
     void Awake()
     {
         mTransmitter = FindObjectOfType<MTransmitter>();
-        autoMutePedal.isOn = false;
+        autoMutePedal.isOn = true;
         softPedal.isOn = false;
         sustainPedal.isOn = false;
     }
@@ -38,9 +38,9 @@ public class PedalsUIManager : MonoBehaviour
     
     
     private void OnAutoMutePedalChanged(bool isOn){
-        Debug.Log($"Auto mute pedal is on ? {isOn}".Colorize(Color.yellow));        
-        //mTransmitter.TransmitMidiCC(0, );
-        // change note Off type!
+        Debug.Log($"Auto mute pedal is on ? {isOn}".Colorize(Color.yellow)); 
+        Data.VR_MutePedalState = isOn ? VRMutePedalState.On : VRMutePedalState.Off;
+
     }
     private void OnSoftPedalChanged(bool isOn){
         Debug.Log($"Soft pedal is on ? {isOn}".Colorize(Color.yellow));        

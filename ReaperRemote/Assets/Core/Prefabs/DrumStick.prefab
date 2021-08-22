@@ -146,7 +146,7 @@ Rigidbody:
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 3
 --- !u!114 &8931155100034667299
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -291,8 +291,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nameOfTriggerController: Drumstick Velocity
-  rendererOfStickHead: {fileID: 4410605243649413758}
   grabInteractable: {fileID: 8931155100034667299}
+  rendererOfStickHead: {fileID: 4410605243649413758}
   materialFlat: {fileID: 2100000, guid: 45aa1a6565db8b945899ad844dfdc377, type: 2}
   materialGlowing: {fileID: 2100000, guid: 3020cad99a0cdc64ea89c39a3826ed6b, type: 2}
 --- !u!1 &4410605243649413754
