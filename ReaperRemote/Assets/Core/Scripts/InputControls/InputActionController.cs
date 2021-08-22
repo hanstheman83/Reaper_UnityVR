@@ -45,15 +45,13 @@ public class InputActionController : MonoBehaviour
     [SerializeField] private InputActionReference XR_leftTriggerPress;
     [SerializeField] private InputActionReference XR_rightTriggerPress;
 
-    private List<IContinousTrigger> continousTriggers; // TODO also implement left/right
-    public delegate void LeftTriggerPressed(float val, ControllerHand controllerHand);
-    public delegate void RightTriggerPressed(float val, ControllerHand controllerHand);
-    // https://stackoverflow.com/questions/3028724/why-do-we-need-the-event-keyword-while-defining-events
-    public event LeftTriggerPressed leftTriggerPressed;
-    public event RightTriggerPressed rightTriggerPressed;
-    
-    
+    private List<IContinousTrigger> continousLeftTriggers;
+    private List<IContinousTrigger> continousRightTriggers;
+ 
     private void Awake() {
+        continousLeftTriggers = new List<IContinousTrigger>();
+        continousRightTriggers = new List<IContinousTrigger>();
+
         customMoveProvider = FindObjectOfType<CustomMoveProvider>();
         customSnapTurnProvider = FindObjectOfType<CustomSnapTurnProvider>();
         XR_leftTriggerPress.action.performed += ProcessLeftTrigger;
@@ -61,28 +59,67 @@ public class InputActionController : MonoBehaviour
         
         // All prefabs implementing interface! - so can assign different controls per gameobject!
         // problem : filtering in UI, can filter by type.
-        continousTriggers = new List<IContinousTrigger>(); // list will have different component types implementing the interface
-        var ss = FindObjectsOfType<MonoBehaviour>().OfType<IContinousTrigger>();
-        foreach (IContinousTrigger t in ss) {
-            continousTriggers.Add (t);
-        }
-        Debug.Log($"Number of IContinousTrigger { ss.Count()} "); 
+        // continousTriggers = new List<IContinousTrigger>(); // list will have different component types implementing the interface
+        // var ss = FindObjectsOfType<MonoBehaviour>().OfType<IContinousTrigger>();
+        // foreach (IContinousTrigger t in ss) {
+        //     continousTriggers.Add (t);
+        // }
+        // Debug.Log($"Number of IContinousTrigger { ss.Count()} "); 
     }
 
     private void Start() {
-        continousTriggers[0].RegisterTriggerControl(this, ControllerHand.Left, DataHandler.Reversed);
-        continousTriggers[0].RegisterTriggerControl(this, ControllerHand.Right, DataHandler.Reversed);
-        continousTriggers[1].RegisterTriggerControl(this, ControllerHand.Left, DataHandler.Reversed);
-        continousTriggers[1].RegisterTriggerControl(this, ControllerHand.Right, DataHandler.Reversed);
+        // continousTriggers[0].RegisterTriggerControl(this, ControllerHand.Left, DataHandler.Reversed);
+    // continousTriggers[0].RegisterTriggerControl(this, ControllerHand.Right, DataHandler.Reversed);
+    // continousTriggers[1].RegisterTriggerControl(this, ControllerHand.Left, DataHandler.Reversed);
+    // continousTriggers[1].RegisterTriggerControl(this, ControllerHand.Right, DataHandler.Reversed);
+    }
+
+    public void RegisterTriggerControl(IContinousTrigger trigger, ControllerHand c){
+        switch(c){
+            case ControllerHand.Left:
+                continousLeftTriggers.Add(trigger);
+                break;
+            case ControllerHand.Right:
+                continousRightTriggers.Add(trigger);
+                break;
+            case ControllerHand.None:
+                Debug.LogError("Need to specify a controlled by hand!");
+                break;
+        }
+    }
+    public void RemoveTriggerControl(IContinousTrigger trigger, ControllerHand c){
+        bool success;
+        switch(c){
+            case ControllerHand.Left:
+                success = continousLeftTriggers.Remove(trigger);
+                if(!success) {Debug.LogError("No item removed!");}
+                else {Debug.Log("Item removed");}
+                break;
+            case ControllerHand.Right:
+                success = continousRightTriggers.Remove(trigger);
+                if(!success) {Debug.LogError("No item removed!");}
+                else {Debug.Log("Item removed");}
+                break;
+            case ControllerHand.None:
+                Debug.LogError("Need to specify a controlled by hand!");
+                break;
+        }
+
     }
 
     private void ProcessLeftTrigger(InputAction.CallbackContext obj){
         // leftTriggerPressed(obj.ReadValue<float>(), ControllerHand.Left);
-        leftTriggerPressed?.Invoke(obj.ReadValue<float>(), ControllerHand.Left);
+        //leftTriggerPressed?.Invoke(obj.ReadValue<float>(), ControllerHand.Left);
+        foreach(IContinousTrigger t in continousLeftTriggers){
+            t.ProcessInput(obj.ReadValue<float>());
+        }
     }
     private void ProcessRightTrigger(InputAction.CallbackContext obj){
         // rightTriggerPressed(obj.ReadValue<float>(), ControllerHand.Right);
-        rightTriggerPressed?.Invoke(obj.ReadValue<float>(), ControllerHand.Right);
+        //rightTriggerPressed?.Invoke(obj.ReadValue<float>(), ControllerHand.Right);
+        foreach(IContinousTrigger t in continousRightTriggers){
+            t.ProcessInput(obj.ReadValue<float>());
+        }
     }
 
     void Test(InputAction.CallbackContext obj){
@@ -153,8 +190,8 @@ public class InputActionController : MonoBehaviour
 
     private void OnDestroy() {
         //RemoveListenersRightTrigger();
-        rightTriggerPressed = null;
-        leftTriggerPressed = null;
+        // rightTriggerPressed = null;
+        // leftTriggerPressed = null;
     }
     // private void RemoveListenersRightTrigger(){
     //     if(rightTriggerPressed == null) return;

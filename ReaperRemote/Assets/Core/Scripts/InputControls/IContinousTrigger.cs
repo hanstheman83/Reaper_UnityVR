@@ -9,12 +9,13 @@ namespace Core.Controls{
 public interface IContinousTrigger
 {
     public string NameOfTriggerController {get;}
-    public DataHandler TriggerDataFlow {get;}
+    public DataHandler TriggerDataFlow {get; set;}
+    public ControllerHand ControlledBy {get;}
 
     /// <summary>
     /// Data for Trigger : 0 to 1, use Data.Process(val, dataHandler) to return processed data (custom data type triggerData ??)
     /// </summary>
-    public void RegisterTriggerControl(InputActionController inputActionController, ControllerHand hand, DataHandler dataFlow);
+    public void ProcessInput(float val);
     
 }
 

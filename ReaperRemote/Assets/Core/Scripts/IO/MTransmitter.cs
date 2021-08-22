@@ -3,43 +3,56 @@
 using UnityEngine;
 using extOSC;
 
-namespace Core.IO // todo check that this namespace has access to Core; ??
+namespace Core.IO
 {
-	public class MTransmitter : MonoBehaviour
+public class MTransmitter : MonoBehaviour
+{
+	#region Public Vars
+
+	public string Address = "/example/1";
+
+	[Header("OSC Settings")]
+	public OSCTransmitter Transmitter;
+
+	#endregion
+
+	#region Unity Methods
+
+	protected virtual void Start()
 	{
-		#region Public Vars
 
-		public string Address = "/example/1";
-
-		[Header("OSC Settings")]
-		public OSCTransmitter Transmitter;
-
-		#endregion
-
-		#region Unity Methods
-
-		protected virtual void Start()
-		{
-			var message = new OSCMessage(Address);
-			message.AddValue(OSCValue.String("Hello, world!"));
-
-			Transmitter.Send(message);
-		}
-
-		#endregion
-
-		#region Public Methods
-		public void TransmitMidi(bool state, int note, int velocity){
-			// string midiNoteMessage = "/vkb_midi/0/note/80";
-			string midiNoteMessage = $"/vkb_midi/0/note/{note}";
-			var message = new OSCMessage(midiNoteMessage);
-			message.AddValue(OSCValue.Int(state ? velocity : 0));
-			//message.AddValue(OSCValue.Int(100));
-
-			// message.AddValue(OSCValue.Int(1));
-			// Transmitter.SendMessage(message);
-			Transmitter.Send(message);
-		}
-		#endregion Public Methods
 	}
+
+	#endregion
+
+	#region Public Methods
+	public void TransmitMidiNote(int channel, int note, bool isOne){
+		string midiNoteMessage = $"/vkb_midi/{channel}/note/{note}";
+		var message = new OSCMessage(midiNoteMessage);
+		message.AddValue(OSCValue.Int(isOne ? 126 : 0));
+		Transmitter.Send(message);
+	}
+	public void TransmitMidiNote(int channel, int note, int velocity){
+		string midiNoteMessage = $"/vkb_midi/{channel}/note/{note}";
+		var message = new OSCMessage(midiNoteMessage);
+		message.AddValue(OSCValue.Int(velocity));
+		Transmitter.Send(message);
+	}
+	public void TransmitMidiCC(int channel, int cc, int velocity){
+		string midiCCMessage = $"/vkb_midi/{channel}/cc/{cc}";
+		var message = new OSCMessage(midiCCMessage);
+		message.AddValue(OSCValue.Int(velocity));
+		Transmitter.Send(message);
+	}
+	public void TransmitMidiCC(int channel, int cc, bool isOne){
+		string midiCCMessage = $"/vkb_midi/{channel}/cc/{cc}";
+		var message = new OSCMessage(midiCCMessage);
+		message.AddValue(OSCValue.Int(isOne ? 126 : 0));
+		Transmitter.Send(message);
+	}
+
+
+	#endregion Public Methods
+}
+
 }
