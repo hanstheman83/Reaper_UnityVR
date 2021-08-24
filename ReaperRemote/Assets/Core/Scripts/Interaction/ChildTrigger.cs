@@ -13,11 +13,11 @@ public class ChildTrigger : MonoBehaviour
  
 
     void OnTriggerEnter(Collider c){
-        childTriggeredEnterEvent(c);
+        childTriggeredEnterEvent?.Invoke(c);
     }
 
     void OnTriggerExit(Collider c){
-        childTriggeredExitEvent(c);
+        childTriggeredExitEvent?.Invoke(c);
     }
  
 }
