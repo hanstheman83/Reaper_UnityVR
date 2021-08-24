@@ -1006,6 +1006,33 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "Keyboard",
+            "id": "06cbb2e0-01a7-47db-aa86-c5d56b35c357",
+            "actions": [
+                {
+                    "name": "Space Press",
+                    "type": "Value",
+                    "id": "451ae7dc-9184-4e04-bf27-ce4e651bdfea",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "3a47721b-f0a3-4332-86d3-0b17cf730158",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Space Press",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": [

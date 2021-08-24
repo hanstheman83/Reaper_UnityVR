@@ -51,29 +51,13 @@ public class InputActionController : MonoBehaviour
     private void Awake() {
         continousLeftTriggers = new List<IContinousTrigger>();
         continousRightTriggers = new List<IContinousTrigger>();
-
         customMoveProvider = FindObjectOfType<CustomMoveProvider>();
         customSnapTurnProvider = FindObjectOfType<CustomSnapTurnProvider>();
         XR_leftTriggerPress.action.performed += ProcessLeftTrigger;
         XR_rightTriggerPress.action.performed += ProcessRightTrigger;
-        
-        // All prefabs implementing interface! - so can assign different controls per gameobject!
-        // problem : filtering in UI, can filter by type.
-        // continousTriggers = new List<IContinousTrigger>(); // list will have different component types implementing the interface
-        // var ss = FindObjectsOfType<MonoBehaviour>().OfType<IContinousTrigger>();
-        // foreach (IContinousTrigger t in ss) {
-        //     continousTriggers.Add (t);
-        // }
-        // Debug.Log($"Number of IContinousTrigger { ss.Count()} "); 
     }
-
     private void Start() {
-        // continousTriggers[0].RegisterTriggerControl(this, ControllerHand.Left, DataHandler.Reversed);
-    // continousTriggers[0].RegisterTriggerControl(this, ControllerHand.Right, DataHandler.Reversed);
-    // continousTriggers[1].RegisterTriggerControl(this, ControllerHand.Left, DataHandler.Reversed);
-    // continousTriggers[1].RegisterTriggerControl(this, ControllerHand.Right, DataHandler.Reversed);
     }
-
     public void RegisterTriggerControl(IContinousTrigger trigger, ControllerHand c){
         switch(c){
             case ControllerHand.Left:
@@ -104,9 +88,7 @@ public class InputActionController : MonoBehaviour
                 Debug.LogError("Need to specify a controlled by hand!");
                 break;
         }
-
     }
-
     private void ProcessLeftTrigger(InputAction.CallbackContext obj){
         // leftTriggerPressed(obj.ReadValue<float>(), ControllerHand.Left);
         //leftTriggerPressed?.Invoke(obj.ReadValue<float>(), ControllerHand.Left);

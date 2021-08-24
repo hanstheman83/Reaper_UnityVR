@@ -13,10 +13,12 @@ MonoBehaviour:
   m_Name: SmallHarp
   m_EditorClassIdentifier: 
   instrumentName: Cool Harp
+  stringOff: {fileID: 2100000, guid: febbe013ef85c29459d98465bb14c330, type: 2}
+  stringOn: {fileID: 2100000, guid: 666a99d02f6e8544a907356de5924e85, type: 2}
   numberOfStrings: 50
   firstOctave: 1
   rootNote: 3
   scale: 1
-  distanceBetweenStrings: 0.022
-  stringWidth: 0.013
+  distanceBetweenStrings: 0.026
+  stringWidth: 0.01
   stringLength: 0.8
