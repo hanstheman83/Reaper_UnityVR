@@ -15,7 +15,7 @@ public class UI_InteractionController : MonoBehaviour
     // TODO implement new interface - main buttons (a,b,x,y)
     [SerializeField] InputActionReference inputActionReference_UISwitcher;
 
-    bool isUICanvasActive = false;
+    bool isUI_ModeActive = false;
   
     private void OnEnable()
     {
@@ -41,9 +41,9 @@ public class UI_InteractionController : MonoBehaviour
     /// <param name="obj"></param>
     private void ActivateUIMode(InputAction.CallbackContext obj)
     {
-        if (!isUICanvasActive)
+        if (!isUI_ModeActive)
         {
-            isUICanvasActive = true;
+            isUI_ModeActive = true;
 
             //Activating UI Controller by enabling its XR Ray Interactor and XR Interactor Line Visual
             UIController.GetComponent<XRRayInteractor>().enabled = true;
@@ -54,7 +54,7 @@ public class UI_InteractionController : MonoBehaviour
         }
         else
         {
-            isUICanvasActive = false;
+            isUI_ModeActive = false;
 
             //De-Activating UI Controller by enabling its XR Ray Interactor and XR Interactor Line Visual
             UIController.GetComponent<XRRayInteractor>().enabled = false;

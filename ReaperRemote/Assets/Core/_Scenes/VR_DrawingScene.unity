@@ -1159,7 +1159,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 1505d06d9d1620744b72b85adb02e05f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1368,6 +1368,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 127213667}
     m_Modifications:
+    - target: {fileID: 676003818088857958, guid: aec12a24b9881924fa40282cdee0eb23, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: bce5569e916505a4b9fe75b282b65310, type: 2}
     - target: {fileID: 676003819066062783, guid: aec12a24b9881924fa40282cdee0eb23, type: 3}
       propertyPath: m_InteractionManager
       value: 
@@ -2209,5 +2213,9 @@ PrefabInstance:
       propertyPath: m_Name
       value: RightHand Parent
       objectReference: {fileID: 0}
+    - target: {fileID: 8601501638505621623, guid: 0fa4e4481986b95459ec8fd7ce789b5d, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: bce5569e916505a4b9fe75b282b65310, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0fa4e4481986b95459ec8fd7ce789b5d, type: 3}
