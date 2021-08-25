@@ -15,6 +15,8 @@ public class DrawingOnTexture : MonoBehaviour
     Collider childCollider;
     int pos = 0;
 
+    Color[] colors;
+
     private void Awake() {
         textureRenderer = GetComponentInChildren<Renderer>();
         childTrigger = transform.GetComponentInChildren<ChildTrigger>();
@@ -38,34 +40,37 @@ public class DrawingOnTexture : MonoBehaviour
         
         // connect texture to material of GameObject this script is attached to
         textureRenderer.material.mainTexture = texture;
+
+        colors = new Color[16];
+        Color c = new Vector4(0, 0, 1, 0);
+        for (var i = 0; i < colors.Length; i++)
+        {
+            colors[i] = c;
+        }
+        
     }
 
     void ProcessInput(Collider other){
         Debug.Log("Coordinates ".Colorize(Color.magenta) + childCollider.ClosestPointOnBounds(other.transform.position));
         GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         sphere.transform.localScale = new Vector3(.01f,.01f,.01f);
-        Vector3 pos = childCollider.ClosestPointOnBounds(other.transform.position);
+        Vector3 pos = childCollider.ClosestPoint(other.transform.position);
         sphere.transform.position = pos;
-        // Note affected by scale, so always -.5 to .5
+        // Note : affected by scale, so always -.5 to .5
         Vector3 localPos = transform.InverseTransformPoint(pos);
         Debug.Log("Local Pos: " + localPos);
-
-        // 
-        Vector2 canvasCoordinates = new Vector2(localPos.x + .5f, localPos.y + .5f);
+        Vector2 canvasCoordinates = new Vector2(Mathf.Clamp((localPos.x + .5f), 0, 1), Mathf.Clamp((localPos.y + .5f), 0, 1));
         // in integers, 0 to 511
-        //Vector2 pixelCoordinates =
+        Debug.Log("Canvas Coord: " + canvasCoordinates);
+        Vector2Int pixelCoordinates = Vector2Int.RoundToInt(canvasCoordinates * 511f);
+        Debug.Log("Pixel Vector ".Colorize(Color.magenta) + pixelCoordinates);
 
-
-
-        // to local coordinates, then to 0 to 1 from bl to tr
-        // transfer function : 
-
-        // public void SetPixels(int x, int y, int blockWidth, int blockHeight, Color[] colors, int miplevel = 0); 
+        texture.SetPixels(pixelCoordinates.x, pixelCoordinates.y, 4, 4, colors, 0); 
         // This function is an extended version of SetPixels above; it does not modify the whole mip level but modifies only blockWidth by blockHeight region starting at x,y. The colors array must be blockWidth*blockHeight size, and the modified block must fit into the used mip level.
 
 
 
-        // texture.Apply(); // TODO: keep at low frame rate
+        texture.Apply(); // TODO: keep at low frame rate
 
 
 
