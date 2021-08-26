@@ -14,20 +14,29 @@ public class DrawingOnTexture : MonoBehaviour
     ChildTrigger childTrigger;
     Collider childCollider;
     int pos = 0;
+    bool isDrawing = false;
+    Transform otherObject;
 
-    Color[] colors;
+    Color[] colors1D;
+    
 
     private void Awake() {
         textureRenderer = GetComponentInChildren<Renderer>();
         childTrigger = transform.GetComponentInChildren<ChildTrigger>();
         childCollider = childTrigger.GetComponent<Collider>();
         //Material textureMaterial = GetComponentInChildren<Material>();
-        childTrigger.childTriggeredEnterEvent += ProcessInput;
+        childTrigger.childTriggeredEnterEvent += StartStroke;
+        childTrigger.childTriggeredExitEvent += StopStroke;
+    }
+    private void OnDestroy() {
+        childTrigger.childTriggeredEnterEvent += null;
+        childTrigger.childTriggeredExitEvent += null;
+        
     }
     void Start()
     {
         // Create a new 2x2 texture ARGB32 (32 bit with alpha) and no mipmaps
-        texture = new Texture2D(512, 512, TextureFormat.ARGB32, false);
+        texture = new Texture2D(512, 512, TextureFormat.RGBA32, false);
         
         // set the pixel values
         texture.SetPixel(0, 0, new Color(1.0f, 1.0f, 1.0f, 0.5f));
@@ -41,17 +50,25 @@ public class DrawingOnTexture : MonoBehaviour
         // connect texture to material of GameObject this script is attached to
         textureRenderer.material.mainTexture = texture;
 
-        colors = new Color[16];
+        colors1D = new Color[25];
         Color c = new Vector4(0, 0, 1, 0);
-        for (var i = 0; i < colors.Length; i++)
+        for (var i = 0; i < colors1D.Length; i++)
         {
-            colors[i] = c;
+            colors1D[i] = c;
         }
         
     }
 
+    void StartStroke(Collider other){
+        isDrawing = true;
+        otherObject = other.transform;
+    }
+    void StopStroke(Collider other){
+        isDrawing = false;
+        otherObject = null;
+    }
+
     void ProcessInput(Collider other){
-        Debug.Log("Coordinates ".Colorize(Color.magenta) + childCollider.ClosestPointOnBounds(other.transform.position));
         GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         sphere.transform.localScale = new Vector3(.01f,.01f,.01f);
         Vector3 pos = childCollider.ClosestPoint(other.transform.position);
@@ -65,9 +82,9 @@ public class DrawingOnTexture : MonoBehaviour
         Vector2Int pixelCoordinates = Vector2Int.RoundToInt(canvasCoordinates * 511f);
         Debug.Log("Pixel Vector ".Colorize(Color.magenta) + pixelCoordinates);
 
-        texture.SetPixels(pixelCoordinates.x, pixelCoordinates.y, 4, 4, colors, 0); 
+        texture.SetPixels(pixelCoordinates.x, pixelCoordinates.y, 4, 4, colors1D, 0); 
         // This function is an extended version of SetPixels above; it does not modify the whole mip level but modifies only blockWidth by blockHeight region starting at x,y. The colors array must be blockWidth*blockHeight size, and the modified block must fit into the used mip level.
-
+        // https://docs.unity3d.com/ScriptReference/Color.html
 
 
         texture.Apply(); // TODO: keep at low frame rate
@@ -82,23 +99,7 @@ public class DrawingOnTexture : MonoBehaviour
         // Pressure - how far into canvas OR trigger
         // Pressure : add tactile feedback
 
-        // find world space contact point : https://answers.unity.com/questions/42933/how-to-find-the-point-of-contact-with-the-function.html
-
-        // get contact point with raytrace : https://answers.unity.com/questions/581977/how-to-get-collision-point-when-using-ontriggerent.html
-
-        // get local coordinate space, size of quad 
-
-
         // https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm
-        
-        
-        
-        
-        
-        
-        
-        
-        
         
         // for undo function save a texture per stroke!
 
@@ -108,10 +109,6 @@ public class DrawingOnTexture : MonoBehaviour
 
         // Save Math strokes - straight etc...
         // Bezier curves etc... experiment..
-
-        // for scaling artifacts check mipmap : https://docs.unity3d.com/Manual/TextureStreaming.html
-        // https://bgolus.medium.com/sharper-mipmapping-using-shader-based-supersampling-ed7aadb47bec
-        // Unity Mipmap texture streaming API https://docs.unity3d.com/Manual/TextureStreaming-API.html
     
         // Import image runtime : https://gyanendushekhar.com/2017/07/08/load-image-runtime-unity/
         // https://docs.unity3d.com/Manual/TextureStreaming.html
@@ -119,16 +116,60 @@ public class DrawingOnTexture : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // if(Input.GetKey(KeyCode.Space )){
-        //     texture.SetPixel(pos, pos, Color.black);
-        //     texture.Apply();
+        if(isDrawing){
+            Vector3 pos = childCollider.ClosestPoint(otherObject.position);
+            Vector3 localPos = transform.InverseTransformPoint(pos);
+            float depth = localPos.z;
+            Debug.Log("Depth : ".Colorize(Color.red) + depth);
+            // outher bounds : -0.005, inner bounds : ~= 0 - clamp..
+            Vector2 canvasCoordinates = new Vector2(Mathf.Clamp((localPos.x + .5f), 0, 1), Mathf.Clamp((localPos.y + .5f), 0, 1));
+            Vector2Int pixelCoordinates = Vector2Int.RoundToInt(canvasCoordinates * 511f);
+            Debug.Log("hit in pixel coordinates " + pixelCoordinates);
+            var data = texture.GetRawTextureData<Color32>();
+            Debug.Log("Length of raw array : ".Colorize(Color.magenta) + data.Length);
+            Debug.Log("512 x 512 = " + 512*512);
+            // texture.SetPixels(pixelCoordinates.x, pixelCoordinates.y, 4, 4, colors, 0); 
+            // for 512x512
+            // https://docs.unity3d.com/ScriptReference/Texture2D.GetRawTextureData.html
+            // find median of colors : 
+            // ushort : Holds unsigned 16-bit (2-byte) integers ranging in value from 0 through 65,535.
+            int startX = pixelCoordinates.x - 2; // TODO: check out of bounds!!
+            int startY = pixelCoordinates.y - 2;
+            Debug.Log("Start in pCoord : " + (startX, startY));
+            int startN = TransferXYtoN(startX, startY);
+            int currentX, currentY, currentN;
+            currentX = startX;
+            currentY = startY;
+            currentN = startN;
+            int currentColorIndex = 0; // in colors 1D array
+
+            for (var i = 0; i < 5; i++)
+            {
+                for (var j = 0; j < 5; j++)
+                {
+                    Debug.Log("Current Color index : " + currentColorIndex);
+                    Debug.Log(("current N : " + currentN));
+                    Debug.Log("Current X and Y : " + (currentX, currentY));
+                    data[currentN] = colors1D[currentColorIndex];                    
+                    currentX++; // check bounds
+
+                    currentN = TransferXYtoN(currentX, currentY);
+                    currentColorIndex++;
+                }
+                currentX = startX;
+                currentY++; // check bounds
+            }
+            texture.Apply();
+        }
+        
+    }// end Update()
 
 
 
-        //     if(pos < 255) pos++;
-        //     else pos = 0;
-        // }
-
-
+    /// <summary>
+    /// Transfer the X and Y coordinates in a 2D pixel grid to a 1D array coordinate.
+    /// </summary>
+    int TransferXYtoN(int x, int y){
+        return x + (512 * y);
     }
 }
