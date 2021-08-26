@@ -7,7 +7,12 @@ using Core.Interactions;
 
 public class DrawingOnTexture : MonoBehaviour
 {
+    [SerializeField][Range(0.02f, 0.4f)] float drawSpeed = 0.02f;
     [SerializeField] InputActionReference spacePressed;
+    [SerializeField] GameObject strokePosition;
+    [SerializeField] GameObject targetPosition;
+    Transform strokePositionTransform, targetPositionTransform;
+    StrokePositionController strokePositionController;
 
     Renderer textureRenderer;
     Texture2D texture;
@@ -28,28 +33,21 @@ public class DrawingOnTexture : MonoBehaviour
         childTrigger.childTriggeredEnterEvent += StartStroke;
         childTrigger.childTriggeredExitEvent += StopStroke;
     }
-    private void OnDestroy() {
-        childTrigger.childTriggeredEnterEvent += null;
-        childTrigger.childTriggeredExitEvent += null;
-        
-    }
     void Start()
     {
         // Create a new 2x2 texture ARGB32 (32 bit with alpha) and no mipmaps
         texture = new Texture2D(512, 512, TextureFormat.RGBA32, false);
-        
-        // set the pixel values
-        texture.SetPixel(0, 0, new Color(1.0f, 1.0f, 1.0f, 0.5f));
-        texture.SetPixel(1, 0, Color.clear);
-        texture.SetPixel(0, 1, Color.white);
-        texture.SetPixel(1, 1, Color.black);
-    
-        // Apply all SetPixel calls
-        texture.Apply();
-        
         // connect texture to material of GameObject this script is attached to
         textureRenderer.material.mainTexture = texture;
 
+        strokePositionTransform = strokePosition.transform;
+        targetPositionTransform = targetPosition.transform;
+        strokePositionController = strokePosition.GetComponent<StrokePositionController>();
+
+
+
+
+        // init color array
         colors1D = new Color[25];
         Color c = new Vector4(0, 0, 1, 0);
         for (var i = 0; i < colors1D.Length; i++)
@@ -58,10 +56,17 @@ public class DrawingOnTexture : MonoBehaviour
         }
         
     }
+    private void OnDestroy() {
+        childTrigger.childTriggeredEnterEvent += null;
+        childTrigger.childTriggeredExitEvent += null;
+        
+    }
 
     void StartStroke(Collider other){
         isDrawing = true;
         otherObject = other.transform;
+        strokePositionTransform.position = otherObject.position;
+        strokePositionTransform.localPosition = new Vector3(strokePositionTransform.localPosition.x, strokePositionTransform.localPosition.y, 0f);
     }
     void StopStroke(Collider other){
         isDrawing = false;
@@ -113,21 +118,34 @@ public class DrawingOnTexture : MonoBehaviour
         // Import image runtime : https://gyanendushekhar.com/2017/07/08/load-image-runtime-unity/
         // https://docs.unity3d.com/Manual/TextureStreaming.html
     }
+    
     // Update is called once per frame
     void Update()
     {
         if(isDrawing){
-            Vector3 pos = childCollider.ClosestPoint(otherObject.position);
-            Vector3 localPos = transform.InverseTransformPoint(pos);
-            float depth = localPos.z;
-            Debug.Log("Depth : ".Colorize(Color.red) + depth);
+            // turn on move towards mode on block ()
+            targetPositionTransform.position = otherObject.position;
+            targetPositionTransform.localPosition = new Vector3(targetPositionTransform.localPosition.x, targetPositionTransform.localPosition.y, 0f);
+            strokePositionTransform.localPosition = Vector2.MoveTowards(strokePositionTransform.localPosition, targetPositionTransform.localPosition, drawSpeed * Time.deltaTime);
+
+
+
+            // Vector3 pos = childCollider.ClosestPoint(otherObject.position);
+            //Vector3 localPos = transform.InverseTransformPoint(pos);
+
+
+            // float depth = localPos.z;
+            // Debug.Log("Depth : ".Colorize(Color.red) + depth);
             // outher bounds : -0.005, inner bounds : ~= 0 - clamp..
-            Vector2 canvasCoordinates = new Vector2(Mathf.Clamp((localPos.x + .5f), 0, 1), Mathf.Clamp((localPos.y + .5f), 0, 1));
+            Vector2 canvasCoordinates = new Vector2(Mathf.Clamp((strokePositionTransform.localPosition.x + .5f), 0, 1), Mathf.Clamp((strokePositionTransform.localPosition.y + .5f), 0, 1));
             Vector2Int pixelCoordinates = Vector2Int.RoundToInt(canvasCoordinates * 511f);
             Debug.Log("hit in pixel coordinates " + pixelCoordinates);
             var data = texture.GetRawTextureData<Color32>();
             Debug.Log("Length of raw array : ".Colorize(Color.magenta) + data.Length);
             Debug.Log("512 x 512 = " + 512*512);
+
+
+
             // texture.SetPixels(pixelCoordinates.x, pixelCoordinates.y, 4, 4, colors, 0); 
             // for 512x512
             // https://docs.unity3d.com/ScriptReference/Texture2D.GetRawTextureData.html
