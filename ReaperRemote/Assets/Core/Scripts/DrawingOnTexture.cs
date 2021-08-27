@@ -7,7 +7,9 @@ using Core.Interactions;
 
 public class DrawingOnTexture : MonoBehaviour
 {
-    [SerializeField][Range(0.02f, 0.4f)] float drawSpeed = 0.02f;
+    [SerializeField][Range(0.02f, 0.8f)] float drawSpeed = 0.02f;
+    [SerializeField][Range(0.02f, 0.1f)] float refreshRate = 0.02f;
+    Coroutine refreshRoutine;
     [SerializeField] InputActionReference spacePressed;
     [SerializeField] GameObject strokePosition;
     [SerializeField] GameObject targetPosition;
@@ -67,10 +69,13 @@ public class DrawingOnTexture : MonoBehaviour
         otherObject = other.transform;
         strokePositionTransform.position = otherObject.position;
         strokePositionTransform.localPosition = new Vector3(strokePositionTransform.localPosition.x, strokePositionTransform.localPosition.y, 0f);
+        if(refreshRoutine == null) refreshRoutine = StartCoroutine(ApplyTexture());
     }
     void StopStroke(Collider other){
         isDrawing = false;
         otherObject = null;
+        StopCoroutine(refreshRoutine);
+        refreshRoutine = null;
     }
 
     void ProcessInput(Collider other){
@@ -122,7 +127,9 @@ public class DrawingOnTexture : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(isDrawing){
+        if(isDrawing)
+        {
+            
             // turn on move towards mode on block ()
             targetPositionTransform.position = otherObject.position;
             targetPositionTransform.localPosition = new Vector3(targetPositionTransform.localPosition.x, targetPositionTransform.localPosition.y, 0f);
@@ -142,7 +149,7 @@ public class DrawingOnTexture : MonoBehaviour
             Debug.Log("hit in pixel coordinates " + pixelCoordinates);
             var data = texture.GetRawTextureData<Color32>();
             Debug.Log("Length of raw array : ".Colorize(Color.magenta) + data.Length);
-            Debug.Log("512 x 512 = " + 512*512);
+            Debug.Log("512 x 512 = " + 512 * 512);
 
 
 
@@ -168,7 +175,7 @@ public class DrawingOnTexture : MonoBehaviour
                     Debug.Log("Current Color index : " + currentColorIndex);
                     Debug.Log(("current N : " + currentN));
                     Debug.Log("Current X and Y : " + (currentX, currentY));
-                    data[currentN] = colors1D[currentColorIndex];                    
+                    data[currentN] = colors1D[currentColorIndex];
                     currentX++; // check bounds
 
                     currentN = TransferXYtoN(currentX, currentY);
@@ -177,12 +184,25 @@ public class DrawingOnTexture : MonoBehaviour
                 currentX = startX;
                 currentY++; // check bounds
             }
-            texture.Apply();
         }
-        
+
     }// end Update()
 
+    void DrawInBetweenPoints(Vector2 coord){
+        // based on brush width
+        // calc in between 2D pixel coord
+        // loop through and stamp brush at coords
+        
+    }
 
+
+    private IEnumerator ApplyTexture()
+    {
+        while(true){
+            yield return new WaitForSeconds(refreshRate);
+            texture.Apply();
+        }
+    }
 
     /// <summary>
     /// Transfer the X and Y coordinates in a 2D pixel grid to a 1D array coordinate.
