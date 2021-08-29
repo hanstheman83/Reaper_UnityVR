@@ -23,10 +23,12 @@ public class DrawingOnTexture : MonoBehaviour
     Collider childCollider;
     int pos = 0;
     bool isDrawing = false;
+    bool[] hasColor;
     Transform otherObject;
 
     Color[] colors1D;
-    
+    // last stroke, in float %
+    Vector2 lastStroke = new Vector2(-1f, -1f); // first stroke
 
     private void Awake() {
         textureRenderer = GetComponentInChildren<Renderer>();
@@ -64,6 +66,7 @@ public class DrawingOnTexture : MonoBehaviour
 
     void StartStroke(Collider other){
         isDrawing = true;
+        lastStroke = new Vector2(-1f, -1f); // first stroke
         otherObject = other.transform;
         strokePositionTransform.position = otherObject.position;
         strokePositionTransform.localPosition = new Vector3(strokePositionTransform.localPosition.x, 
@@ -128,32 +131,29 @@ public class DrawingOnTexture : MonoBehaviour
     {
         if(isDrawing)
         {
-            // turn on move towards mode on block ()
             targetPositionTransform.position = otherObject.position;
             targetPositionTransform.localPosition = new Vector3(targetPositionTransform.localPosition.x, 
-                targetPositionTransform.localPosition.y, 0f);
+                                                                targetPositionTransform.localPosition.y, 0f);
             strokePositionTransform.localPosition = Vector2.MoveTowards(strokePositionTransform.localPosition, 
-                targetPositionTransform.localPosition, drawSpeed * Time.deltaTime);
+                                                                        targetPositionTransform.localPosition, 
+                                                                        drawSpeed * Time.deltaTime);
             // float depth = localPos.z;
             // Debug.Log("Depth : ".Colorize(Color.red) + depth);
             // outher bounds : -0.005, inner bounds : ~= 0 - clamp..
             Vector2 canvasCoordinates = new Vector2(Mathf.Clamp((strokePositionTransform.localPosition.x + .5f), 0, 1), 
-                Mathf.Clamp((strokePositionTransform.localPosition.y + .5f), 0, 1));
+                                                    Mathf.Clamp((strokePositionTransform.localPosition.y + .5f), 0, 1));
             Vector2Int pixelCoordinates = Vector2Int.RoundToInt(canvasCoordinates * (textureWidth-1));
-            Debug.Log("hit in pixel coordinates " + pixelCoordinates);
+            //Debug.Log("hit in pixel coordinates " + pixelCoordinates);
             var data = texture.GetRawTextureData<Color32>();
-            Debug.Log("Length of raw array : ".Colorize(Color.magenta) + data.Length);
-            Debug.Log("width x height = " + textureWidth * textureHeight);
-
-
-            // texture.SetPixels(pixelCoordinates.x, pixelCoordinates.y, 4, 4, colors, 0); 
-            // for 512x512
+            hasColor = new bool[data.Length];
+            //Debug.Log("Length of raw array : ".Colorize(Color.magenta) + data.Length);
+            //Debug.Log("width x height = " + textureWidth * textureHeight);
             // https://docs.unity3d.com/ScriptReference/Texture2D.GetRawTextureData.html
             // find median of colors : 
             // ushort : Holds unsigned 16-bit (2-byte) integers ranging in value from 0 through 65,535.
             int startX = pixelCoordinates.x - 2; // TODO: check out of bounds!!
             int startY = pixelCoordinates.y - 2;
-            Debug.Log("Start in pCoord : " + (startX, startY));
+            //Debug.Log("Start in pCoord : " + (startX, startY));
             int startN = TransferXYtoN(startX, startY);
             int currentX, currentY, currentN;
             currentX = startX;
@@ -161,15 +161,18 @@ public class DrawingOnTexture : MonoBehaviour
             currentN = startN;
             int currentColorIndex = 0; // in colors 1D array
 
+
+            // brush stamp, 5x5 brush
             for (var i = 0; i < 5; i++)
             {
                 for (var j = 0; j < 5; j++)
                 {
-                    Debug.Log("Current Color index : " + currentColorIndex);
-                    Debug.Log(("current N : " + currentN));
-                    Debug.Log("Current X and Y : " + (currentX, currentY));
-                    if(currentN == -1) continue;
+                    //Debug.Log("Current Color index : " + currentColorIndex);
+                    //Debug.Log(("current N : " + currentN));
+                    //Debug.Log("Current X and Y : " + (currentX, currentY));
+                    if( (currentN == -1) || (hasColor[currentN] == true) ) continue; // hasColor set per update!
                     data[currentN] = colors1D[currentColorIndex];
+                    hasColor[currentN] = true;
                     currentX++;
 
                     currentN = TransferXYtoN(currentX, currentY);
@@ -178,17 +181,39 @@ public class DrawingOnTexture : MonoBehaviour
                 currentX = startX;
                 currentY++;
             }
+            // if dist too long draw line between strokes
+            float distanceBetweenBrushHits = Vector2.Distance(canvasCoordinates, lastStroke);
+            Debug.Log("Distance between : ".Colorize(Color.magenta) + distanceBetweenBrushHits);
+            float r = .001f;
+            bool isDistance = distanceBetweenBrushHits > r; // store r float value in brush
+            // make 1d bool array with true for pixels that are full (and skip coloring those..)
+            if(lastStroke.x != -1f && lastStroke.y != -1f && isDistance){
+                CalculateInBetweenPoints(lastStroke, canvasCoordinates);
+
+            }
+            lastStroke = canvasCoordinates;
         }
 
     }// end Update()
 
-    void DrawInBetweenPoints(Vector2 coord){
-        // based on brush width
-        // calc in between 2D pixel coord
-        // loop through and stamp brush at coords
-        // make 1d bool array with true for pixels that are full (and skip coloring those..)
-        
+    Vector2[] CalculateInBetweenPoints(Vector2 start, Vector2 end){
+        Debug.Log("Drawing in between points".Colorize(Color.white));
+        float r = .001f;
+        float distanceBetweenBrushHits = Vector2.Distance(end, start);
+        int numberOfStamps = Mathf.RoundToInt(distanceBetweenBrushHits / r) - 1;
+        float percentageIncrease = 1/numberOfStamps;
+        Vector2 deltaVector = end - start;
+        Vector2[] inBetweenPoints = new Vector2[numberOfStamps];
+
+        for (var i = 1; i <= numberOfStamps; i++) // TODO: double check in log
+        {
+            inBetweenPoints[i - 1] = start + deltaVector * (percentageIncrease * i);
+        }
+        return inBetweenPoints;
     }
+
+    
+
     /// <summary>
     /// Transfer the X and Y coordinates in a 2D pixel grid to a 1D array coordinate.
     /// </summary>
