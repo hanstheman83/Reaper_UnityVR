@@ -6,8 +6,9 @@ using Core;
 using Core.Interactions;
 
 public class DrawingOnTexture : MonoBehaviour
-{
-    [SerializeField][Range(0.02f, 0.8f)] float drawSpeed = 0.02f;
+    {
+    [SerializeField] int textureHeight = 1024, textureWidth = 1024;
+    [SerializeField][Range(0.02f, 2f)] float drawSpeed = 0.02f;
     [SerializeField][Range(0.02f, 0.1f)] float refreshRate = 0.02f;
     Coroutine refreshRoutine;
     [SerializeField] InputActionReference spacePressed;
@@ -38,15 +39,13 @@ public class DrawingOnTexture : MonoBehaviour
     void Start()
     {
         // Create a new 2x2 texture ARGB32 (32 bit with alpha) and no mipmaps
-        texture = new Texture2D(512, 512, TextureFormat.RGBA32, false);
+        texture = new Texture2D(textureHeight, textureWidth, TextureFormat.RGBA32, false);
         // connect texture to material of GameObject this script is attached to
         textureRenderer.material.mainTexture = texture;
 
         strokePositionTransform = strokePosition.transform;
         targetPositionTransform = targetPosition.transform;
         strokePositionController = strokePosition.GetComponent<StrokePositionController>();
-
-
 
 
         // init color array
@@ -61,14 +60,14 @@ public class DrawingOnTexture : MonoBehaviour
     private void OnDestroy() {
         childTrigger.childTriggeredEnterEvent += null;
         childTrigger.childTriggeredExitEvent += null;
-        
     }
 
     void StartStroke(Collider other){
         isDrawing = true;
         otherObject = other.transform;
         strokePositionTransform.position = otherObject.position;
-        strokePositionTransform.localPosition = new Vector3(strokePositionTransform.localPosition.x, strokePositionTransform.localPosition.y, 0f);
+        strokePositionTransform.localPosition = new Vector3(strokePositionTransform.localPosition.x, 
+            strokePositionTransform.localPosition.y, 0f);
         if(refreshRoutine == null) refreshRoutine = StartCoroutine(ApplyTexture());
     }
     void StopStroke(Collider other){
@@ -129,28 +128,22 @@ public class DrawingOnTexture : MonoBehaviour
     {
         if(isDrawing)
         {
-            
             // turn on move towards mode on block ()
             targetPositionTransform.position = otherObject.position;
-            targetPositionTransform.localPosition = new Vector3(targetPositionTransform.localPosition.x, targetPositionTransform.localPosition.y, 0f);
-            strokePositionTransform.localPosition = Vector2.MoveTowards(strokePositionTransform.localPosition, targetPositionTransform.localPosition, drawSpeed * Time.deltaTime);
-
-
-
-            // Vector3 pos = childCollider.ClosestPoint(otherObject.position);
-            //Vector3 localPos = transform.InverseTransformPoint(pos);
-
-
+            targetPositionTransform.localPosition = new Vector3(targetPositionTransform.localPosition.x, 
+                targetPositionTransform.localPosition.y, 0f);
+            strokePositionTransform.localPosition = Vector2.MoveTowards(strokePositionTransform.localPosition, 
+                targetPositionTransform.localPosition, drawSpeed * Time.deltaTime);
             // float depth = localPos.z;
             // Debug.Log("Depth : ".Colorize(Color.red) + depth);
             // outher bounds : -0.005, inner bounds : ~= 0 - clamp..
-            Vector2 canvasCoordinates = new Vector2(Mathf.Clamp((strokePositionTransform.localPosition.x + .5f), 0, 1), Mathf.Clamp((strokePositionTransform.localPosition.y + .5f), 0, 1));
-            Vector2Int pixelCoordinates = Vector2Int.RoundToInt(canvasCoordinates * 511f);
+            Vector2 canvasCoordinates = new Vector2(Mathf.Clamp((strokePositionTransform.localPosition.x + .5f), 0, 1), 
+                Mathf.Clamp((strokePositionTransform.localPosition.y + .5f), 0, 1));
+            Vector2Int pixelCoordinates = Vector2Int.RoundToInt(canvasCoordinates * (textureWidth-1));
             Debug.Log("hit in pixel coordinates " + pixelCoordinates);
             var data = texture.GetRawTextureData<Color32>();
             Debug.Log("Length of raw array : ".Colorize(Color.magenta) + data.Length);
-            Debug.Log("512 x 512 = " + 512 * 512);
-
+            Debug.Log("width x height = " + textureWidth * textureHeight);
 
 
             // texture.SetPixels(pixelCoordinates.x, pixelCoordinates.y, 4, 4, colors, 0); 
@@ -175,14 +168,15 @@ public class DrawingOnTexture : MonoBehaviour
                     Debug.Log("Current Color index : " + currentColorIndex);
                     Debug.Log(("current N : " + currentN));
                     Debug.Log("Current X and Y : " + (currentX, currentY));
+                    if(currentN == -1) continue;
                     data[currentN] = colors1D[currentColorIndex];
-                    currentX++; // check bounds
+                    currentX++;
 
                     currentN = TransferXYtoN(currentX, currentY);
                     currentColorIndex++;
                 }
                 currentX = startX;
-                currentY++; // check bounds
+                currentY++;
             }
         }
 
@@ -192,9 +186,17 @@ public class DrawingOnTexture : MonoBehaviour
         // based on brush width
         // calc in between 2D pixel coord
         // loop through and stamp brush at coords
+        // make 1d bool array with true for pixels that are full (and skip coloring those..)
         
     }
-
+    /// <summary>
+    /// Transfer the X and Y coordinates in a 2D pixel grid to a 1D array coordinate.
+    /// </summary>
+    int TransferXYtoN(int x, int y){
+        int n = x + (textureWidth * y);
+        if(n >= textureWidth * textureHeight) return -1; 
+        return n;
+    }
 
     private IEnumerator ApplyTexture()
     {
@@ -204,10 +206,4 @@ public class DrawingOnTexture : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Transfer the X and Y coordinates in a 2D pixel grid to a 1D array coordinate.
-    /// </summary>
-    int TransferXYtoN(int x, int y){
-        return x + (512 * y);
-    }
 }
