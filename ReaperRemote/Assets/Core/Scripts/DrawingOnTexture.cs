@@ -81,6 +81,7 @@ public class DrawingOnTexture : MonoBehaviour
         otherObject = null;
         StopCoroutine(refreshRoutine);
         refreshRoutine = null;
+        texture.Apply(); // otherwise applying texture will be delayed untill next stroke!
     }
 
     void ProcessInput(Collider other){
