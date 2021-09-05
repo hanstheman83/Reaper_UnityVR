@@ -25,6 +25,11 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     private XRBaseController baseController;
     private Coroutine haptics = null;
 
+    private enum ResistanceLevel{
+        None, Lowest, Low, Medium, High, Highest 
+    }
+    private ResistanceLevel resistanceLevel = ResistanceLevel.None;
+
 
     // Start is called before the first frame update
     void Start()
@@ -49,38 +54,86 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         inputActionController.RemoveTriggerControl(this, controlledBy);
         controlledBy = ControllerHand.None;
         baseController = null;
-        if(haptics != null) {
-            StopCoroutine(haptics);
-            haptics = null;
-        }
+        // if(haptics != null) {
+        //     StopCoroutine(haptics);
+        //     haptics = null;
+        // }
     }
 
-    public void ProcessInput(float val)
+    public void ProcessTriggerInput(float val) // called from inputActionController
     {
         //Debug.Log("val : " +val);
-        if(val > .5 && haptics == null){
-            Debug.Log("starting haptics");
-            haptics = StartCoroutine(StartPeriodicHaptics());
-        }else if (val < .5 && haptics != null){
-            StopCoroutine(haptics);
-            haptics = null;
+        // if(val > .5 && haptics == null){
+        //     Debug.Log("starting haptics");
+        //     haptics = StartCoroutine(StartPeriodicHaptics());
+        // }else if (val < .5 && haptics != null){
+        //     StopCoroutine(haptics);
+        //     haptics = null;
+        // }
+    }
+
+    /// <summary>
+    /// Normalized 0 to 1
+    /// </summary>
+    public void HandleResistance(float resistance){ // normalized to 0-1
+        // keep rotouine, change delay and amp
+        if(resistance < 0f && resistance > 1f) Debug.LogError("Need value between 0 and 1");
+        
+        if(resistance == 0f) {
+            resistanceLevel = ResistanceLevel.None;
+            if(haptics != null) {
+                StopCoroutine(haptics);
+                haptics = null;
+            }
+        }else if(resistance < .2f){
+            if(resistanceLevel != ResistanceLevel.Lowest){
+                resistanceLevel = ResistanceLevel.Lowest;
+                if(haptics != null) StopCoroutine(haptics);
+                haptics = StartCoroutine(StartPeriodicHaptics(.2f, .2f));
+            }
+        }else if(resistance < .4f){
+            if(resistanceLevel != ResistanceLevel.Low){
+                resistanceLevel = ResistanceLevel.Low;
+                if(haptics != null) StopCoroutine(haptics);
+                haptics = StartCoroutine(StartPeriodicHaptics(.2f, .4f));
+            }
+        }else if(resistance < .6f){
+            if(resistanceLevel != ResistanceLevel.Medium){
+                resistanceLevel = ResistanceLevel.Medium;
+                if(haptics != null) StopCoroutine(haptics);
+                haptics = StartCoroutine(StartPeriodicHaptics(.2f, .6f));
+            }
+        }else if(resistance < .8f){
+            if(resistanceLevel != ResistanceLevel.High){
+                resistanceLevel = ResistanceLevel.High;
+                if(haptics != null) StopCoroutine(haptics);
+                haptics = StartCoroutine(StartPeriodicHaptics(.2f, .8f));
+            }
+        }else if(resistance <= 1f){
+            if(resistanceLevel != ResistanceLevel.Highest){
+                resistanceLevel = ResistanceLevel.Highest;
+                if(haptics != null) StopCoroutine(haptics);
+                haptics = StartCoroutine(StartPeriodicHaptics(.2f, 1f));
+            }
         }
     }
 
-    IEnumerator StartPeriodicHaptics()
+
+
+    IEnumerator StartPeriodicHaptics(float delay, float amplitude)
     {
         // Trigger haptics every second
-        var delay = new WaitForSeconds(1f);
+        var wait = new WaitForSeconds(delay);
  
         while (true)
         {
-            yield return delay;
-            SendHaptics();
+            yield return wait;
+            SendHaptics(amplitude);
         }
     }
  
-    void SendHaptics()
+    void SendHaptics(float amplitude)
     {   if(baseController == null) Debug.Log("controller is null");
-        baseController?.SendHapticImpulse(0.7f, 0.1f);
+        baseController?.SendHapticImpulse(amplitude, 0.05f);
     }
 }

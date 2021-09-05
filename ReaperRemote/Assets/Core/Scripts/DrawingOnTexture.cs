@@ -14,8 +14,10 @@ public class DrawingOnTexture : MonoBehaviour
     [SerializeField] InputActionReference spacePressed;
     [SerializeField] GameObject strokePosition;
     [SerializeField] GameObject targetPosition;
-    Transform strokePositionTransform, targetPositionTransform;
+    [SerializeField] GameObject depthPosition;
+    Transform strokePositionTransform, targetPositionTransform, depthPositionTransform;
     StrokePositionController strokePositionController;
+    DrawingStickController drawingStickController;
 
     Renderer textureRenderer;
     Texture2D texture;
@@ -48,6 +50,7 @@ public class DrawingOnTexture : MonoBehaviour
 
         strokePositionTransform = strokePosition.transform;
         targetPositionTransform = targetPosition.transform;
+        depthPositionTransform = depthPosition.transform;
         strokePositionController = strokePosition.GetComponent<StrokePositionController>();
 
 
@@ -68,13 +71,19 @@ public class DrawingOnTexture : MonoBehaviour
     void StartStroke(Collider other){
         isDrawing = true;
         var data = texture.GetRawTextureData<Color32>(); // copy of pointer
-        hasColor = new bool[data.Length]; // reset per stroke! TODO: better architecture..
+        hasColor = new bool[data.Length]; // reset per stroke!
         lastStroke = new Vector2(-1f, -1f); // skip a frame
         otherObject = other.transform;
+        drawingStickController = other.GetComponentInParent<DrawingStickController>();
         strokePositionTransform.position = otherObject.position;
+        depthPositionTransform.position = otherObject.position;
         strokePositionTransform.localPosition = new Vector3(strokePositionTransform.localPosition.x, 
-            strokePositionTransform.localPosition.y, 0f);
+                                                            strokePositionTransform.localPosition.y, 0f);
         if(refreshRoutine == null) refreshRoutine = StartCoroutine(ApplyTexture());
+
+        targetPositionTransform.position = otherObject.position;
+        targetPositionTransform.localPosition = new Vector3(targetPositionTransform.localPosition.x, 
+                                                            targetPositionTransform.localPosition.y, 0f);
     }
     void StopStroke(Collider other){
         isDrawing = false;
@@ -82,52 +91,8 @@ public class DrawingOnTexture : MonoBehaviour
         StopCoroutine(refreshRoutine);
         refreshRoutine = null;
         texture.Apply(); // otherwise applying texture will be delayed untill next stroke!
-    }
-
-    void ProcessInput(Collider other){
-        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        sphere.transform.localScale = new Vector3(.01f,.01f,.01f);
-        Vector3 pos = childCollider.ClosestPoint(other.transform.position);
-        sphere.transform.position = pos;
-        // Note : affected by scale, so always -.5 to .5
-        Vector3 localPos = transform.InverseTransformPoint(pos);
-        Debug.Log("Local Pos: " + localPos);
-        Vector2 canvasCoordinates = new Vector2(Mathf.Clamp((localPos.x + .5f), 0, 1), Mathf.Clamp((localPos.y + .5f), 0, 1));
-        // in integers, 0 to 511
-        Debug.Log("Canvas Coord: " + canvasCoordinates);
-        Vector2Int pixelCoordinates = Vector2Int.RoundToInt(canvasCoordinates * 511f);
-        Debug.Log("Pixel Vector ".Colorize(Color.magenta) + pixelCoordinates);
-
-        texture.SetPixels(pixelCoordinates.x, pixelCoordinates.y, 4, 4, colors1D, 0); 
-        // This function is an extended version of SetPixels above; it does not modify the whole mip level but modifies only blockWidth by blockHeight region starting at x,y. The colors array must be blockWidth*blockHeight size, and the modified block must fit into the used mip level.
-        // https://docs.unity3d.com/ScriptReference/Color.html
-
-
-        texture.Apply(); // TODO: keep at low frame rate
-
-
-
-        // 1.  calculate array 32color, https://docs.unity3d.com/ScriptReference/Texture2D.SetPixels32.html
-        // 1d array x * y in size, indexes are 0 to (x * y) -1 
-        // brush tip : round = calc pi from point, center is nearest pixel.
-        // soft : blurry edges
-        // Additive : how are colours mixed together ?? 
-        // Pressure - how far into canvas OR trigger
-        // Pressure : add tactile feedback
-
-        // https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm
-        
-        // for undo function save a texture per stroke!
-
-        // Over background texture ?? Layered textures ?
-
-        // 2 hand usage ?? 
-
-        // Save Math strokes - straight etc...
-        // Bezier curves etc... experiment..
-    
-        // Import image runtime : https://gyanendushekhar.com/2017/07/08/load-image-runtime-unity/
-        // https://docs.unity3d.com/Manual/TextureStreaming.html
+        drawingStickController.HandleResistance(0f);
+        drawingStickController = null;
     }
     
     // Update is called once per frame
@@ -135,12 +100,19 @@ public class DrawingOnTexture : MonoBehaviour
     {
         if(isDrawing)
         {
-            UpdateStrokeAndTarget();
+            UpdateStrokeAndTargetAndDepth();
+
 
             // -- Depth : 
-            // float depth = localPos.z;
-            // Debug.Log("Depth : ".Colorize(Color.red) + depth);
-            // outher bounds : -0.005, inner bounds : ~= 0 - clamp..
+            //float zDepth = Vector3.Distance(otherObject.position, targetPositionTransform.position);
+            
+            // transform otherTransform to a local coordinate set relative to texture - 
+            // reset collider, rezize texture. Then bounds are -.5 to .5
+            // behind texture also 1 in distance, move texture to border of collider ?
+
+
+            //Debug.Log("zDepth : ".Colorize(Color.blue) + zDepth);
+            UpdateResistance();
 
             Vector2 canvasCoordinates = CalculateCanvasCoordinates();
             DrawBrushStroke(canvasCoordinates);
@@ -163,6 +135,14 @@ public class DrawingOnTexture : MonoBehaviour
             lastStroke = canvasCoordinates;
         }
     }// end Update()
+
+    void UpdateResistance(){
+        float resistance = Mathf.Clamp( (depthPositionTransform.localPosition.z + .5f), 0f, 1f );
+        
+        if(resistance > .8f) Debug.Log("Resistance : ".Colorize(Color.white) + resistance);
+
+        drawingStickController.HandleResistance(resistance);
+    }
 
     void DrawBrushStroke(Vector2 canvasCoordinates){
         // brush stamp, 5x5 brush
@@ -231,10 +211,11 @@ public class DrawingOnTexture : MonoBehaviour
         return n;
     }
 
-    void UpdateStrokeAndTarget(){
+    void UpdateStrokeAndTargetAndDepth(){
         targetPositionTransform.position = otherObject.position;
-            targetPositionTransform.localPosition = new Vector3(targetPositionTransform.localPosition.x, 
-                                                                targetPositionTransform.localPosition.y, 0f);
+        depthPositionTransform.position = otherObject.position;
+        targetPositionTransform.localPosition = new Vector3(targetPositionTransform.localPosition.x, 
+                                                            targetPositionTransform.localPosition.y, 0f);
         strokePositionTransform.localPosition = Vector2.MoveTowards(strokePositionTransform.localPosition, 
                                                                     targetPositionTransform.localPosition, 
                                                                     drawSpeed * Time.deltaTime);

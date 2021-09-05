@@ -42,7 +42,7 @@ public class StickController : MonoBehaviour, IContinousTrigger, IHitVelocity
     }
 
     // two controls can process input eg. trigger and grip
-    public void ProcessInput(float val){
+    public void ProcessTriggerInput(float val){
         rendererOfStickHead.material.Lerp(materialFlat, materialGlowing, val);
         hitVelocity = (int)(Mathf.Round(val * 126f));
         // changing several materials

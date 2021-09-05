@@ -15,7 +15,7 @@ public interface IContinousTrigger
     /// <summary>
     /// Data for Trigger : 0 to 1, use Data.Process(val, dataHandler) to return processed data (custom data type triggerData ??)
     /// </summary>
-    public void ProcessInput(float val);
+    public void ProcessTriggerInput(float val);
     
 }
 

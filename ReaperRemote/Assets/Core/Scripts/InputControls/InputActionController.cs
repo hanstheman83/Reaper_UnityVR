@@ -93,14 +93,14 @@ public class InputActionController : MonoBehaviour
         // leftTriggerPressed(obj.ReadValue<float>(), ControllerHand.Left);
         //leftTriggerPressed?.Invoke(obj.ReadValue<float>(), ControllerHand.Left);
         foreach(IContinousTrigger t in continousLeftTriggers){
-            t.ProcessInput(obj.ReadValue<float>());
+            t.ProcessTriggerInput(obj.ReadValue<float>());
         }
     }
     private void ProcessRightTrigger(InputAction.CallbackContext obj){
         // rightTriggerPressed(obj.ReadValue<float>(), ControllerHand.Right);
         //rightTriggerPressed?.Invoke(obj.ReadValue<float>(), ControllerHand.Right);
         foreach(IContinousTrigger t in continousRightTriggers){
-            t.ProcessInput(obj.ReadValue<float>());
+            t.ProcessTriggerInput(obj.ReadValue<float>());
         }
     }
 
