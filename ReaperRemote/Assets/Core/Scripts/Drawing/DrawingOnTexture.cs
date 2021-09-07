@@ -75,6 +75,7 @@ public class DrawingOnTexture : MonoBehaviour
         lastStroke = new Vector2(-1f, -1f); // skip a frame
         otherObject = other.transform;
         drawingStickController = other.GetComponentInParent<DrawingStickController>();
+        drawingStickController.StartResistance();
         strokePositionTransform.position = otherObject.position;
         depthPositionTransform.position = otherObject.position;
         strokePositionTransform.localPosition = new Vector3(strokePositionTransform.localPosition.x, 
@@ -91,7 +92,7 @@ public class DrawingOnTexture : MonoBehaviour
         StopCoroutine(refreshRoutine);
         refreshRoutine = null;
         texture.Apply(); // otherwise applying texture will be delayed untill next stroke!
-        drawingStickController.HandleResistance(0f);
+        drawingStickController.StopResistance();
         drawingStickController = null;
     }
     
@@ -138,9 +139,7 @@ public class DrawingOnTexture : MonoBehaviour
 
     void UpdateResistance(){
         float resistance = Mathf.Clamp( (depthPositionTransform.localPosition.z + .5f), 0f, 1f );
-        
         if(resistance > .8f) Debug.Log("Resistance : ".Colorize(Color.white) + resistance);
-
         drawingStickController.HandleResistance(resistance);
     }
 
