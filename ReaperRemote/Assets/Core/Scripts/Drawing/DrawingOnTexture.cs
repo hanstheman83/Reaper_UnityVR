@@ -21,6 +21,7 @@ public class DrawingOnTexture : MonoBehaviour
 
     Renderer textureRenderer;
     Texture2D texture;
+    List<Texture2D> oldTextures;
     ChildTrigger childTrigger;
     Collider childCollider;
     int pos = 0;
@@ -69,6 +70,11 @@ public class DrawingOnTexture : MonoBehaviour
     }
 
     void StartStroke(Collider other){
+        // create new texture - copy old to this
+        // without mipmaps but with linear space
+        // public Texture2D(int width, int height, TextureFormat textureFormat = TextureFormat.RGBA32, bool mipChain = true, bool linear = false); 
+
+
         isDrawing = true;
         var data = texture.GetRawTextureData<Color32>(); // copy of pointer
         hasColor = new bool[data.Length]; // reset per stroke!
@@ -91,7 +97,20 @@ public class DrawingOnTexture : MonoBehaviour
         otherObject = null;
         StopCoroutine(refreshRoutine);
         refreshRoutine = null;
+
+        // apply with new mipmaps
+        // Texture.mipMapBias - pos for more blurry
+        // save texture in oldTextures (will fill mem) TODO: check how much - can delete first created
+        // create Redo Undo pattern - on ab or yx
+
+        // public void Apply(bool updateMipmaps = true, bool makeNoLongerReadable = false); 
+        // So copy into new texture - attach this new t to material/renderer
+        // 
+
         texture.Apply(); // otherwise applying texture will be delayed untill next stroke!
+
+        // debug : Texture2D.loadedMipmapLevel -- put in update, print on change, cache
+
         drawingStickController.StopResistance();
         drawingStickController = null;
     }
