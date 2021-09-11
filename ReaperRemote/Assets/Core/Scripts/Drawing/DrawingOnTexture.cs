@@ -9,7 +9,8 @@ public class DrawingOnTexture : MonoBehaviour
     {
     [SerializeField] int textureHeight = 1024, textureWidth = 1024;
     [SerializeField][Range(0.02f, 2f)] float drawSpeed = 0.02f;
-    [SerializeField][Range(0.02f, 0.5f)] float refreshRate = 0.02f;
+    [SerializeField][Range(0.02f, 0.5f)] float rawTextureRefreshRate = 0.02f;
+    //[SerializeField][Range(0.02f, 0.5f)] float renderTextureMipsRefreshRate = 0.03f;
     [SerializeField] InputActionReference spacePressed;
     [SerializeField] GameObject strokePosition;
     [SerializeField] GameObject targetPosition;
@@ -119,9 +120,14 @@ public class DrawingOnTexture : MonoBehaviour
 
         drawingStickController.StopResistance();
         drawingStickController = null;
-        renderTexture.GenerateMips(); 
+        Invoke("UpdateMipsInRenderTextureOnce", rawTextureRefreshRate/2f); // need to wait
         Debug.Log($"Mips active {renderTexture.useMipMap}".Colorize(Color.cyan));
         Debug.Log("Mip count :".Colorize(Color.magenta) + renderTexture.mipmapCount);
+    }
+
+    // simple delay
+    void UpdateMipsInRenderTextureOnce(){
+        renderTexture.GenerateMips();
     }
     
     // Update is called once per frame
@@ -155,7 +161,7 @@ public class DrawingOnTexture : MonoBehaviour
 
     void UpdateResistance(){
         float resistance = Mathf.Clamp( (depthPositionTransform.localPosition.z + .5f), 0f, 1f );
-        if(resistance > .8f) Debug.Log("Resistance : ".Colorize(Color.white) + resistance);
+        // if(resistance > .8f) Debug.Log("Resistance : ".Colorize(Color.white) + resistance);
         drawingStickController.HandleResistance(resistance);
     }
 
@@ -244,11 +250,17 @@ public class DrawingOnTexture : MonoBehaviour
     private IEnumerator ApplyTexture()
     {
         while(true){
-            yield return new WaitForSeconds(refreshRate);
             texture.Apply();
-            renderTexture.GenerateMips(); // TODO: slower refresh rate for this!?
+            yield return new WaitForEndOfFrame();
+            renderTexture.GenerateMips();
+            yield return new WaitForSeconds(rawTextureRefreshRate);
+ 
 
         }
     }
+    // private IEnumerator UpdateMipsInRenderTexture(){
+    //     yield return new wa renderTextureMipsRefreshRate // need to wait
 
+
+    // }
 }
