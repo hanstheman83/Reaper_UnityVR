@@ -170,6 +170,14 @@
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "JoystickPress",
+                    "type": "Value",
+                    "id": "92e1f9e2-4091-4324-adb2-f80c81ba65d7",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -522,6 +530,17 @@
                     "processors": "",
                     "groups": "Generic XR Controller",
                     "action": "Teleport Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "bf3cda89-b0f1-41bb-9aa0-c36776cebfe7",
+                    "path": "<OculusTouchController>{LeftHand}/thumbstickClicked",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "JoystickPress",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
