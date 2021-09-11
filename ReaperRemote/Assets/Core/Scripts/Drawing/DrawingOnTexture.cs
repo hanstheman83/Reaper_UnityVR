@@ -10,15 +10,15 @@ public class DrawingOnTexture : MonoBehaviour
     [SerializeField] int textureHeight = 1024, textureWidth = 1024;
     [SerializeField][Range(0.02f, 2f)] float drawSpeed = 0.02f;
     [SerializeField][Range(0.02f, 0.5f)] float refreshRate = 0.02f;
-    Coroutine refreshRoutine;
     [SerializeField] InputActionReference spacePressed;
     [SerializeField] GameObject strokePosition;
     [SerializeField] GameObject targetPosition;
     [SerializeField] GameObject depthPosition;
+    [SerializeField] RenderTexture renderTexture;
     Transform strokePositionTransform, targetPositionTransform, depthPositionTransform;
     StrokePositionController strokePositionController;
     DrawingStickController drawingStickController;
-
+    Coroutine refreshRoutine;
     Renderer textureRenderer;
     Texture2D texture;
     List<Texture2D> oldTextures;
@@ -45,7 +45,9 @@ public class DrawingOnTexture : MonoBehaviour
     void Start()
     {
         // Create a new 2x2 texture ARGB32 (32 bit with alpha) and no mipmaps
-        texture = new Texture2D(textureHeight, textureWidth, TextureFormat.RGBA32, false);
+        // texture = new Texture2D(textureHeight, textureWidth, TextureFormat.RGBA32, false);
+        texture = new Texture2D(textureHeight, textureWidth, TextureFormat.RGBA32, false, true);
+        
         // connect texture to material of GameObject this script is attached to
         textureRenderer.material.mainTexture = texture;
 
@@ -53,6 +55,10 @@ public class DrawingOnTexture : MonoBehaviour
         targetPositionTransform = targetPosition.transform;
         depthPositionTransform = depthPosition.transform;
         strokePositionController = strokePosition.GetComponent<StrokePositionController>();
+
+        // TODO: auto fill texture
+        //renderTexture.GenerateMips(); // -- update this when moving canvas
+
 
 
         // init color array
@@ -113,6 +119,9 @@ public class DrawingOnTexture : MonoBehaviour
 
         drawingStickController.StopResistance();
         drawingStickController = null;
+        renderTexture.GenerateMips(); 
+        Debug.Log($"Mips active {renderTexture.useMipMap}".Colorize(Color.cyan));
+        Debug.Log("Mip count :".Colorize(Color.magenta) + renderTexture.mipmapCount);
     }
     
     // Update is called once per frame
@@ -121,19 +130,7 @@ public class DrawingOnTexture : MonoBehaviour
         if(isDrawing)
         {
             UpdateStrokeAndTargetAndDepth();
-
-
-            // -- Depth : 
-            //float zDepth = Vector3.Distance(otherObject.position, targetPositionTransform.position);
-            
-            // transform otherTransform to a local coordinate set relative to texture - 
-            // reset collider, rezize texture. Then bounds are -.5 to .5
-            // behind texture also 1 in distance, move texture to border of collider ?
-
-
-            //Debug.Log("zDepth : ".Colorize(Color.blue) + zDepth);
             UpdateResistance();
-
             Vector2 canvasCoordinates = CalculateCanvasCoordinates();
             DrawBrushStroke(canvasCoordinates);
 
@@ -249,6 +246,8 @@ public class DrawingOnTexture : MonoBehaviour
         while(true){
             yield return new WaitForSeconds(refreshRate);
             texture.Apply();
+            renderTexture.GenerateMips(); // TODO: slower refresh rate for this!?
+
         }
     }
 
