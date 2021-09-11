@@ -33,8 +33,6 @@ public class InputActionController : MonoBehaviour
     [SerializeField] private InputActionProperty rightMove;
     [SerializeField] private InputActionProperty leftTurn;
     [SerializeField] private InputActionProperty rightTurn;
-    [SerializeField] private InputActionProperty leftTrigger;
-    [SerializeField] private InputActionProperty rightTrigger;
 
     // InputActionReferences for own Input manipulations
     // https://docs.unity3d.com/Manual/xr_input.html
@@ -53,6 +51,8 @@ public class InputActionController : MonoBehaviour
     private void Awake() {
         continousLeftTriggers = new List<IContinousTrigger>();
         continousRightTriggers = new List<IContinousTrigger>();
+        joystickPressLeft = new List<IJoystickPress>();
+        joystickPressRight = new List<IJoystickPress>();
         customMoveProvider = FindObjectOfType<CustomMoveProvider>();
         customSnapTurnProvider = FindObjectOfType<CustomSnapTurnProvider>();
         XR_leftTriggerPress.action.performed += ProcessLeftTrigger;
@@ -123,8 +123,8 @@ public class InputActionController : MonoBehaviour
 
     // ----------- 
     #region Control Setup
-    public void RegisterTriggerControl(IContinousTrigger trigger, ControllerHand c){
-        switch(c){
+    public void RegisterTriggerControl(IContinousTrigger trigger, ControllerHand controllerHand){
+        switch(controllerHand){
             case ControllerHand.Left:
                 continousLeftTriggers.Add(trigger);
                 break;
@@ -136,9 +136,9 @@ public class InputActionController : MonoBehaviour
                 break;
         }
     }
-    public void RemoveTriggerControl(IContinousTrigger trigger, ControllerHand c){
+    public void RemoveTriggerControl(IContinousTrigger trigger, ControllerHand controllerHand){
         bool success;
-        switch(c){
+        switch(controllerHand){
             case ControllerHand.Left:
                 success = continousLeftTriggers.Remove(trigger);
                 if(!success) {Debug.LogError("No item removed!");}
@@ -154,6 +154,40 @@ public class InputActionController : MonoBehaviour
                 break;
         }
     }
+
+    public void RegisterJoystickPress(IJoystickPress joystickPress, ControllerHand controllerHand){
+        switch(controllerHand){
+            case ControllerHand.Left:
+                joystickPressLeft.Add(joystickPress);
+                break;
+            case ControllerHand.Right:
+                joystickPressRight.Add(joystickPress);
+                break;
+            case ControllerHand.None:
+                Debug.LogError("Need to specify a controlled by hand!");
+                break;
+        }
+    }
+
+    public void RemoveJoystickPress(IJoystickPress joystickPress, ControllerHand controllerHand){
+        bool success;
+        switch(controllerHand){
+            case ControllerHand.Left:
+                success = joystickPressLeft.Remove(joystickPress);
+                if(!success) {Debug.LogError("No item removed!");}
+                else {Debug.Log("Item removed");}
+                break;
+            case ControllerHand.Right:
+                success = joystickPressRight.Remove(joystickPress);
+                if(!success) {Debug.LogError("No item removed!");}
+                else {Debug.Log("Item removed");}
+                break;
+            case ControllerHand.None:
+                Debug.LogError("Need to specify a controlled by hand!");
+                break;
+        }
+    }
+
     private void ProcessLeftTrigger(InputAction.CallbackContext obj){
         // leftTriggerPressed(obj.ReadValue<float>(), ControllerHand.Left);
         //leftTriggerPressed?.Invoke(obj.ReadValue<float>(), ControllerHand.Left);
@@ -173,6 +207,10 @@ public class InputActionController : MonoBehaviour
         float result = obj.ReadValue<float>();
         
         Debug.Log($"Joy left : {result}");
+
+        foreach(IJoystickPress j in joystickPressLeft){
+            j.ProcessJoystickPress(result);
+        }
     }
 
 

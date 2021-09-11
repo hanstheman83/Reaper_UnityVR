@@ -536,7 +536,7 @@
                 {
                     "name": "",
                     "id": "bf3cda89-b0f1-41bb-9aa0-c36776cebfe7",
-                    "path": "<OculusTouchController>{LeftHand}/thumbstickClicked",
+                    "path": "<XRController>{LeftHand}/thumbstickClicked",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
