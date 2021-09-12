@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+//using UnityEngine.InputSystem.XR;
 
 namespace Core.Controls{
 
@@ -27,6 +28,12 @@ public class InputActionController : MonoBehaviour
 
     // dictionary of xr control to action
     // problem : some controls use multiple controls ?
+
+    // Directly accessed XR devices
+    // IN EDITOR : TOUCH CONTROLLERS MUST BE ACTIVE BEFORE STARTING PLAYMODE!!!
+    // otherwise they will never be initialized!
+    UnityEngine.XR.InputDevice leftXRController;
+    
 
     // InputActionProperties for XR components
     [SerializeField] private InputActionProperty leftMove;
@@ -58,9 +65,36 @@ public class InputActionController : MonoBehaviour
         XR_leftTriggerPress.action.performed += ProcessLeftTrigger;
         XR_rightTriggerPress.action.performed += ProcessRightTrigger;
         XR_leftJoystickPress.action.performed += ProcessLeftJoystickPress;
+
+
+    }
+
+    private void Start() {
+        // https://docs.unity.cn/2019.2/Documentation/Manual/xr_input.html
+        var leftHandDevices = new List<UnityEngine.XR.InputDevice>();
+        UnityEngine.XR.InputDevices.GetDevicesAtXRNode(UnityEngine.XR.XRNode.LeftHand, leftHandDevices);
+        if(leftHandDevices.Count == 0){
+            Debug.LogError("Left XRController not initialized on start!");
+        }
+        else if(leftHandDevices.Count == 1)
+        {
+            leftXRController = leftHandDevices[0];
+            Debug.Log(string.Format("Device name '{0}' with role '{1}'", leftXRController.name, leftXRController.characteristics));
+        }
+        else if(leftHandDevices.Count > 1)
+        {
+            Debug.Log("Found more than one left hand!");
+        }
     }
 
     void Update() {
+        bool triggerValue;
+        if (leftXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out triggerValue) && triggerValue)
+        {
+            Debug.Log("Joy button is pressed");
+        }
+
+
         // toggle
         if(oldState != rightIsActive){
             if(rightIsActive) {
