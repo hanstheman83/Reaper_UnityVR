@@ -5,7 +5,7 @@ using Core.Controls;
 using UnityEngine.XR.Interaction.Toolkit;
 using Core;
 
-
+[RequireComponent(typeof(XRGrabInteractable))]
 public class DrawingStickController : MonoBehaviour, IContinousTrigger
 {
     // Get info from drawingboard - z coord on stroke
@@ -49,11 +49,15 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
 
     public void OnSelectEntered(SelectEnterEventArgs args){
         CustomDirectInteractor customDirectInteractor = (CustomDirectInteractor)args.interactor;
-        controlledBy = customDirectInteractor.ControllerHand; 
+        controlledBy = customDirectInteractor.ControllerHand;
+        customDirectInteractor.attachTransform.position = GetComponent<XRGrabInteractable>().attachTransform.position;
+        customDirectInteractor.attachTransform.rotation = GetComponent<XRGrabInteractable>().attachTransform.rotation;
         baseController = customDirectInteractor.gameObject.GetComponent<XRBaseController>(); 
         inputActionController.RegisterTriggerControl(this, controlledBy);
     }
     public void OnSelectExited(SelectExitEventArgs args){
+        CustomDirectInteractor customDirectInteractor = (CustomDirectInteractor)args.interactor;
+        customDirectInteractor.attachTransform.localPosition = Vector3.zero;
         inputActionController.RemoveTriggerControl(this, controlledBy);
         controlledBy = ControllerHand.None;
         baseController = null;
