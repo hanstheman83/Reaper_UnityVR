@@ -19,6 +19,14 @@ public class AlignmentController : MonoBehaviour, IJoystickPress
         transform.position = leftReferenceBoardController.referenceBoard.position;
     }
 
+    // v2 
+    // auto alignment : quest 2 only
+    // from 3 transforms determine rotation
+    // manually adjust height
+
+    // try get name of xr device 
+    // InputDevice.name
+
     private void Awake() {
         controlledBy = ControllerHand.Left; // TODO: set in UI
         // then update

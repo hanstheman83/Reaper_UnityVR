@@ -86,7 +86,7 @@ public class DrawingOnTexture : MonoBehaviour
         var data = texture.GetRawTextureData<Color32>(); // copy of pointer
         hasColor = new bool[data.Length]; // reset per stroke!
         lastStroke = new Vector2(-1f, -1f); // skip a frame
-        otherObject = other.transform;
+        otherObject = other.transform.Find("DrawPoint");
         drawingStickController = other.GetComponentInParent<DrawingStickController>();
         drawingStickController.StartResistance();
         strokePositionTransform.position = otherObject.position;
