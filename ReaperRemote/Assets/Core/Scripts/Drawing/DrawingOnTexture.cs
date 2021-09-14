@@ -60,7 +60,7 @@ public class DrawingOnTexture : MonoBehaviour
         // TODO: auto fill texture
         //renderTexture.GenerateMips(); // -- update this when moving canvas
 
-
+        Brush someB = new Brush();
 
         // init color array
         colors1D = new Color[25];
@@ -182,6 +182,10 @@ public class DrawingOnTexture : MonoBehaviour
         currentY = startY;
         currentN = startN;
         int currentColorIndex = 0; // in colors 1D array
+
+        
+
+        // TODO: Dynamic brush size!
         for (var i = 0; i < 5; i++)
         {
             for (var j = 0; j < 5; j++)
@@ -244,7 +248,7 @@ public class DrawingOnTexture : MonoBehaviour
 
     Vector2 CalculateCanvasCoordinates(){
         return new Vector2(Mathf.Clamp((strokePositionTransform.localPosition.x + .5f), 0, 1), 
-                                                    Mathf.Clamp((strokePositionTransform.localPosition.y + .5f), 0, 1));
+                           Mathf.Clamp((strokePositionTransform.localPosition.y + .5f), 0, 1));
     }
 
     private IEnumerator ApplyTexture()
@@ -258,9 +262,4 @@ public class DrawingOnTexture : MonoBehaviour
 
         }
     }
-    // private IEnumerator UpdateMipsInRenderTexture(){
-    //     yield return new wa renderTextureMipsRefreshRate // need to wait
-
-
-    // }
 }
