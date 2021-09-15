@@ -5,6 +5,9 @@ using UnityEngine.InputSystem;
 using Core;
 using Core.Interactions;
 
+
+
+// Drawing Stroke handling, set data in layers, get data from layers, update FinalTexture
 public class DrawingOnTexture : MonoBehaviour
     {
     [SerializeField] int textureHeight = 1024, textureWidth = 1024;
@@ -16,6 +19,7 @@ public class DrawingOnTexture : MonoBehaviour
     [SerializeField] GameObject targetPosition;
     [SerializeField] GameObject depthPosition;
     [SerializeField] RenderTexture renderTexture;
+    [SerializeField] LayerManager layerManager;
     Transform strokePositionTransform, targetPositionTransform, depthPositionTransform;
     StrokePositionController strokePositionController;
     DrawingStickController drawingStickController;
@@ -76,6 +80,9 @@ public class DrawingOnTexture : MonoBehaviour
         childTrigger.childTriggeredExitEvent += null;
     }
 
+    // Set background color
+    // apply texture - 1st : combine layers
+    // 2nd : apply
     void StartStroke(Collider other){
         // create new texture - copy old to this
         // without mipmaps but with linear space
