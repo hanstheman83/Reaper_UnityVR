@@ -11,17 +11,9 @@ public class Background : MonoBehaviour
 
     public void InitializeBackground(int width, int height, Color32 color = default){
         pixels = new Color32[width * height];
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        for (var i = 0; i < pixels.Length; i++)
+        {
+            pixels[i] = color;
+        }
     }
 }

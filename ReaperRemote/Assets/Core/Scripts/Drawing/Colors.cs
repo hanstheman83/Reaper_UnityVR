@@ -19,9 +19,13 @@ public static class Colors
     public static Color32 Black {get => black;}
     private static Color32 white = new Color32(255,255,255,255);
     public static Color32 White {get => white;}
+    private static Color32 transparent = new Color32(255,255,255,0);
+    public static Color32 Transparent {get => transparent;}
 
+    // But will it work in linear color space for the texture ? 
     // https://docs.unity3d.com/ScriptReference/Color.RGBToHSV.html
     // https://docs.unity3d.com/ScriptReference/Color.HSVToRGB.html
+    // They also demand cast to Unity Color format
 
     //https://forum.unity.com/threads/mixing-two-objects-color-creating-the-color-of-the-two-mixes.490431/
     // https://gamedev.stackexchange.com/questions/177209/what-colour-space-or-mixing-algorithm-should-i-use-for-watercolor-like-colour

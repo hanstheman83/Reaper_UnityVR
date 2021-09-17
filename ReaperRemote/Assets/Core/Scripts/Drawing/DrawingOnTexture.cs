@@ -23,11 +23,11 @@ public class DrawingOnTexture : MonoBehaviour
     [SerializeField] GameObject depthPosition;
     [SerializeField] RenderTexture renderTexture;
     [SerializeField] LayerManager layerManager;
+    [SerializeField] Renderer rawTextureRenderer;
     Transform strokePositionTransform, targetPositionTransform, depthPositionTransform;
     StrokePositionController strokePositionController;
     DrawingStickController drawingStickController;
     Coroutine refreshRoutine;
-    Renderer textureRenderer;
     Texture2D texture;
     List<Texture2D> oldTextures;
     ChildTrigger childTrigger;
@@ -38,12 +38,11 @@ public class DrawingOnTexture : MonoBehaviour
     
     Transform otherObject;
 
-    Color[] colors1D;
+    Color32[] colors1D;
     // last stroke, in float %
     Vector2 lastStroke = new Vector2(-1f, -1f); // init
 
     private void Awake() {
-        textureRenderer = GetComponentInChildren<Renderer>();
         childTrigger = transform.GetComponentInChildren<ChildTrigger>();
         childCollider = childTrigger.GetComponent<Collider>();
         //Material textureMaterial = GetComponentInChildren<Material>();
@@ -52,7 +51,10 @@ public class DrawingOnTexture : MonoBehaviour
     }
     void Start()
     {
-        texture = new Texture2D(textureHeight, textureWidth, TextureFormat.RGBA32, false, true);
+        texture = new Texture2D(textureWidth, textureHeight, TextureFormat.RGBA32, false, true);
+        layerManager.InitializeAllLayers(textureWidth, textureHeight);
+
+
         // https://docs.unity3d.com/Manual/LinearRendering-LinearOrGammaWorkflow.html
         // Note: If your Textures are in linear color space, you need to disable sRGB sampling. See documentation on Linear Textures for more information.
         // https://docs.unity3d.com/Manual/LinearRendering-LinearTextures.html
@@ -60,7 +62,7 @@ public class DrawingOnTexture : MonoBehaviour
         // Working with Linear textures to avoid sqroot!
         
         // connect texture to material of GameObject this script is attached to
-        textureRenderer.material.mainTexture = texture;
+        rawTextureRenderer.material.mainTexture = texture;
 
         strokePositionTransform = strokePosition.transform;
         targetPositionTransform = targetPosition.transform;
@@ -73,8 +75,8 @@ public class DrawingOnTexture : MonoBehaviour
         Brush someB = new Brush();
 
         // init color array
-        colors1D = new Color[25];
-        Color c = new Vector4(0, 0, 1, 0);
+        colors1D = new Color32[25];
+        Color c = Colors.Spring;
         for (var i = 0; i < colors1D.Length; i++)
         {
             colors1D[i] = c;
@@ -90,20 +92,9 @@ public class DrawingOnTexture : MonoBehaviour
    // TODO: Depth : No new stroke.. 
    // Trigger : erase hasColor array when changed! 
     void StartStroke(Collider other){
-        // create new texture - copy old to this
-        // without mipmaps but with linear space
-        // public Texture2D(int width, int height, TextureFormat textureFormat = TextureFormat.RGBA32, bool mipChain = true, bool linear = false); 
-
-
         isDrawing = true;
-
-
         var data = texture.GetRawTextureData<Color32>(); // copy of pointer
-        
-        
         hasColor = new bool[data.Length]; // reset per stroke!
-
-
         lastStroke = new Vector2(-1f, -1f); // skip a frame
         otherObject = other.transform.Find("DrawPoint");
         drawingStickController = other.GetComponentInParent<DrawingStickController>();
@@ -112,11 +103,7 @@ public class DrawingOnTexture : MonoBehaviour
         depthPositionTransform.position = otherObject.position;
         strokePositionTransform.localPosition = new Vector3(strokePositionTransform.localPosition.x, 
                                                             strokePositionTransform.localPosition.y, 0f);
-
-
         if(refreshRoutine == null) refreshRoutine = StartCoroutine(ApplyTexture());
-
-
         targetPositionTransform.position = otherObject.position;
         targetPositionTransform.localPosition = new Vector3(targetPositionTransform.localPosition.x, 
                                                             targetPositionTransform.localPosition.y, 0f);
@@ -126,9 +113,7 @@ public class DrawingOnTexture : MonoBehaviour
         otherObject = null;
         StopCoroutine(refreshRoutine);
         refreshRoutine = null;
-
         texture.Apply(); // otherwise applying texture will be delayed untill next stroke!
-
         drawingStickController.StopResistance();
         drawingStickController = null;
         Invoke("UpdateMipsInRenderTextureOnce", rawTextureRefreshRate/2f); // need to wait
@@ -148,7 +133,6 @@ public class DrawingOnTexture : MonoBehaviour
             UpdateResistance();
             Vector2 canvasCoordinates = CalculateCanvasCoordinates();
             DrawBrushStroke(canvasCoordinates);
-
             //if dist too long draw line between strokes
             if(lastStroke.x != -1f && lastStroke.y != -1){
                 float distanceBetweenBrushHits = Vector2.Distance(canvasCoordinates, lastStroke);
@@ -163,7 +147,6 @@ public class DrawingOnTexture : MonoBehaviour
                     }
                 }
             }
-
             lastStroke = canvasCoordinates;
         }
     }// end Update()
@@ -176,23 +159,19 @@ public class DrawingOnTexture : MonoBehaviour
 
     void DrawBrushStroke(Vector2 canvasCoordinates){
         // brush stamp, 5x5 brush
-        var data = texture.GetRawTextureData<Color32>(); // copy of pointer
+        //var data = texture.GetRawTextureData<Color32>(); // copy of pointer
         Vector2Int pixelCoordinates = Vector2Int.RoundToInt(canvasCoordinates * (textureWidth-1)); // TODO: allow non uniform scale of canvas!
             //Debug.Log("hit in pixel coordinates " + pixelCoordinates);
-
         // offset from brush size 5x5
         int startX = pixelCoordinates.x - 2;
         int startY = pixelCoordinates.y - 2;
         //Debug.Log("Start in pCoord : " + (startX, startY));
-
         int startN = TransferXYtoN(startX, startY);
         int currentX, currentY, currentN;
         currentX = startX;
         currentY = startY;
         currentN = startN;
         int currentColorIndex = 0; // in colors 1D array
-
-        
 
         // TODO: Dynamic brush size!
         for (var i = 0; i < 5; i++)
@@ -207,7 +186,8 @@ public class DrawingOnTexture : MonoBehaviour
                     currentN = TransferXYtoN(currentX, currentY);
                     currentColorIndex++;
                 }else{ // draw and iterate/update
-                    data[currentN] = colors1D[currentColorIndex];
+                    //data[currentN] = colors1D[currentColorIndex];
+                    layerManager.DrawPixelOnActiveLayer(currentN, colors1D[currentColorIndex]);
                     hasColor[currentN] = true;
                     currentX++;
                     currentN = TransferXYtoN(currentX, currentY);
@@ -264,6 +244,14 @@ public class DrawingOnTexture : MonoBehaviour
     private IEnumerator ApplyTexture()
     {
         while(true){
+            var data = texture.GetRawTextureData<Color32>(); // copy of pointer
+            // TODO: we can store unity color directly in raw texture data array!!
+            var newData = layerManager.CombinedLayers;
+            for (var i = 0; i < data.Length; i++)
+            {
+                data[i] = newData[i];
+            }
+            
             texture.Apply();
             yield return new WaitForEndOfFrame();
             renderTexture.GenerateMips();

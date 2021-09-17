@@ -14,6 +14,10 @@ public class Layer : MonoBehaviour
     
     public void InitializeLayer(int width, int height){
         pixels = new Color32[width * height];
+        for (var i = 0; i < pixels.Length; i++)
+        {
+            pixels[i] = Colors.Transparent;
+        }
     }
 
     public void DrawPixel(int n, Color32 color){

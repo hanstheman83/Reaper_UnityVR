@@ -218,14 +218,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   textureHeight: 2600
   textureWidth: 2600
-  drawSpeed: 1.2
-  rawTextureRefreshRate: 0.02
+  drawSpeed: 0.9
+  rawTextureRefreshRate: 0.1
   spacePressed: {fileID: 8905769556215712089, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   strokePosition: {fileID: 236273934}
   targetPosition: {fileID: 353664927}
   depthPosition: {fileID: 1886424491}
   renderTexture: {fileID: 8400000, guid: a93149f19bf159246a3ce1b9441d3e77, type: 2}
   layerManager: {fileID: 1471134736}
+  rawTextureRenderer: {fileID: 1582854670}
 --- !u!1 &127213666
 GameObject:
   m_ObjectHideFlags: 0
@@ -2002,7 +2003,6 @@ GameObject:
   - component: {fileID: 1582854669}
   - component: {fileID: 1582854671}
   - component: {fileID: 1582854670}
-  - component: {fileID: 1582854672}
   m_Layer: 13
   m_Name: Texture Raw
   m_TagString: Untagged
@@ -2073,18 +2073,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1582854668}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &1582854672
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1582854668}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3fb46ad6ddb41d44082ac3b10c7d7d22, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1627116535
 GameObject:
   m_ObjectHideFlags: 0
@@ -2638,8 +2626,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2067284359}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.017}
-  m_LocalScale: {x: 1, y: 1, z: 0.03}
+  m_LocalPosition: {x: 0, y: 0, z: 0.025}
+  m_LocalScale: {x: 1, y: 1, z: 0.05}
   m_Children:
   - {fileID: 1886424492}
   m_Father: {fileID: 21904742}

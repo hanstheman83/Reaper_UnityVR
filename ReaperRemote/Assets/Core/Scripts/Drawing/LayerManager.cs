@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,20 +9,21 @@ using UnityEngine;
 public class LayerManager : MonoBehaviour
 {
     [SerializeField] Background background;
-    [SerializeField] List<Layer> layersList; // top layer has most weight
+    [SerializeField] List<Layer> layersList; // top layer is index 0
     // or get calc combined!
     private Layer activeLayer;
     private Color32[] combinedLayers;
     public Color32[] CombinedLayers {get => combinedLayers;}
 
 
+
     // Start is called before the first frame update
     void Start()
     {
         activeLayer = layersList[0];
-        // init all layers with a = 0, all black
-        // init background with all black a = 255
-        // 
+
+        
+        // if a on draw on active layer is 1 set thin to cl, otherwise calc color!
         
     }
 
@@ -31,9 +33,23 @@ public class LayerManager : MonoBehaviour
         
     }
 
-    public void CreateLayer(int height, int width){
-
+    public void InitializeAllLayers(int width, int height){
+        background.InitializeBackground(width, height, Colors.Black);
+        foreach (var layer in layersList)
+        {
+            layer.InitializeLayer(width, height);
+        }
+        combinedLayers = new Color32[width * height];
+        // init combinedlayers
+        for (var i = 0; i < combinedLayers.Length; i++)
+        {
+            combinedLayers[i] = Colors.Black;
+        }
     }
+
+    // public void CreateLayer(int height, int width){
+
+    // }
 
     public void DrawPixelOnActiveLayer(int n, Color32 color){
         activeLayer.DrawPixel(n, color);
@@ -43,12 +59,16 @@ public class LayerManager : MonoBehaviour
         // check if a < 255, then do blending with layer below
         // 
         //
+        if(color.a < 255) { // calc combined color, background + layers
+            // background.pixels[n]
+            throw new NotImplementedException();
+        }else if(activeLayer == layersList[0]){ // is highest layer
+            combinedLayers[n] = color;
+        }else if(layersList[0].Pixels[n].a == 255){ // case : the highest layer has a = 255, do nothing
+            // do nothing
+        }else{
+            // blend with top layer
+            throw new NotImplementedException();
+        }
     }
-
-    public Color32[] GetCombinedLayersArray(){
-        combinedLayers = new Color32[0];
-        return combinedLayers;
-    }
-
-
 }
