@@ -7,15 +7,16 @@ using UnityEngine;
 // blend mode
 public class Layer : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
+    private new string name;
+    public string Name {get => name;}
+    private Color32[] pixels;
+    public Color32[] Pixels {get => pixels;}
+    
+    public void InitializeLayer(int width, int height){
+        pixels = new Color32[width * height];
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+    public void DrawPixel(int n, Color32 color){
+        pixels[n] = color;
     }
 }

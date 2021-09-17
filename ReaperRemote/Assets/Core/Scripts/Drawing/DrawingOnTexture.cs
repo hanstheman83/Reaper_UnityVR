@@ -5,6 +5,9 @@ using UnityEngine.InputSystem;
 using Core;
 using Core.Interactions;
 
+// COLOR32 //
+// Each color component is a byte value with a range from 0 to 255.
+// Color32.Lerp
 
 
 // Drawing Stroke handling, set data in layers, get data from layers, update FinalTexture
@@ -49,9 +52,12 @@ public class DrawingOnTexture : MonoBehaviour
     }
     void Start()
     {
-        // Create a new 2x2 texture ARGB32 (32 bit with alpha) and no mipmaps
-        // texture = new Texture2D(textureHeight, textureWidth, TextureFormat.RGBA32, false);
         texture = new Texture2D(textureHeight, textureWidth, TextureFormat.RGBA32, false, true);
+        // https://docs.unity3d.com/Manual/LinearRendering-LinearOrGammaWorkflow.html
+        // Note: If your Textures are in linear color space, you need to disable sRGB sampling. See documentation on Linear Textures for more information.
+        // https://docs.unity3d.com/Manual/LinearRendering-LinearTextures.html
+
+        // Working with Linear textures to avoid sqroot!
         
         // connect texture to material of GameObject this script is attached to
         textureRenderer.material.mainTexture = texture;
@@ -80,9 +86,9 @@ public class DrawingOnTexture : MonoBehaviour
         childTrigger.childTriggeredExitEvent += null;
     }
 
-    // Set background color
-    // apply texture - 1st : combine layers
-    // 2nd : apply
+   
+   // TODO: Depth : No new stroke.. 
+   // Trigger : erase hasColor array when changed! 
     void StartStroke(Collider other){
         // create new texture - copy old to this
         // without mipmaps but with linear space
@@ -90,8 +96,14 @@ public class DrawingOnTexture : MonoBehaviour
 
 
         isDrawing = true;
+
+
         var data = texture.GetRawTextureData<Color32>(); // copy of pointer
+        
+        
         hasColor = new bool[data.Length]; // reset per stroke!
+
+
         lastStroke = new Vector2(-1f, -1f); // skip a frame
         otherObject = other.transform.Find("DrawPoint");
         drawingStickController = other.GetComponentInParent<DrawingStickController>();
@@ -100,7 +112,10 @@ public class DrawingOnTexture : MonoBehaviour
         depthPositionTransform.position = otherObject.position;
         strokePositionTransform.localPosition = new Vector3(strokePositionTransform.localPosition.x, 
                                                             strokePositionTransform.localPosition.y, 0f);
+
+
         if(refreshRoutine == null) refreshRoutine = StartCoroutine(ApplyTexture());
+
 
         targetPositionTransform.position = otherObject.position;
         targetPositionTransform.localPosition = new Vector3(targetPositionTransform.localPosition.x, 
@@ -112,24 +127,11 @@ public class DrawingOnTexture : MonoBehaviour
         StopCoroutine(refreshRoutine);
         refreshRoutine = null;
 
-        // apply with new mipmaps
-        // Texture.mipMapBias - pos for more blurry
-        // save texture in oldTextures (will fill mem) TODO: check how much - can delete first created
-        // create Redo Undo pattern - on ab or yx
-
-        // public void Apply(bool updateMipmaps = true, bool makeNoLongerReadable = false); 
-        // So copy into new texture - attach this new t to material/renderer
-        // 
-
         texture.Apply(); // otherwise applying texture will be delayed untill next stroke!
-
-        // debug : Texture2D.loadedMipmapLevel -- put in update, print on change, cache
 
         drawingStickController.StopResistance();
         drawingStickController = null;
         Invoke("UpdateMipsInRenderTextureOnce", rawTextureRefreshRate/2f); // need to wait
-        Debug.Log($"Mips active {renderTexture.useMipMap}".Colorize(Color.cyan));
-        Debug.Log("Mip count :".Colorize(Color.magenta) + renderTexture.mipmapCount);
     }
 
     // simple delay
@@ -217,6 +219,7 @@ public class DrawingOnTexture : MonoBehaviour
         }
     }
 
+    // TODO: gradient between points, trigger = value, depth = size
     Vector2[] CalculateInBetweenPoints(Vector2 start, Vector2 end){
         //Debug.Log("Calculating in between points".Colorize(Color.white));
         float r = .001f; // TODO: dynamic, brush radius
