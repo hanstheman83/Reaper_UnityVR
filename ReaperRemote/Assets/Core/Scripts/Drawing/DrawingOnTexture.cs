@@ -9,6 +9,8 @@ using Core.Interactions;
 // Each color component is a byte value with a range from 0 to 255.
 // Color32.Lerp
 
+// TODO: Shader to combine background and layers! 
+// https://docs.unity3d.com/Manual/OptimizingGraphicsPerformance.html
 
 // Drawing Stroke handling, set data in layers, get data from layers, update FinalTexture
 public class DrawingOnTexture : MonoBehaviour
@@ -243,6 +245,13 @@ public class DrawingOnTexture : MonoBehaviour
 
     private IEnumerator ApplyTexture()
     {
+        // for network or storing in database : 
+        // public byte[] GetRawTextureData(); 
+        // use with  Texture2D.LoadRawTextureData
+        // https://docs.unity3d.com/ScriptReference/Texture2D.GetRawTextureData.html
+
+
+
         while(true){
             var data = texture.GetRawTextureData<Color32>(); // copy of pointer
             // TODO: we can store unity color directly in raw texture data array!!

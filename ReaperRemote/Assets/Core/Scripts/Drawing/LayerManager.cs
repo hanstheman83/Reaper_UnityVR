@@ -34,7 +34,7 @@ public class LayerManager : MonoBehaviour
     }
 
     public void InitializeAllLayers(int width, int height){
-        background.InitializeBackground(width, height, Colors.Black);
+        background.InitializeBackground(width, height, Colors.White);
         foreach (var layer in layersList)
         {
             layer.InitializeLayer(width, height);
@@ -57,7 +57,12 @@ public class LayerManager : MonoBehaviour
         // ignore at color.a = 0f
 
         // check if a < 255, then do blending with layer below
-        // 
+        // //Add together the corresponding value from each colour. int r = Colour1.r + Colour2.r;
+        //Then divide the 3 ints by 2: int r /= 2;
+        //Set it to a new colour: Color newColour = new Color(r, g, b);
+        // in linear color texture! 
+        // scale by alpha!
+        
         //
         if(color.a < 255) { // calc combined color, background + layers
             // background.pixels[n]
