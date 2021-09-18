@@ -14,6 +14,7 @@ public class LayerManager : MonoBehaviour
     private Layer activeLayer;
     private Color32[] combinedLayers;
     public Color32[] CombinedLayers {get => combinedLayers;}
+    public Texture2D texture;
     int topPixelCounter = 0;
     int CalculateTopPixelCounter = 0;
 
@@ -28,6 +29,10 @@ public class LayerManager : MonoBehaviour
 
         
         // if a on draw on active layer is 1 set thin to cl, otherwise calc color!
+        
+    }
+
+    private void Start() {
         
     }
 
@@ -55,7 +60,10 @@ public class LayerManager : MonoBehaviour
             // }else if(layersList[1].Pixels[i].a == 255){
             //     combinedLayers[i] = layersList[1].Pixels[i];
             // }
-            combinedLayers[i] = CalculateTopPixel(i, 0); // recursive, start from top layer, index = 0
+            var topPixel = CalculateTopPixel(i, 0);
+            combinedLayers[i] = topPixel; // recursive, start from top layer, index = 0
+            var data = texture.GetRawTextureData<Color32>();
+            data[i] = topPixel;
         }
     }
 
@@ -104,7 +112,10 @@ public class LayerManager : MonoBehaviour
 
     public void DrawPixelOnActiveLayer(int n, Color32 color){
         activeLayer.DrawPixel(n, color);
-        combinedLayers[n] = CalculateTopPixel(n, 0); // update combined
+        var data = texture.GetRawTextureData<Color32>();
+        var topPixel = CalculateTopPixel(n, 0);
+        combinedLayers[n] = topPixel; // update combined
+        data[n] = topPixel;
         // null ?
         // ignore at color.a = 0f
 

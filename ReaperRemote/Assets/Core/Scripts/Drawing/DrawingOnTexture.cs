@@ -55,6 +55,7 @@ public class DrawingOnTexture : MonoBehaviour
     void Start()
     {
         texture = new Texture2D(textureWidth, textureHeight, TextureFormat.RGBA32, false, true);
+        layerManager.texture = texture;
         layerManager.InitializeAllLayers(textureWidth, textureHeight);
 
 
@@ -126,12 +127,12 @@ public class DrawingOnTexture : MonoBehaviour
 
     // simple delay
     IEnumerator UpdateTexturesOnce(){
-        var data = texture.GetRawTextureData<Color32>(); // copy of pointer
-        var newData = layerManager.CombinedLayers;
-        for (var i = 0; i < data.Length; i++)
-        {
-            data[i] = newData[i];
-        }
+        // var data = texture.GetRawTextureData<Color32>(); // copy of pointer
+        // var newData = layerManager.CombinedLayers;
+        // for (var i = 0; i < data.Length; i++)
+        // {
+        //     data[i] = newData[i];
+        // }
         texture.Apply(); // otherwise applying texture will be delayed untill next stroke!
         yield return new WaitForEndOfFrame();
         renderTexture.GenerateMips();
@@ -261,12 +262,12 @@ public class DrawingOnTexture : MonoBehaviour
         // use with  Texture2D.LoadRawTextureData
         // https://docs.unity3d.com/ScriptReference/Texture2D.GetRawTextureData.html
         while(true){
-            var data = texture.GetRawTextureData<Color32>(); // copy of pointer
-            var newData = layerManager.CombinedLayers;
-            for (var i = 0; i < data.Length; i++)
-            {
-                data[i] = newData[i];
-            }
+            // var data = texture.GetRawTextureData<Color32>(); // copy of pointer
+            // var newData = layerManager.CombinedLayers;
+            // for (var i = 0; i < data.Length; i++)
+            // {
+            //     data[i] = newData[i];
+            // }
             texture.Apply();
             yield return new WaitForSeconds(rawTextureRefreshRate);
         }

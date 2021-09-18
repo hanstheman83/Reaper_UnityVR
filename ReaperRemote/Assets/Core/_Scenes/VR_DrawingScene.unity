@@ -216,11 +216,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84f3d0a6ee59ed247ad5d902936bcda1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textureHeight: 2600
-  textureWidth: 2600
+  textureHeight: 2400
+  textureWidth: 2400
   drawSpeed: 0.7
-  rawTextureRefreshRate: 0.191
-  renderTextureMipsRefreshRate: 0.192
+  rawTextureRefreshRate: 0.083
+  renderTextureMipsRefreshRate: 0.084
   spacePressed: {fileID: 8905769556215712089, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   strokePosition: {fileID: 236273934}
   targetPosition: {fileID: 353664927}
@@ -694,8 +694,8 @@ Camera:
   m_TargetTexture: {fileID: 8400000, guid: a93149f19bf159246a3ce1b9441d3e77, type: 2}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
+  m_HDR: 0
+  m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
@@ -1413,8 +1413,8 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
+  m_HDR: 0
+  m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
@@ -1686,6 +1686,7 @@ MonoBehaviour:
   layersList:
   - {fileID: 1504841437}
   - {fileID: 1978438041}
+  texture: {fileID: 0}
 --- !u!1 &1487511957
 GameObject:
   m_ObjectHideFlags: 0
