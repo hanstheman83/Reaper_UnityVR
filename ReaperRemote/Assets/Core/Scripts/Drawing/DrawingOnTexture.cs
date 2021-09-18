@@ -18,7 +18,7 @@ public class DrawingOnTexture : MonoBehaviour
     [SerializeField] int textureHeight = 1024, textureWidth = 1024;
     [SerializeField][Range(0.02f, 2f)] float drawSpeed = 0.02f;
     [SerializeField][Range(0.02f, 0.5f)] float rawTextureRefreshRate = 0.02f;
-    //[SerializeField][Range(0.02f, 0.5f)] float renderTextureMipsRefreshRate = 0.03f;
+    [SerializeField][Range(0.02f, 1f)] float renderTextureMipsRefreshRate = 0.03f;
     [SerializeField] InputActionReference spacePressed;
     [SerializeField] GameObject strokePosition;
     [SerializeField] GameObject targetPosition;
@@ -29,7 +29,8 @@ public class DrawingOnTexture : MonoBehaviour
     Transform strokePositionTransform, targetPositionTransform, depthPositionTransform;
     StrokePositionController strokePositionController;
     DrawingStickController drawingStickController;
-    Coroutine refreshRoutine;
+    Coroutine refreshRenderTextureMips;
+    Coroutine refreshRawTexture;
     Texture2D texture;
     List<Texture2D> oldTextures;
     ChildTrigger childTrigger;
@@ -105,7 +106,8 @@ public class DrawingOnTexture : MonoBehaviour
         depthPositionTransform.position = otherObject.position;
         strokePositionTransform.localPosition = new Vector3(strokePositionTransform.localPosition.x, 
                                                             strokePositionTransform.localPosition.y, 0f);
-        if(refreshRoutine == null) refreshRoutine = StartCoroutine(ApplyTexture());
+        if(refreshRawTexture == null) refreshRawTexture = StartCoroutine(ApplyTexture());
+        if(refreshRenderTextureMips == null) refreshRenderTextureMips = StartCoroutine(UpdateRendureTextureMips());
         targetPositionTransform.position = otherObject.position;
         targetPositionTransform.localPosition = new Vector3(targetPositionTransform.localPosition.x, 
                                                             targetPositionTransform.localPosition.y, 0f);
@@ -113,16 +115,25 @@ public class DrawingOnTexture : MonoBehaviour
     void StopStroke(Collider other){
         isDrawing = false;
         otherObject = null;
-        StopCoroutine(refreshRoutine);
-        refreshRoutine = null;
-        texture.Apply(); // otherwise applying texture will be delayed untill next stroke!
+        StopCoroutine(refreshRawTexture);
+        refreshRawTexture = null;
+        StopCoroutine(refreshRenderTextureMips);
+        refreshRenderTextureMips = null;
         drawingStickController.StopResistance();
         drawingStickController = null;
-        Invoke("UpdateMipsInRenderTextureOnce", rawTextureRefreshRate/2f); // need to wait
+        StartCoroutine(UpdateTexturesOnce()); // need to wait
     }
 
     // simple delay
-    void UpdateMipsInRenderTextureOnce(){
+    IEnumerator UpdateTexturesOnce(){
+        var data = texture.GetRawTextureData<Color32>(); // copy of pointer
+        var newData = layerManager.CombinedLayers;
+        for (var i = 0; i < data.Length; i++)
+        {
+            data[i] = newData[i];
+        }
+        texture.Apply(); // otherwise applying texture will be delayed untill next stroke!
+        yield return new WaitForEndOfFrame();
         renderTexture.GenerateMips();
     }
     
@@ -249,24 +260,22 @@ public class DrawingOnTexture : MonoBehaviour
         // public byte[] GetRawTextureData(); 
         // use with  Texture2D.LoadRawTextureData
         // https://docs.unity3d.com/ScriptReference/Texture2D.GetRawTextureData.html
-
-
-
         while(true){
             var data = texture.GetRawTextureData<Color32>(); // copy of pointer
-            // TODO: we can store unity color directly in raw texture data array!!
             var newData = layerManager.CombinedLayers;
             for (var i = 0; i < data.Length; i++)
             {
                 data[i] = newData[i];
             }
-            
             texture.Apply();
-            yield return new WaitForEndOfFrame();
-            renderTexture.GenerateMips();
             yield return new WaitForSeconds(rawTextureRefreshRate);
- 
+        }
+    }
 
+    private IEnumerator UpdateRendureTextureMips(){
+        while(true){
+            renderTexture.GenerateMips();
+            yield return new WaitForSeconds(renderTextureMipsRefreshRate);
         }
     }
 }

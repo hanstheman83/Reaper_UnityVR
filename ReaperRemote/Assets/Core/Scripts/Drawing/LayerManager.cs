@@ -14,7 +14,8 @@ public class LayerManager : MonoBehaviour
     private Layer activeLayer;
     private Color32[] combinedLayers;
     public Color32[] CombinedLayers {get => combinedLayers;}
-
+    int topPixelCounter = 0;
+    int CalculateTopPixelCounter = 0;
 
 
     // Start is called before the first frame update
@@ -62,6 +63,7 @@ public class LayerManager : MonoBehaviour
     /// Recursive Function. Calculate pixel at layerPosition in list. Index 0 is top layer.
     /// </summary>
     private Color32 CalculateTopPixel(int pixel, int layerPosition){ // recursively from top, stop if layer has pixel alpha of 255!
+        CalculateTopPixelCounter++;
         //Debug.Log("Calculating top pixel");
         Color32 topPixel = layersList[layerPosition].Pixels[pixel]; 
         //Debug.Log("Before ifs");
@@ -69,6 +71,7 @@ public class LayerManager : MonoBehaviour
         if(topPixel.a == 255){
             // topPixel has right color since this layer has alpha of 255!
             // do nothing
+            topPixelCounter++;
         }else if(layersList[layerPosition + 1] != null){
             //Debug.Log("case next layer");
             topPixel = PixelBlend(topPixel, CalculateTopPixel(pixel, (layerPosition + 1) ));
@@ -101,6 +104,7 @@ public class LayerManager : MonoBehaviour
 
     public void DrawPixelOnActiveLayer(int n, Color32 color){
         activeLayer.DrawPixel(n, color);
+        combinedLayers[n] = CalculateTopPixel(n, 0); // update combined
         // null ?
         // ignore at color.a = 0f
 
@@ -112,16 +116,16 @@ public class LayerManager : MonoBehaviour
         // scale by alpha!
 
         //
-        if(color.a < 255) { // calc combined color, background + layers
-            // background.pixels[n]
-            throw new NotImplementedException();
-        }else if(activeLayer == layersList[0]){ // is highest layer
-            combinedLayers[n] = color;
-        }else if(layersList[0].Pixels[n].a == 255){ // case : the highest layer has a = 255, do nothing
-            // do nothing
-        }else{
-            // blend with top layer
-            throw new NotImplementedException();
-        }
+        // if(color.a < 255) { // calc combined color, background + layers
+        //     // background.pixels[n]
+        //     throw new NotImplementedException();
+        // }else if(activeLayer == layersList[0]){ // is highest layer
+        //     combinedLayers[n] = color;
+        // }else if(layersList[0].Pixels[n].a == 255){ // case : the highest layer has a = 255, do nothing
+        //     // do nothing
+        // }else{
+        //     // blend with top layer
+        //     throw new NotImplementedException();
+        // }
     }
 }

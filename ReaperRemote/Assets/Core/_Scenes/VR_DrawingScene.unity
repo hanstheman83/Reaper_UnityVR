@@ -218,8 +218,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   textureHeight: 2600
   textureWidth: 2600
-  drawSpeed: 0.9
-  rawTextureRefreshRate: 0.1
+  drawSpeed: 0.7
+  rawTextureRefreshRate: 0.191
+  renderTextureMipsRefreshRate: 0.192
   spacePressed: {fileID: 8905769556215712089, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   strokePosition: {fileID: 236273934}
   targetPosition: {fileID: 353664927}
@@ -299,7 +300,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 236273934}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -539,7 +540,7 @@ Transform:
   m_GameObject: {fileID: 353664927}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.01, y: 0.01, z: 0.01}
+  m_LocalScale: {x: 0.005, y: 0.005, z: 0.005}
   m_Children: []
   m_Father: {fileID: 21904742}
   m_RootOrder: 3
@@ -3351,7 +3352,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6409181433427554044}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1

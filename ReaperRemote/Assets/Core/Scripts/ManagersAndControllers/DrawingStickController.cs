@@ -124,7 +124,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
                 resistanceLevel = ResistanceLevel.Highest;
                 amplitude = 1f;
                 delay = .04f;
-                Debug.Log("Ristance level highest!".Colorize(Color.magenta));
+                // Debug.Log("Ristance level highest!".Colorize(Color.magenta));
             }
         }
     }
@@ -133,8 +133,6 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
 
     IEnumerator StartHaptics()
     {
-        
- 
         while (true)
         {
             yield return new WaitForSeconds(delay);

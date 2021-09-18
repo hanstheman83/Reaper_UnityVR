@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Default
+/// A Brush is a collection of 1d arrays of different pixel sizes
 /// </summary>
 public struct Brush{ // contains several arrays of diffrent sizes
     private int height;
