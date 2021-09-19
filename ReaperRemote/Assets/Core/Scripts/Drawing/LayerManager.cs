@@ -14,7 +14,7 @@ public class LayerManager : MonoBehaviour
     private Layer activeLayer;
     private Color32[] combinedLayers;
     public Color32[] CombinedLayers {get => combinedLayers;}
-    public Texture2D texture;
+    [HideInInspector] public Texture2D texture;
     int topPixelCounter = 0;
     int CalculateTopPixelCounter = 0;
 

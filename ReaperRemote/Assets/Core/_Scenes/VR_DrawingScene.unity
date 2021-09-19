@@ -216,8 +216,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84f3d0a6ee59ed247ad5d902936bcda1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textureHeight: 2400
-  textureWidth: 2400
+  textureHeight: 3200
+  textureWidth: 3200
   drawSpeed: 0.7
   rawTextureRefreshRate: 0.083
   renderTextureMipsRefreshRate: 0.084
