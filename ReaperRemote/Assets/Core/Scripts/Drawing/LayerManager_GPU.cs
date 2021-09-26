@@ -11,6 +11,8 @@ public class LayerManager_GPU : MonoBehaviour
     [SerializeField] Background_GPU background;
     [SerializeField] List<Layer_GPU> layersList; // top layer is index 0
     private Layer_GPU activeLayer;
+    public Layer_GPU ActiveLayer {get => activeLayer;}
+
 
     void Awake()
     {

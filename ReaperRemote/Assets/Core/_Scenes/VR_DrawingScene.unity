@@ -959,14 +959,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 574416982}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b53e16f3b56662849a08a54e54abbfdc, type: 3}
+  m_Script: {fileID: 11500000, guid: 9689f684d5089764889857f32383923d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   background: {fileID: 1626374402}
   layersList:
   - {fileID: 1972129611}
   - {fileID: 699716880}
-  texture: {fileID: 0}
 --- !u!4 &603324886 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 676003818088857945, guid: aec12a24b9881924fa40282cdee0eb23, type: 3}
@@ -1364,7 +1363,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 699716878}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e4e84ac850e5a9942940811ced1a2fb0, type: 3}
+  m_Script: {fileID: 11500000, guid: b19f2fe55f82f714a833b931f76089b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &701797143
@@ -1538,17 +1537,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6656dbe8c8fc024d905d825a0117d6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textureHeight: 1024
-  textureWidth: 1024
-  drawSpeed: 0.02
-  rawTextureRefreshRate: 0.02
-  renderTextureMipsRefreshRate: 0.03
-  strokePosition: {fileID: 0}
-  targetPosition: {fileID: 0}
-  depthPosition: {fileID: 0}
+  textureHeight: 2048
+  textureWidth: 2048
+  drawSpeed: 1.01
+  renderTextureMipsRefreshRate: 0.068
+  strokePosition: {fileID: 657259255}
+  targetPosition: {fileID: 866149700}
+  depthPosition: {fileID: 1470501397}
   renderTexture: {fileID: 8400000, guid: 46cfbf0bae12c7a41b7f3e02aafda4ca, type: 2}
-  layerManager: {fileID: 0}
-  rawTextureRenderer: {fileID: 0}
+  layerManager: {fileID: 574416984}
+  drawOnTexture_Compute: {fileID: 0}
 --- !u!1 &802830212
 GameObject:
   m_ObjectHideFlags: 0
@@ -2758,7 +2756,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1626374400}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1dce1c34fc277af48991c025c4ff1a36, type: 3}
+  m_Script: {fileID: 11500000, guid: 0824932e4a513c24eb6b6480275032e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1627116535
@@ -3434,7 +3432,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1972129609}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e4e84ac850e5a9942940811ced1a2fb0, type: 3}
+  m_Script: {fileID: 11500000, guid: b19f2fe55f82f714a833b931f76089b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1975734197
