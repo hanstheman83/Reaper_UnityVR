@@ -9,14 +9,14 @@ public class Layer_GPU : MonoBehaviour
 {
     private new string name;
     public string Name {get => name;}
-    private Color32[] pixels;
-    public Color32[] Pixels {get => pixels;}
+    private Vector4[] pixels;
+    public Vector4[] Pixels {get => pixels; set => pixels = value;}
     
     public void InitializeLayer(int width, int height){
-        pixels = new Color32[width * height];
+        pixels = new Vector4[width * height];
         for (var i = 0; i < pixels.Length; i++)
         {
-            pixels[i] = Colors.Transparent;
+            pixels[i] = (Vector4)Color.white;
         }
     }
 

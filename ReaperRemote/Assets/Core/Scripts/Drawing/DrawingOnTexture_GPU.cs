@@ -18,7 +18,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     public struct _Pixel{
         public uint position_x, position_y;
         public float color_r, color_g, color_b, color_a;
-        public _Pixel(Vector2Int position, Color color){
+        public _Pixel(Vector2Int position, Color color){ // should auto unpack to compute shader!
             position_x = (uint)position.x;
             position_y = (uint)position.y;
             color_r = color.r;
@@ -47,17 +47,17 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     // For ComputeShader CPU-GPU communication 
 
     // Init on start stroke, save on end stroke
-    ComputeBuffer activeLayer_CB; // 1D array of _Pixel structs
+    ComputeBuffer GPU_ActiveLayerBuffer; // 1D array of _Pixel structs
     
     // Init on start stroke, update per update call. 
     ComputeBuffer pointsOnLine_CB; // 1D array of _Pixel structs! (later blend their colors)
 
     // Init on start stroke, update per update call. 
-    ComputeBuffer brushStroke_CB; // 1D array of _Pixel structs (positions are from 0,0)
+    ComputeBuffer GPU_BrushStrokeBuffer; // 1D array of _Pixel structs (positions are from 0,0)
     // arrays for compute buffers 
-    private _Pixel[] m_pointsOnLine_BufferCPU;
-    private _Pixel[] m_brushStroke_BufferCPU;
-    private Vector4[] m_activeLayer_BufferCPU; // update and reset per stroke
+    private _Pixel[] m_CPU_pointsOnLineBuffer;
+    private _Pixel[] m_CPU_brushStrokeBuffer;
+    private Vector4[] m_CPU_ActiveLayerBuffer; // update and reset per stroke
 
     int pos = 0;
     bool isDrawing = false;
@@ -66,8 +66,6 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     
     Transform otherObject;
 
-    Color32[] colors1D;
-    // last stroke, in float %
     Vector2 lastStroke = new Vector2(-1f, -1f); // init
 
     
@@ -79,19 +77,15 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         //Material textureMaterial = GetComponentInChildren<Material>();
         childTrigger.childTriggeredEnterEvent += StartStroke;
         childTrigger.childTriggeredExitEvent += StopStroke;
-    
-    
-    
     }
+    
     void Start()
     {
         layerManager.InitializeAllLayers(textureWidth, textureHeight);
         
-        int sizeOfVector4 = System.Runtime.InteropServices.Marshal.SizeOf((object)Vector4.zero);
-        activeLayer_CB = new ComputeBuffer(textureHeight * textureWidth, sizeOfVector4); // bytesize of struct = all floats is struct!
-        activeLayer_CB.SetData(layerManager.ActiveLayer.Pixels);
         int kernel = drawOnTexture_Compute.FindKernel("CSMain");
-        drawOnTexture_Compute.SetBuffer(kernel, "_ActiveLayerBuffer", activeLayer_CB);
+
+        
         // https://docs.unity3d.com/ScriptReference/ComputeShader.SetTexture.html
         renderTexture.enableRandomWrite = true;
         drawOnTexture_Compute.SetTexture(kernel, "Result", renderTexture);
@@ -99,21 +93,6 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         strokePositionTransform = strokePosition.transform;
         targetPositionTransform = targetPosition.transform;
         depthPositionTransform = depthPosition.transform;
-        // strokePositionController = strokePosition.GetComponent<StrokePositionController>();
-
-        Brush someB = new Brush();
-
-        // init color array
-        colors1D = new Color32[25];
-        Color c = Colors.Spring;
-        for (var i = 0; i < colors1D.Length; i++)
-        {
-            colors1D[i] = c;
-        }
-
-
-
-
     }
     private void OnDestroy() {
         childTrigger.childTriggeredEnterEvent += null;
@@ -123,49 +102,48 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(isDrawing)
-        {
-            // will block update thread, 
-            activeLayer_CB.GetData(m_activeLayer_BufferCPU);
-            // update mips on rendertexture
-            
-
+        if(isDrawing){
             UpdateStrokeAndTargetAndDepth();
             UpdateResistance();
             Vector2 canvasCoordinates = CalculateCanvasCoordinates();
 
             Vector2[] pointsOnLine = CalculatePointsOnLine(lastStroke, canvasCoordinates); // if lastStroke = -1 calculate only 1 point
-            Vector2Int[] pointsOnLine_pixels2D = CalculatePointsOnLine_Pixels2D(pointsOnLine);
-
-            var structSize = sizeof(float)*4 + sizeof(uint)*2;
-            brushStroke_CB = new ComputeBuffer(25, structSize); // TODO: dispose old buffer ?
-            var m_brushStroke_BufferCPU = CalculateBrushStroke(5);
-            brushStroke_CB.SetData(m_brushStroke_BufferCPU);
-            //ComputeBufferType.Counter;
-
+            m_CPU_pointsOnLineBuffer = CalculatePointsOnLine_Pixels2D(pointsOnLine);
+            
             int kernel = drawOnTexture_Compute.FindKernel("CSMain");
 
-            drawOnTexture_Compute.Dispatch(kernel, pointsOnLine_pixels2D.Length * m_brushStroke_BufferCPU.Length, 1, 1);
+            // SET BUFFERS
+
+            // TODO: set m_CPU_pointsOnLineBuffer
+            // SET POINTS ON LINE
+            // m_CPU_pointsOnLineBuffer
+
+
+            // SET BRUSH STROKE
+            int brushStrokeWidth = 5;
+            drawOnTexture_Compute.SetFloat("_BrushSizeStart", (float)brushStrokeWidth);
+            var m_CPU_BrushStrokeBuffer = CalculateBrushStroke(brushStrokeWidth);
+            var structSize = sizeof(float)*4 + sizeof(uint)*2;
+            GPU_BrushStrokeBuffer = new ComputeBuffer(m_CPU_BrushStrokeBuffer.Length, structSize); // TODO: dispose old buffer ?
+            GPU_BrushStrokeBuffer.SetData(m_CPU_BrushStrokeBuffer);
+            drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeBuffer", GPU_BrushStrokeBuffer);
+            // SET ACTIVE LAYER
+            int sizeOfVector4 = System.Runtime.InteropServices.Marshal.SizeOf((object)Vector4.zero);
+            GPU_ActiveLayerBuffer = new ComputeBuffer(textureHeight * textureWidth, sizeOfVector4); // bytesize of struct = all floats is struct!
+            m_CPU_ActiveLayerBuffer = layerManager.ActiveLayer.Pixels;
+            GPU_ActiveLayerBuffer.SetData(m_CPU_ActiveLayerBuffer);
+            drawOnTexture_Compute.SetBuffer(kernel, "_ActiveLayerBuffer", GPU_ActiveLayerBuffer);
+            // DISPATCH
+            drawOnTexture_Compute.Dispatch(kernel, m_CPU_pointsOnLineBuffer.Length * m_CPU_BrushStrokeBuffer.Length, 1, 1);
+
+            // GET DATA will block update thread, 
+            GPU_ActiveLayerBuffer.GetData(m_CPU_ActiveLayerBuffer);
+            layerManager.ActiveLayer.Pixels = m_CPU_ActiveLayerBuffer;
+
+            // TODO: remember to release buffers!
+            // TODO:  remember to release render texture ??
 
             lastStroke = canvasCoordinates;
-            
-
-
-
-            //pointsOnLine_CB.
-            // GPU_VertexBuffer = new ComputeBuffer(m_vertexBufferCPU.Length, sizeof(float)*8);
-            // pointsOnLine_CB.SetData(dataArray) // but only update after all data was calculated ?!
-
-            // wrap code in new method - create bool : calculatingStroke and if statement
-            // check job done!
-
-
-            // 1 point = 1 brushStroke
-            // Number of total pixels to draw in compute shader = #points * length of brushStroke
-            
-            // TODO: store array in ComputeBuffer
-
-            
         }
     }// end Update()
     #endregion Unity Methods
@@ -191,10 +169,19 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         return pixelsArray;
     }
 
-
-    Vector2Int[] CalculatePointsOnLine_Pixels2D(Vector2[] pointsOnLine){
-        throw new System.NotImplementedException();
-        //return default;
+    _Pixel[] CalculatePointsOnLine_Pixels2D(Vector2[] pointsOnLine){
+        //
+        _Pixel[] pixelsArray = new _Pixel[pointsOnLine.Length];
+        for (var i = 0; i < pointsOnLine.Length; i++)
+        {
+            pixelsArray[i].position_x = (uint) Mathf.Round(pointsOnLine[i].x * textureWidth); 
+            pixelsArray[i].position_y = (uint) Mathf.Round(pointsOnLine[i].y * textureHeight); 
+            pixelsArray[i].color_r = 0f;
+            pixelsArray[i].color_g = 0f;
+            pixelsArray[i].color_b = 0f;
+            pixelsArray[i].color_a = 1f;
+        }
+        return pixelsArray;
     }
 
 
@@ -225,7 +212,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         lastStroke = new Vector2(-1f, -1f); // skip first frame, no stroke length!
         otherObject = other.transform.Find("DrawPoint");
         drawingStickController = other.GetComponentInParent<DrawingStickController>();
-        drawingStickController.StartResistance();
+        drawingStickController.StartResistance(); 
         strokePositionTransform.position = otherObject.position;
         depthPositionTransform.position = otherObject.position;
         strokePositionTransform.localPosition = new Vector3(strokePositionTransform.localPosition.x, 
