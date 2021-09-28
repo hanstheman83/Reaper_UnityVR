@@ -1198,7 +1198,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9c3365b2c9ac3d447a0328aa4b7a6b82, type: 2}
+  - {fileID: 2100000, guid: e03dc5bf02c430b49972947782263d68, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1546,7 +1546,7 @@ MonoBehaviour:
   depthPosition: {fileID: 1470501397}
   renderTexture: {fileID: 8400000, guid: 46cfbf0bae12c7a41b7f3e02aafda4ca, type: 2}
   layerManager: {fileID: 574416984}
-  drawOnTexture_Compute: {fileID: 0}
+  drawOnTexture_Compute: {fileID: 7200000, guid: aa2dd1ca1388bfd42899e963aa3eef47, type: 3}
 --- !u!1 &802830212
 GameObject:
   m_ObjectHideFlags: 0

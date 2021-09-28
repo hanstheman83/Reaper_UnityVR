@@ -4,6 +4,25 @@ using UnityEngine;
 using System.Linq;
 
 namespace Core{
+
+    #region Colors etc...
+    
+    public struct _Pixel{
+        public uint position_x, position_y;
+        public float color_r, color_g, color_b, color_a;
+        public _Pixel(Vector2Int position, Color color){ // should auto unpack to compute shader!
+            position_x = (uint)position.x;
+            position_y = (uint)position.y;
+            color_r = color.r;
+            color_g = color.g;
+            color_b = color.b;
+            color_a = color.a;
+        }
+    } 
+
+    #endregion Colors etc...
+
+
     /// <summary>
     /// All 12 notes in the western chromatic musical scale.
     /// Contains duplicate notes eg. C_Sharp and D_Flat

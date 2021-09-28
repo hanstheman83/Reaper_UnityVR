@@ -14,22 +14,29 @@ struct _Pixel {
     float4 color;
 };
 
-float _TextureWidth;
-float _TextureHeight;
-float _BrushSizeStart;
-float _BrushSizeEnd; // TODO: implement variating brush sizes
-
+uint _TextureWidth;
+uint _TextureHeight;
+uint _BrushSizeStart;
+uint _BrushSizeEnd; // TODO: implement variating brush sizes
+uint _BrushStrokeArrayLength;
 
 RWStructuredBuffer<float4> _ActiveLayerBuffer; // 1D of active layer
 StructuredBuffer<_Pixel> _BrushStrokePositionsBuffer; // array of 2D vectors, positions in pixels
 StructuredBuffer<_Pixel> _BrushStrokeShapeBuffer; // 1D array of pixels - 1size stroke
 RWTexture2D<float4> Result; // The Output render texture
+
 // 
 // https://docs.microsoft.com/en-us/windows/win32/direct3d11/direct3d-11-advanced-stages-cs-resources
 //https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sm5-object-structuredbuffer
 // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sm5-object-rwtexture2d
 
 // Graphics.CopyTexture(). This lets you copy data from any kind of texture to another* (depending the platform). If you copy the contents of a RenderTexture into a Texture2D using CopyTexture() it'll show up changed on the GPU, 
+
+uint TransferXYtoN(uint x, uint y){
+    uint n = x + (_TextureWidth * y);
+    if(n >= _TextureWidth * _TextureHeight) return -1; 
+    return n;
+}
 
 
 [numthreads(1,1,1)] // if increasing this reduce workload in .Dispatch()
@@ -44,19 +51,27 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     // Determine what brushStroke index is active
     // Max x is all brushStrokes combined
     // Divide x by brushStrokeShapeArray size (brushStroke width * height)  = brushStroke index in positionsBuffer
-    uint brushShapeArrayLength = _BrushSizeStart * _BrushSizeStart;
-    uint brushStrokeIndexInBrushStrokesPositionsArray = id.x/(brushShapeArrayLength); // from positions array we can get center of brushStroke in 2D pixel coordinates
-    uint indexInBrushStrokeShape = id.x - (brushStrokeIndexInBrushStrokesPositionsArray * brushShapeArrayLength);
+    uint indexInBrushStrokesPositionsArray = id.x/(_BrushStrokeArrayLength); 
+    uint indexInBrushStrokeShape = id.x - (indexInBrushStrokesPositionsArray * _BrushStrokeArrayLength);
 
-    //uint positionIn1DArray = 
-    // Calculate x and y coordinates in 1D dimension
-    // BrushStrokePosition offset by brushStroke Dimensions
+    _Pixel pixelInBrushShape = _BrushStrokeShapeBuffer[indexInBrushStrokeShape];
+    _Pixel brushCenterPosition = _BrushStrokePositionsBuffer[indexInBrushStrokesPositionsArray];
 
+    uint posX = brushCenterPosition.position_x + pixelInBrushShape.position_x;
+    uint posY = brushCenterPosition.position_y + pixelInBrushShape.position_y;
+    
+    uint n;
 
-
-
-
-
+    if( posX < 0 || posX > _TextureWidth || posY < 0 || posY > _TextureHeight )
+    {
+        // do nothing, pixel out of bounds
+    }else {
+        // draw pixel in maps
+        n = TransferXYtoN(posX, posY);  
+        _ActiveLayerBuffer[n] = pixelInBrushShape.color;
+        float2 pixelPosition = float2(posX, posY);
+        Result[pixelPosition] = pixelInBrushShape.color;
+    }
 
     // TODO: Blend pixel color if already color
 
@@ -65,17 +80,13 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
 // helper functions
 
-uint TransferXYtoN(int x, int y){
-    int n = x + (_TextureWidth * y);
-    if(n >= _TextureWidth * _TextureHeight) return -1; 
-    return n;
-}
 
-uint2 MidBrushStroke_PixelCoordinate(uint brushSize){
-    uint2 midPoint;
-    float halfPoint = brushSize/2.0f;
-    midPoint.x = (uint)ceil(halfPoint);
-    midPoint.y = (uint)ceil(halfPoint);
-    return midPoint;
-}
+
+// uint2 MidBrushStroke_PixelCoordinate(uint brushSize){
+//     uint2 midPoint;
+//     float halfPoint = brushSize/2.0f;
+//     midPoint.x = (uint)ceil(halfPoint);
+//     midPoint.y = (uint)ceil(halfPoint);
+//     return midPoint;
+// }
 

@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Core;
 
 /// <summary>
 /// A Brush is a collection of 1d arrays of different pixel sizes
 /// </summary>
-public struct Brush{ // contains several arrays of diffrent sizes
+public struct Brush{ // contains several arrays of diffrent sizes 
     private int height;
     public int Height {get => height;}
     private int width;
@@ -59,9 +60,22 @@ public struct Brush{ // contains several arrays of diffrent sizes
 }
 public static class BrushGenerator
 {
+    static public _Pixel[] smallBrush3x3 = {
+        new _Pixel(new Vector2Int(-1,-1), Color.blue),
+        new _Pixel(new Vector2Int(0,-1), Color.blue),
+        new _Pixel(new Vector2Int(1,-1), Color.blue),
+        new _Pixel(new Vector2Int(-1,0), Color.blue),
+        new _Pixel(new Vector2Int(0,0), Color.blue),
+        new _Pixel(new Vector2Int(1,0), Color.blue),
+        new _Pixel(new Vector2Int(-1,1), Color.blue),
+        new _Pixel(new Vector2Int(0,1), Color.blue),
+        new _Pixel(new Vector2Int(1,1), Color.blue)
+    };
 
     public static Brush GenerateBrush(int height = 5, int width = 5, float softness = 0f){ // minimum pixel sizes for brush!
         return new Brush();
     }
+
+
 
 }

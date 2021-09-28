@@ -15,18 +15,7 @@ using Core.Interactions;
 // Drawing Stroke handling, set data in layers, get data from layers, update FinalTexture
 public class DrawingOnTexture_GPU : MonoBehaviour
 {
-    public struct _Pixel{
-        public uint position_x, position_y;
-        public float color_r, color_g, color_b, color_a;
-        public _Pixel(Vector2Int position, Color color){ // should auto unpack to compute shader!
-            position_x = (uint)position.x;
-            position_y = (uint)position.y;
-            color_r = color.r;
-            color_g = color.g;
-            color_b = color.b;
-            color_a = color.a;
-        }
-    }    
+       
 
     [SerializeField] int textureHeight = 1024, textureWidth = 1024; // of all texture arrays in layers!!
     [SerializeField][Range(0.02f, 2f)] float drawSpeed = 0.02f;
@@ -50,13 +39,13 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     ComputeBuffer GPU_ActiveLayerBuffer; // 1D array of _Pixel structs
     
     // Init on start stroke, update per update call. 
-    ComputeBuffer pointsOnLine_CB; // 1D array of _Pixel structs! (later blend their colors)
+    ComputeBuffer GPU_BrushStrokeShapeBuffer; // 1D array of _Pixel structs! (later blend their colors)
 
     // Init on start stroke, update per update call. 
-    ComputeBuffer GPU_BrushStrokeBuffer; // 1D array of _Pixel structs (positions are from 0,0)
+    ComputeBuffer GPU_BrushStrokePositionsBuffer; // 1D array of _Pixel structs (positions are from 0,0)
     // arrays for compute buffers 
-    private _Pixel[] m_CPU_pointsOnLineBuffer;
-    private _Pixel[] m_CPU_brushStrokeBuffer;
+    private _Pixel[] m_CPU_PointsOnLineBuffer;
+    private _Pixel[] m_CPU_BrushStrokeShapeBuffer;
     private Vector4[] m_CPU_ActiveLayerBuffer; // update and reset per stroke
 
     int pos = 0;
@@ -89,8 +78,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         // https://docs.unity3d.com/ScriptReference/ComputeShader.SetTexture.html
         renderTexture.enableRandomWrite = true;
         drawOnTexture_Compute.SetTexture(kernel, "Result", renderTexture);
-        drawOnTexture_Compute.SetFloat("_TextureWidth", textureWidth);
-        drawOnTexture_Compute.SetFloat("_TextureHeight", textureHeight);
+        drawOnTexture_Compute.SetInt("_TextureWidth", textureWidth);
+        drawOnTexture_Compute.SetInt("_TextureHeight", textureHeight);
 
         strokePositionTransform = strokePosition.transform;
         targetPositionTransform = targetPosition.transform;
@@ -110,25 +99,29 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             Vector2 canvasCoordinates = CalculateCanvasCoordinates();
 
             Vector2[] pointsOnLine = CalculatePointsOnLine(lastStroke, canvasCoordinates); // if lastStroke = -1 calculate only 1 point
-            m_CPU_pointsOnLineBuffer = CalculatePointsOnLine_Pixels2D(pointsOnLine);
+            m_CPU_PointsOnLineBuffer = CalculatePointsOnLine_Pixels2D(pointsOnLine);
             
             int kernel = drawOnTexture_Compute.FindKernel("CSMain");
 
             // SET BUFFERS
 
-            // TODO: set m_CPU_pointsOnLineBuffer
-            // SET POINTS ON LINE
-            // m_CPU_pointsOnLineBuffer
-
 
             // SET BRUSH STROKE
-            int brushStrokeWidth = 5;
-            drawOnTexture_Compute.SetFloat("_BrushSizeStart", (float)brushStrokeWidth);
-            var m_CPU_BrushStrokeBuffer = CalculateBrushStroke(brushStrokeWidth);
-            var structSize = sizeof(float)*4 + sizeof(uint)*2;
-            GPU_BrushStrokeBuffer = new ComputeBuffer(m_CPU_BrushStrokeBuffer.Length, structSize); // TODO: dispose old buffer ?
-            GPU_BrushStrokeBuffer.SetData(m_CPU_BrushStrokeBuffer);
-            drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeBuffer", GPU_BrushStrokeBuffer);
+            int brushStrokeWidth = 3;
+            int brushStrokeArrayLength = 9;
+            drawOnTexture_Compute.SetInt("_BrushSizeStart", brushStrokeWidth);
+            drawOnTexture_Compute.SetInt("_BrushStrokeArrayLength", brushStrokeArrayLength);
+            // set brush shape
+            var structSize = sizeof(float)*4 + sizeof(uint)*2; // for all _Pixel 
+            m_CPU_BrushStrokeShapeBuffer = BrushGenerator.smallBrush3x3;
+            GPU_BrushStrokeShapeBuffer = new ComputeBuffer(m_CPU_BrushStrokeShapeBuffer.Length, structSize); // TODO: dispose old buffer ?
+            GPU_BrushStrokeShapeBuffer.SetData(m_CPU_BrushStrokeShapeBuffer);
+            drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeBuffer", GPU_BrushStrokeShapeBuffer);
+            // set points on line
+            GPU_BrushStrokePositionsBuffer = new ComputeBuffer(m_CPU_PointsOnLineBuffer.Length, structSize);
+            GPU_BrushStrokePositionsBuffer.SetData(m_CPU_PointsOnLineBuffer);
+            drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokePositionsBuffer", GPU_BrushStrokePositionsBuffer);
+ 
             // SET ACTIVE LAYER
             int sizeOfVector4 = System.Runtime.InteropServices.Marshal.SizeOf((object)Vector4.zero);
             GPU_ActiveLayerBuffer = new ComputeBuffer(textureHeight * textureWidth, sizeOfVector4); // bytesize of struct = all floats is struct!
@@ -136,13 +129,19 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             GPU_ActiveLayerBuffer.SetData(m_CPU_ActiveLayerBuffer);
             drawOnTexture_Compute.SetBuffer(kernel, "_ActiveLayerBuffer", GPU_ActiveLayerBuffer);
             // DISPATCH
-            drawOnTexture_Compute.Dispatch(kernel, m_CPU_pointsOnLineBuffer.Length * m_CPU_BrushStrokeBuffer.Length, 1, 1);
+            drawOnTexture_Compute.Dispatch(kernel, m_CPU_PointsOnLineBuffer.Length * m_CPU_BrushStrokeShapeBuffer.Length, 1, 1);
 
             // GET DATA will block update thread, 
             GPU_ActiveLayerBuffer.GetData(m_CPU_ActiveLayerBuffer);
             layerManager.ActiveLayer.Pixels = m_CPU_ActiveLayerBuffer;
 
+            //renderTexture = 
+
             // TODO: remember to release buffers!
+            GPU_ActiveLayerBuffer.Release();
+            GPU_BrushStrokePositionsBuffer.Release();
+            GPU_BrushStrokeShapeBuffer.Release();
+
             // TODO:  remember to release render texture ??
 
             lastStroke = canvasCoordinates;
