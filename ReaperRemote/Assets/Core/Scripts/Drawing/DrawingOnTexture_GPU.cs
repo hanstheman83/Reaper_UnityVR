@@ -89,6 +89,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         // https://docs.unity3d.com/ScriptReference/ComputeShader.SetTexture.html
         renderTexture.enableRandomWrite = true;
         drawOnTexture_Compute.SetTexture(kernel, "Result", renderTexture);
+        drawOnTexture_Compute.SetFloat("_TextureWidth", textureWidth);
+        drawOnTexture_Compute.SetFloat("_TextureHeight", textureHeight);
 
         strokePositionTransform = strokePosition.transform;
         targetPositionTransform = targetPosition.transform;
