@@ -1537,6 +1537,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6656dbe8c8fc024d905d825a0117d6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  renderTextureRenderer: {fileID: 685359441}
   textureHeight: 2048
   textureWidth: 2048
   drawSpeed: 1.01
@@ -1544,7 +1545,6 @@ MonoBehaviour:
   strokePosition: {fileID: 657259255}
   targetPosition: {fileID: 866149700}
   depthPosition: {fileID: 1470501397}
-  renderTexture: {fileID: 8400000, guid: 46cfbf0bae12c7a41b7f3e02aafda4ca, type: 2}
   layerManager: {fileID: 574416984}
   drawOnTexture_Compute: {fileID: 7200000, guid: aa2dd1ca1388bfd42899e963aa3eef47, type: 3}
 --- !u!1 &802830212
