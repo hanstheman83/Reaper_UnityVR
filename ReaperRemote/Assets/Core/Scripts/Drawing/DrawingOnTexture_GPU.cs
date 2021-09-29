@@ -17,8 +17,9 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 {
        
     [SerializeField] Renderer renderTextureRenderer;
-    [SerializeField] int textureHeight = 1024, textureWidth = 1024; // of all texture arrays in layers!!
-    [SerializeField][Range(0.02f, 2f)] float drawSpeed = 0.02f;
+    [SerializeField][Tooltip("Multiple of 2 - 1024, 2048, 4096, ...")] int textureWidth = 1024; // of all texture arrays in layers!!
+    [SerializeField][Tooltip("Multiple of 2 - 1024, 2048, 4096, ...")] int textureHeight = 1024; // of all texture arrays in layers!!
+    [SerializeField][Range(0.02f, 2f)][Tooltip("How fast stroke moves towards brush (slow value = delayed brush stroke)")] float drawSpeed = 0.02f;
     [SerializeField][Range(0.02f, 1f)] float renderTextureMipsRefreshRate = 0.03f;
     [SerializeField] GameObject strokePosition;
     [SerializeField] GameObject targetPosition;
@@ -111,6 +112,12 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             UpdateResistance();
             Vector2 canvasCoordinates = CalculateCanvasCoordinates();
 
+            if(lastStroke.x < 0){ 
+                Debug.Log("Skipping first frame in new brush stroke..."); 
+                lastStroke = canvasCoordinates;
+                return;
+            }
+
             Vector2[] pointsOnLine = CalculatePointsOnLine(lastStroke, canvasCoordinates); // if lastStroke = -1 calculate only 1 point
             
             if(pointsOnLine.Length > 0){
@@ -139,12 +146,11 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                 drawOnTexture_Compute.Dispatch(kernel, m_CPU_PointsOnLineBuffer.Length * m_CPU_BrushStrokeShapeBuffer.Length, 1, 1);
 
                 // GET DATA will block update thread, 
-                GPU_ActiveLayerBuffer.GetData(m_CPU_ActiveLayerBuffer);
+                //GPU_ActiveLayerBuffer.GetData(m_CPU_ActiveLayerBuffer);
 
                 GPU_BrushStrokePositionsBuffer.Release();
                 GPU_BrushStrokeShapeBuffer.Release();
             }
-
             lastStroke = canvasCoordinates;
         }
     }// end Update()
@@ -155,21 +161,21 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     // ------------------------------------------------------------------ //
     // ------------------------------------------------------------------ //
 
-    _Pixel[] CalculateBrushStroke(int width){
-        _Pixel[] pixelsArray = new _Pixel[width * width];
-        int count = 0;
-        for (var i = 0; i < width; i++)
-        {
-            for (var j = 0; j < width; j++)
-            {
-                pixelsArray[count] = new _Pixel(
-                    new Vector2Int(j, i), 
-                    Color.blue);  
-                count++;     
-            }
-        }
-        return pixelsArray;
-    }
+    // _Pixel[] CalculateBrushStroke(int width){
+    //     _Pixel[] pixelsArray = new _Pixel[width * width];
+    //     int count = 0;
+    //     for (var i = 0; i < width; i++)
+    //     {
+    //         for (var j = 0; j < width; j++)
+    //         {
+    //             pixelsArray[count] = new _Pixel(
+    //                 new Vector2Int(j, i), 
+    //                 Color.blue);  
+    //             count++;     
+    //         }
+    //     }
+    //     return pixelsArray;
+    // }
 
     _Pixel[] CalculatePointsOnLine_Pixels2D(Vector2[] pointsOnLine){
         //
@@ -186,10 +192,9 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         return pixelsArray;
     }
 
-
-
     // TODO: gradient between points, trigger = value, depth = size
     Vector2[] CalculatePointsOnLine(Vector2 start, Vector2 end){
+        if(start.x < 0) Debug.LogError("Only positive values!");
         //Debug.Log("Calculating in between points".Colorize(Color.white));
         float r = .001f; // TODO: dynamic, brush radius
         float distanceBetweenBrushHits = Vector2.Distance(end, start);
@@ -199,7 +204,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         Vector2 deltaVector = end - start;
         Vector2[] inBetweenPoints = new Vector2[numberOfStamps];
 
-        for (var i = 1; i <= numberOfStamps; i++)
+        for (var i = 1; i <= numberOfStamps; i++) // TODO: include start of line
         {
             inBetweenPoints[i - 1] = start + deltaVector * (percentageIncrease * i);
         }
@@ -226,10 +231,10 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         // SET ACTIVE LAYER
         int kernel = drawOnTexture_Compute.FindKernel("CSMain");
         int sizeOfVector4 = System.Runtime.InteropServices.Marshal.SizeOf((object)Vector4.zero);
-        GPU_ActiveLayerBuffer = new ComputeBuffer(textureHeight * textureWidth, sizeOfVector4); // bytesize of struct = all floats is struct!
-        m_CPU_ActiveLayerBuffer = layerManager.ActiveLayer.Pixels;
-        GPU_ActiveLayerBuffer.SetData(m_CPU_ActiveLayerBuffer);
-        drawOnTexture_Compute.SetBuffer(kernel, "_ActiveLayerBuffer", GPU_ActiveLayerBuffer);
+        //GPU_ActiveLayerBuffer = new ComputeBuffer(textureHeight * textureWidth, sizeOfVector4); // bytesize of struct = all floats is struct!
+        //m_CPU_ActiveLayerBuffer = layerManager.ActiveLayer.Pixels;
+        //GPU_ActiveLayerBuffer.SetData(m_CPU_ActiveLayerBuffer);
+        //drawOnTexture_Compute.SetBuffer(kernel, "_ActiveLayerBuffer", GPU_ActiveLayerBuffer);
     }
     void StopStroke(Collider other){
         isDrawing = false;
@@ -239,8 +244,9 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         drawingStickController.StopResistance();
         drawingStickController = null;
         StartCoroutine(UpdateTexturesOnce()); // need to wait
-        m_CPU_ActiveLayerBuffer.CopyTo(layerManager.ActiveLayer.Pixels, 0);
-        GPU_ActiveLayerBuffer.Release();
+        //GPU_ActiveLayerBuffer.GetData(m_CPU_ActiveLayerBuffer);
+        //m_CPU_ActiveLayerBuffer.CopyTo(layerManager.ActiveLayer.Pixels, 0);
+        //GPU_ActiveLayerBuffer.Release();
 
 
         // TODO: update active layer and final update of render texture

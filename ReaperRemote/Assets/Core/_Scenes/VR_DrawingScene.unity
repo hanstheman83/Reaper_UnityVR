@@ -1538,9 +1538,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   renderTextureRenderer: {fileID: 685359441}
-  textureHeight: 2048
-  textureWidth: 2048
-  drawSpeed: 1.01
+  textureWidth: 4096
+  textureHeight: 4096
+  drawSpeed: 0.7
   renderTextureMipsRefreshRate: 0.068
   strokePosition: {fileID: 657259255}
   targetPosition: {fileID: 866149700}
