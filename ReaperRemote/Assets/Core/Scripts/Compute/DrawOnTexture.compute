@@ -20,10 +20,13 @@ uint _BrushSizeStart;
 uint _BrushSizeEnd; // TODO: implement variating brush sizes
 uint _BrushStrokeArrayLength;
 
-RWStructuredBuffer<float4> _ActiveLayerBuffer; // 1D of active layer
+RWStructuredBuffer<uint> _JobDoneBuffer; // dummy data to check Kernel job done - full when all id.x are called!
+//RWStructuredBuffer<float4> _ActiveLayerBuffer; // 1D of active layer
 StructuredBuffer<_Pixel> _BrushStrokePositionsBuffer; // array of 2D vectors, positions in pixels
 StructuredBuffer<_Pixel> _BrushStrokeShapeBuffer; // 1D array of pixels - 1size stroke
+
 RWTexture2D<float4> Result; // The Output render texture
+
 
 // 
 // https://docs.microsoft.com/en-us/windows/win32/direct3d11/direct3d-11-advanced-stages-cs-resources
@@ -68,10 +71,12 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     }else {
         // draw pixel in maps
         n = TransferXYtoN(posX, posY);  
-        _ActiveLayerBuffer[n] = pixelInBrushShape.color;
+        //_ActiveLayerBuffer[n] = pixelInBrushShape.color;
         float2 pixelPosition = float2(posX, posY);
         Result[pixelPosition] = pixelInBrushShape.color;
     }
+
+    _JobDoneBuffer[id.x] = 1;
 
     // TODO: Blend pixel color if already color
 
