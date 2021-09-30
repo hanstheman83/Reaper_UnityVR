@@ -16,6 +16,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
 
     ControllerHand controlledBy = ControllerHand.None;
     [SerializeField] private string nameOfTriggerController;
+    public Renderer stickRenderer;
     public string NameOfTriggerController {get => nameOfTriggerController;} // name accessible from list of all controllers implementing IContinousTrigger
 
     public DataHandler TriggerDataFlow { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
@@ -25,6 +26,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     private InputActionController inputActionController;
     private XRBaseController baseController;
     private Coroutine haptics = null;
+    public Color drawingColor;
 
     private enum ResistanceLevel{
         None, Lowest, Low, Medium, High, Highest 

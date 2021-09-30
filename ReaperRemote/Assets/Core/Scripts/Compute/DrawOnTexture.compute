@@ -73,7 +73,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         n = TransferXYtoN(posX, posY);  
         //_ActiveLayerBuffer[n] = pixelInBrushShape.color;
         float2 pixelPosition = float2(posX, posY);
-        Result[pixelPosition] = pixelInBrushShape.color;
+        Result[pixelPosition] = brushCenterPosition.color;
     }
 
     _JobDoneBuffer[id.x] = 1;

@@ -24,6 +24,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     [SerializeField] GameObject strokePosition;
     [SerializeField] GameObject targetPosition;
     [SerializeField] GameObject depthPosition;
+    [SerializeField] Color drawingColor;
     [SerializeField] LayerManager_GPU layerManager;
     [SerializeField] ComputeShader drawOnTexture_Compute;
     Transform strokePositionTransform, targetPositionTransform, depthPositionTransform;
@@ -194,10 +195,10 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         {
             pixelsArray[i].position_x = (uint) Mathf.Round(pointsOnLine[i].x * textureWidth); 
             pixelsArray[i].position_y = (uint) Mathf.Round(pointsOnLine[i].y * textureHeight); 
-            pixelsArray[i].color_r = 0f;
-            pixelsArray[i].color_g = 0f;
-            pixelsArray[i].color_b = 0f;
-            pixelsArray[i].color_a = 1f;
+            pixelsArray[i].color_r = drawingColor.r;
+            pixelsArray[i].color_g = drawingColor.g;
+            pixelsArray[i].color_b = drawingColor.b;
+            pixelsArray[i].color_a = drawingColor.a;
         }
         return pixelsArray;
     }
@@ -229,6 +230,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         lastStroke = new Vector2(-1f, -1f); // skip first frame, no stroke length!
         otherObject = other.transform.Find("DrawPoint");
         drawingStickController = other.GetComponentInParent<DrawingStickController>();
+        drawingColor = drawingStickController.drawingColor;
         drawingStickController.StartResistance(); 
         strokePositionTransform.position = otherObject.position;
         depthPositionTransform.position = otherObject.position;
