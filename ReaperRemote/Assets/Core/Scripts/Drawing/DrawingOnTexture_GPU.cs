@@ -16,9 +16,12 @@ using Core.Interactions;
 public class DrawingOnTexture_GPU : MonoBehaviour
 {
        
-    [SerializeField] Renderer renderTextureRenderer;
-    [SerializeField][Tooltip("Multiple of 2 - 1024, 2048, 4096, ...")] int textureWidth = 1024; // of all texture arrays in layers!!
-    [SerializeField][Tooltip("Multiple of 2 - 1024, 2048, 4096, ...")] int textureHeight = 1024; // of all texture arrays in layers!!
+    [SerializeField] Renderer renderTexture_00_Renderer;
+    [SerializeField] Renderer renderTexture_01_Renderer;
+    [SerializeField] Renderer renderTexture_02_Renderer;
+    [SerializeField] Renderer renderTexture_03_Renderer;
+    [SerializeField][Tooltip("Multiple of 2 - 1024, 2048, 4096, ...")] int textureWidth = 1024; // 
+    [SerializeField][Tooltip("Multiple of 2 - 1024, 2048, 4096, ...")] int textureHeight = 1024; //
     [SerializeField][Range(0.02f, 2f)][Tooltip("How fast stroke moves towards brush (slow value = delayed brush stroke)")] float drawSpeed = 0.02f;
     [SerializeField][Range(0.02f, 1f)] float renderTextureMipsRefreshRate = 0.03f;
     [SerializeField] GameObject strokePosition;
@@ -51,7 +54,10 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     private _Pixel[] m_CPU_PointsOnLineBuffer;
     private _Pixel[] m_CPU_BrushStrokeShapeBuffer;
     private Vector4[] m_CPU_ActiveLayerBuffer; // update and reset per stroke
-    private RenderTexture renderTexture;
+    private RenderTexture renderTexture_00;
+    private RenderTexture renderTexture_01;
+    private RenderTexture renderTexture_02;
+    private RenderTexture renderTexture_03;
 
     int pos = 0;
     bool isDrawing = false;
@@ -77,6 +83,22 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     {
         layerManager.InitializeAllLayers(textureWidth, textureHeight);
 
+        InitRenderTexture(renderTexture_00_Renderer, ref renderTexture_00,"_RenderTexture00");
+        InitRenderTexture(renderTexture_01_Renderer, ref renderTexture_01,"_RenderTexture01");
+        InitRenderTexture(renderTexture_02_Renderer, ref renderTexture_02,"_RenderTexture02");
+        InitRenderTexture(renderTexture_03_Renderer, ref renderTexture_03,"_RenderTexture03");
+
+        drawOnTexture_Compute.SetInt("_TextureWidth", textureWidth);
+        drawOnTexture_Compute.SetInt("_TextureHeight", textureHeight);
+
+        strokePositionTransform = strokePosition.transform;
+        targetPositionTransform = targetPosition.transform;
+        depthPositionTransform = depthPosition.transform;
+
+        
+    }
+
+    void InitRenderTexture(Renderer renderer, ref RenderTexture renderTexture, string name){
         // setting up RenderTexture
         int kernel = drawOnTexture_Compute.FindKernel("CSMain");
 
@@ -86,20 +108,13 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         renderTexture.useMipMap = true;
         renderTexture.autoGenerateMips = false;
         renderTexture.enableRandomWrite = true;
-        // TODO: filtermode trilenear ?
         renderTexture.filterMode = FilterMode.Trilinear;
-        Debug.Log($"RT filter : {renderTexture.filterMode}"); 
+        //Debug.Log($"RT filter : {renderTexture.filterMode}"); 
         renderTexture.Create();
-        renderTextureRenderer.material.mainTexture = renderTexture;
+        renderer.material.mainTexture = renderTexture;
         // https://docs.unity3d.com/ScriptReference/ComputeShader.SetTexture.html
         
-        drawOnTexture_Compute.SetTexture(kernel, "Result", renderTexture);
-        drawOnTexture_Compute.SetInt("_TextureWidth", textureWidth);
-        drawOnTexture_Compute.SetInt("_TextureHeight", textureHeight);
-
-        strokePositionTransform = strokePosition.transform;
-        targetPositionTransform = targetPosition.transform;
-        depthPositionTransform = depthPosition.transform;
+        drawOnTexture_Compute.SetTexture(kernel, name, renderTexture);
     }
     private void OnDestroy() {
         childTrigger.childTriggeredEnterEvent += null;
@@ -296,14 +311,20 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
     private IEnumerator UpdateRendureTextureMips(){
         while(true){
-            renderTexture.GenerateMips();
+            renderTexture_00.GenerateMips();
+            renderTexture_01.GenerateMips();
+            renderTexture_02.GenerateMips();
+            renderTexture_03.GenerateMips();
             yield return new WaitForSeconds(renderTextureMipsRefreshRate);
         }
     }
 
     IEnumerator UpdateTexturesOnce(){
         yield return new WaitForEndOfFrame();
-        renderTexture.GenerateMips();
+        renderTexture_00.GenerateMips();
+        renderTexture_01.GenerateMips();
+        renderTexture_02.GenerateMips();
+        renderTexture_03.GenerateMips();
     }
     #endregion Drawing Methods
 

@@ -25,7 +25,10 @@ RWStructuredBuffer<uint> _JobDoneBuffer; // dummy data to check Kernel job done 
 StructuredBuffer<_Pixel> _BrushStrokePositionsBuffer; // array of 2D vectors, positions in pixels
 StructuredBuffer<_Pixel> _BrushStrokeShapeBuffer; // 1D array of pixels - 1size stroke
 
-RWTexture2D<float4> Result; // The Output render texture
+RWTexture2D<float4> _RenderTexture00; // The Output render texture
+RWTexture2D<float4> _RenderTexture01; // The Output render texture
+RWTexture2D<float4> _RenderTexture02; // The Output render texture
+RWTexture2D<float4> _RenderTexture03; // The Output render texture
 
 
 // 
@@ -73,7 +76,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         n = TransferXYtoN(posX, posY);  
         //_ActiveLayerBuffer[n] = pixelInBrushShape.color;
         float2 pixelPosition = float2(posX, posY);
-        Result[pixelPosition] = brushCenterPosition.color;
+        _RenderTexture00[pixelPosition] = brushCenterPosition.color;
+        _RenderTexture01[pixelPosition] = brushCenterPosition.color;
+        _RenderTexture02[pixelPosition] = brushCenterPosition.color;
+        _RenderTexture03[pixelPosition] = brushCenterPosition.color;
     }
 
     _JobDoneBuffer[id.x] = 1;
