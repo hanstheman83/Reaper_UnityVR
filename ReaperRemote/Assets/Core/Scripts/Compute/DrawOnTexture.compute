@@ -27,10 +27,25 @@ RWStructuredBuffer<uint> _JobDoneBuffer; // dummy data to check Kernel job done 
 StructuredBuffer<_Pixel> _BrushStrokePositionsBuffer; // array of 2D vectors, positions in pixels
 StructuredBuffer<_Pixel> _BrushStrokeShapeBuffer; // 1D array of pixels - 1size stroke
 
+
+// https://logins.github.io/graphics/2020/10/31/D3D12ComputeShaders.html
+// Quest 2 build works fine - Editor does not!
 RWTexture2D<float4> _RenderTexture00; // The Output render texture
 RWTexture2D<float4> _RenderTexture01; // The Output render texture
 RWTexture2D<float4> _RenderTexture02; // The Output render texture
 RWTexture2D<float4> _RenderTexture03; // The Output render texture
+RWTexture2D<float4> _RenderTexture04; // The Output render texture
+RWTexture2D<float4> _RenderTexture05; // The Output render texture
+RWTexture2D<float4> _RenderTexture06; // The Output render texture
+RWTexture2D<float4> _RenderTexture07; // The Output render texture
+RWTexture2D<float4> _RenderTexture08; // The Output render texture
+RWTexture2D<float4> _RenderTexture09; // The Output render texture
+RWTexture2D<float4> _RenderTexture10; // The Output render texture
+RWTexture2D<float4> _RenderTexture11; // The Output render texture
+RWTexture2D<float4> _RenderTexture12; // The Output render texture
+RWTexture2D<float4> _RenderTexture13; // The Output render texture
+RWTexture2D<float4> _RenderTexture14; // The Output render texture
+RWTexture2D<float4> _RenderTexture15; // The Output render texture
 
 
 // 
@@ -77,21 +92,69 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         // draw pixel in maps
         n = TransferXYtoN(posX, posY);  
         //_ActiveLayerBuffer[n] = pixelInBrushShape.color;
-        if(posX < _TextureWidth && posY < _TextureHeight ){
+        if(posX < _TextureWidth && posY < _TextureHeight ){ // 00
             float2 pixelPosition = float2(posX, posY);
             _RenderTexture00[pixelPosition] = brushCenterPosition.color;
         }
-        else if(posX >= _TextureWidth && posY < _TextureHeight){
+        else if(posX < _TextureWidth * 2 && posY < _TextureHeight){ // 01
             float2 pixelPosition = float2(posX - _TextureWidth, posY);
             _RenderTexture01[pixelPosition] = brushCenterPosition.color;
         }
-        else if( posX < _TextureWidth && posY >= _TextureHeight){
-            float2 pixelPosition = float2(posX, posY - _TextureHeight);
+        else if( posX < _TextureWidth * 3 && posY < _TextureHeight){ //02
+            float2 pixelPosition = float2(posX - _TextureWidth * 2, posY);
             _RenderTexture02[pixelPosition] = brushCenterPosition.color;
         }
-        else if( posX >= _TextureWidth && posY >= _TextureHeight){
-            float2 pixelPosition = float2(posX - _TextureWidth, posY - _TextureHeight);
+        else if( posX < _TextureWidth * 4 && posY < _TextureHeight){ //03
+            float2 pixelPosition = float2(posX - _TextureWidth * 3, posY);
             _RenderTexture03[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX < _TextureWidth && posY < _TextureHeight * 2){ //04
+            float2 pixelPosition = float2(posX, posY - _TextureHeight);
+            _RenderTexture04[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX < _TextureWidth * 2 && posY < _TextureHeight * 2){ //05
+            float2 pixelPosition = float2(posX - _TextureWidth, posY - _TextureHeight);
+            _RenderTexture05[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX < _TextureWidth * 3 && posY < _TextureHeight * 2){ //06
+            float2 pixelPosition = float2(posX - _TextureWidth * 2, posY - _TextureHeight);
+            _RenderTexture06[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX < _TextureWidth * 4 && posY < _TextureHeight * 2){ //07
+            float2 pixelPosition = float2(posX - _TextureWidth * 3, posY - _TextureHeight);
+            _RenderTexture07[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX < _TextureWidth && posY < _TextureHeight * 3){ //08
+            float2 pixelPosition = float2(posX, posY - _TextureHeight * 2);
+            _RenderTexture08[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX < _TextureWidth * 2 && posY < _TextureHeight * 3){ //09
+            float2 pixelPosition = float2(posX - _TextureWidth, posY - _TextureHeight * 2);
+            _RenderTexture09[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX < _TextureWidth * 3 && posY < _TextureHeight * 3){ //10
+            float2 pixelPosition = float2(posX - _TextureWidth * 2, posY - _TextureHeight * 2);
+            _RenderTexture10[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX < _TextureWidth * 4 && posY < _TextureHeight * 3){ //11
+            float2 pixelPosition = float2(posX - _TextureWidth * 3, posY - _TextureHeight * 2);
+            _RenderTexture11[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX < _TextureWidth && posY < _TextureHeight * 4){ //12
+            float2 pixelPosition = float2(posX, posY - _TextureHeight * 3);
+            _RenderTexture12[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX < _TextureWidth * 2 && posY < _TextureHeight * 4){ //13
+            float2 pixelPosition = float2(posX - _TextureWidth, posY - _TextureHeight * 3);
+            _RenderTexture13[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX < _TextureWidth * 3 && posY < _TextureHeight * 4){ //14
+            float2 pixelPosition = float2(posX - _TextureWidth * 2, posY - _TextureHeight * 3);
+            _RenderTexture14[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX < _TextureWidth * 4 && posY < _TextureHeight * 4){ //15
+            float2 pixelPosition = float2(posX - _TextureWidth * 3, posY - _TextureHeight * 3);
+            _RenderTexture15[pixelPosition] = brushCenterPosition.color;
         }
     }
 

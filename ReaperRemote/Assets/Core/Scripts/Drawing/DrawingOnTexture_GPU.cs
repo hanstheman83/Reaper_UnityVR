@@ -20,6 +20,18 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     [SerializeField] Renderer renderTexture_01_Renderer;
     [SerializeField] Renderer renderTexture_02_Renderer;
     [SerializeField] Renderer renderTexture_03_Renderer;
+    [SerializeField] Renderer renderTexture_04_Renderer;
+    [SerializeField] Renderer renderTexture_05_Renderer;
+    [SerializeField] Renderer renderTexture_06_Renderer;
+    [SerializeField] Renderer renderTexture_07_Renderer;
+    [SerializeField] Renderer renderTexture_08_Renderer;
+    [SerializeField] Renderer renderTexture_09_Renderer;
+    [SerializeField] Renderer renderTexture_10_Renderer;
+    [SerializeField] Renderer renderTexture_11_Renderer;
+    [SerializeField] Renderer renderTexture_12_Renderer;
+    [SerializeField] Renderer renderTexture_13_Renderer;
+    [SerializeField] Renderer renderTexture_14_Renderer;
+    [SerializeField] Renderer renderTexture_15_Renderer;
     [SerializeField][Tooltip("Multiple of 2 - 1024, 2048, 4096, ...")] int m_RenderTextureWidth = 1024; // 
     [SerializeField][Tooltip("Multiple of 2 - 1024, 2048, 4096, ...")] int m_RenderTextureHeight = 1024; //
     [SerializeField][Range(0.02f, 2f)][Tooltip("How fast stroke moves towards brush (slow value = delayed brush stroke)")] float drawSpeed = 0.02f;
@@ -58,6 +70,18 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     private RenderTexture renderTexture_01;
     private RenderTexture renderTexture_02;
     private RenderTexture renderTexture_03;
+    private RenderTexture renderTexture_04;
+    private RenderTexture renderTexture_05;
+    private RenderTexture renderTexture_06;
+    private RenderTexture renderTexture_07;
+    private RenderTexture renderTexture_08;
+    private RenderTexture renderTexture_09;
+    private RenderTexture renderTexture_10;
+    private RenderTexture renderTexture_11;
+    private RenderTexture renderTexture_12;
+    private RenderTexture renderTexture_13;
+    private RenderTexture renderTexture_14;
+    private RenderTexture renderTexture_15;
     private int m_ImageWidth;
     private int m_ImageHeight;
 
@@ -83,8 +107,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     
     void Start()
     {
-        m_ImageWidth = m_RenderTextureWidth * 2;
-        m_ImageHeight = m_RenderTextureHeight * 2;
+        m_ImageWidth = m_RenderTextureWidth * 4;
+        m_ImageHeight = m_RenderTextureHeight * 4;
 
         layerManager.InitializeAllLayers(m_ImageWidth, m_ImageHeight);
 
@@ -92,6 +116,18 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         InitRenderTexture(renderTexture_01_Renderer, ref renderTexture_01,"_RenderTexture01");
         InitRenderTexture(renderTexture_02_Renderer, ref renderTexture_02,"_RenderTexture02");
         InitRenderTexture(renderTexture_03_Renderer, ref renderTexture_03,"_RenderTexture03");
+        InitRenderTexture(renderTexture_04_Renderer, ref renderTexture_04,"_RenderTexture04");
+        InitRenderTexture(renderTexture_05_Renderer, ref renderTexture_05,"_RenderTexture05");
+        InitRenderTexture(renderTexture_06_Renderer, ref renderTexture_06,"_RenderTexture06");
+        InitRenderTexture(renderTexture_07_Renderer, ref renderTexture_07,"_RenderTexture07");
+        InitRenderTexture(renderTexture_08_Renderer, ref renderTexture_08,"_RenderTexture08");
+        InitRenderTexture(renderTexture_09_Renderer, ref renderTexture_09,"_RenderTexture09");
+        InitRenderTexture(renderTexture_10_Renderer, ref renderTexture_10,"_RenderTexture10");
+        InitRenderTexture(renderTexture_11_Renderer, ref renderTexture_11,"_RenderTexture11");
+        InitRenderTexture(renderTexture_12_Renderer, ref renderTexture_12,"_RenderTexture12");
+        InitRenderTexture(renderTexture_13_Renderer, ref renderTexture_13,"_RenderTexture13");
+        InitRenderTexture(renderTexture_14_Renderer, ref renderTexture_14,"_RenderTexture14");
+        InitRenderTexture(renderTexture_15_Renderer, ref renderTexture_15,"_RenderTexture15");
 
         drawOnTexture_Compute.SetInt("_TextureWidth", m_RenderTextureWidth);
         drawOnTexture_Compute.SetInt("_TextureHeight", m_RenderTextureHeight);
@@ -320,6 +356,18 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             renderTexture_01.GenerateMips();
             renderTexture_02.GenerateMips();
             renderTexture_03.GenerateMips();
+            renderTexture_04.GenerateMips();
+            renderTexture_05.GenerateMips();
+            renderTexture_06.GenerateMips();
+            renderTexture_07.GenerateMips();
+            renderTexture_08.GenerateMips();
+            renderTexture_09.GenerateMips();
+            renderTexture_10.GenerateMips();
+            renderTexture_11.GenerateMips();
+            renderTexture_12.GenerateMips();
+            renderTexture_13.GenerateMips();
+            renderTexture_14.GenerateMips();
+            renderTexture_15.GenerateMips();
             yield return new WaitForSeconds(renderTextureMipsRefreshRate);
         }
     }
@@ -330,6 +378,18 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         renderTexture_01.GenerateMips();
         renderTexture_02.GenerateMips();
         renderTexture_03.GenerateMips();
+        renderTexture_04.GenerateMips();
+        renderTexture_05.GenerateMips();
+        renderTexture_06.GenerateMips();
+        renderTexture_07.GenerateMips();
+        renderTexture_08.GenerateMips();
+        renderTexture_09.GenerateMips();
+        renderTexture_10.GenerateMips();
+        renderTexture_11.GenerateMips();
+        renderTexture_12.GenerateMips();
+        renderTexture_13.GenerateMips();
+        renderTexture_14.GenerateMips();
+        renderTexture_15.GenerateMips();
     }
     #endregion Drawing Methods
 
