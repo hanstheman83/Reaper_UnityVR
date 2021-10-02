@@ -213,8 +213,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         _Pixel[] pixelsArray = new _Pixel[pointsOnLine.Length];
         for (var i = 0; i < pointsOnLine.Length; i++)
         {
-            pixelsArray[i].position_x = (uint) Mathf.Round(pointsOnLine[i].x * m_RenderTextureWidth); 
-            pixelsArray[i].position_y = (uint) Mathf.Round(pointsOnLine[i].y * m_RenderTextureHeight); 
+            pixelsArray[i].position_x = (uint) Mathf.Round(pointsOnLine[i].x * m_ImageWidth); 
+            pixelsArray[i].position_y = (uint) Mathf.Round(pointsOnLine[i].y * m_ImageHeight); 
             pixelsArray[i].color_r = drawingColor.r;
             pixelsArray[i].color_g = drawingColor.g;
             pixelsArray[i].color_b = drawingColor.b;

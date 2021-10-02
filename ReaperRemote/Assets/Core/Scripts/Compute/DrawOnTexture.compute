@@ -70,23 +70,29 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     uint n;
 
-    if( posX < 0 || posX > _TextureWidth || posY < 0 || posY > _TextureHeight )
+    if( posX < 0 || posX >= _ImageWidth || posY < 0 || posY >= _ImageHeight )
     {
         // do nothing, pixel out of bounds
     }else {
         // draw pixel in maps
         n = TransferXYtoN(posX, posY);  
         //_ActiveLayerBuffer[n] = pixelInBrushShape.color;
-        float2 pixelPosition = float2(posX, posY);
-        if(posX < _TextureWidth/2 && posY < _TextureHeight/2 ){
+        if(posX < _TextureWidth && posY < _TextureHeight ){
+            float2 pixelPosition = float2(posX, posY);
             _RenderTexture00[pixelPosition] = brushCenterPosition.color;
         }
-        else if(posX > _TextureWidth/2 && posY > _TextureHeight/2){
+        else if(posX >= _TextureWidth && posY < _TextureHeight){
+            float2 pixelPosition = float2(posX - _TextureWidth, posY);
             _RenderTexture01[pixelPosition] = brushCenterPosition.color;
-
         }
-        // _RenderTexture02[pixelPosition] = brushCenterPosition.color;
-        // _RenderTexture03[pixelPosition] = brushCenterPosition.color;
+        else if( posX < _TextureWidth && posY >= _TextureHeight){
+            float2 pixelPosition = float2(posX, posY - _TextureHeight);
+            _RenderTexture02[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX >= _TextureWidth && posY >= _TextureHeight){
+            float2 pixelPosition = float2(posX - _TextureWidth, posY - _TextureHeight);
+            _RenderTexture03[pixelPosition] = brushCenterPosition.color;
+        }
     }
 
     _JobDoneBuffer[id.x] = 1;
