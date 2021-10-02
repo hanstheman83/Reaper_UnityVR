@@ -16,6 +16,8 @@ struct _Pixel {
 
 uint _TextureWidth;
 uint _TextureHeight;
+uint _ImageWidth;
+uint _ImageHeight;
 uint _BrushSizeStart;
 uint _BrushSizeEnd; // TODO: implement variating brush sizes
 uint _BrushStrokeArrayLength;

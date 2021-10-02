@@ -20,8 +20,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     [SerializeField] Renderer renderTexture_01_Renderer;
     [SerializeField] Renderer renderTexture_02_Renderer;
     [SerializeField] Renderer renderTexture_03_Renderer;
-    [SerializeField][Tooltip("Multiple of 2 - 1024, 2048, 4096, ...")] int textureWidth = 1024; // 
-    [SerializeField][Tooltip("Multiple of 2 - 1024, 2048, 4096, ...")] int textureHeight = 1024; //
+    [SerializeField][Tooltip("Multiple of 2 - 1024, 2048, 4096, ...")] int m_RenderTextureWidth = 1024; // 
+    [SerializeField][Tooltip("Multiple of 2 - 1024, 2048, 4096, ...")] int m_RenderTextureHeight = 1024; //
     [SerializeField][Range(0.02f, 2f)][Tooltip("How fast stroke moves towards brush (slow value = delayed brush stroke)")] float drawSpeed = 0.02f;
     [SerializeField][Range(0.02f, 1f)] float renderTextureMipsRefreshRate = 0.03f;
     [SerializeField] GameObject strokePosition;
@@ -58,6 +58,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     private RenderTexture renderTexture_01;
     private RenderTexture renderTexture_02;
     private RenderTexture renderTexture_03;
+    private int m_ImageWidth;
+    private int m_ImageHeight;
 
     int pos = 0;
     bool isDrawing = false;
@@ -81,28 +83,31 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     
     void Start()
     {
-        layerManager.InitializeAllLayers(textureWidth, textureHeight);
+        m_ImageWidth = m_RenderTextureWidth * 2;
+        m_ImageHeight = m_RenderTextureHeight * 2;
+
+        layerManager.InitializeAllLayers(m_ImageWidth, m_ImageHeight);
 
         InitRenderTexture(renderTexture_00_Renderer, ref renderTexture_00,"_RenderTexture00");
         InitRenderTexture(renderTexture_01_Renderer, ref renderTexture_01,"_RenderTexture01");
         InitRenderTexture(renderTexture_02_Renderer, ref renderTexture_02,"_RenderTexture02");
         InitRenderTexture(renderTexture_03_Renderer, ref renderTexture_03,"_RenderTexture03");
 
-        drawOnTexture_Compute.SetInt("_TextureWidth", textureWidth);
-        drawOnTexture_Compute.SetInt("_TextureHeight", textureHeight);
+        drawOnTexture_Compute.SetInt("_TextureWidth", m_RenderTextureWidth);
+        drawOnTexture_Compute.SetInt("_TextureHeight", m_RenderTextureHeight);
+        drawOnTexture_Compute.SetInt("_ImageWidth", m_ImageWidth);
+        drawOnTexture_Compute.SetInt("_ImageHeight", m_ImageHeight);
 
         strokePositionTransform = strokePosition.transform;
         targetPositionTransform = targetPosition.transform;
         depthPositionTransform = depthPosition.transform;
-
-        
     }
 
     void InitRenderTexture(Renderer renderer, ref RenderTexture renderTexture, string name){
         // setting up RenderTexture
         int kernel = drawOnTexture_Compute.FindKernel("CSMain");
 
-        renderTexture = new RenderTexture(textureWidth, textureHeight, 0, RenderTextureFormat.ARGB32);
+        renderTexture = new RenderTexture(m_RenderTextureWidth, m_RenderTextureHeight, 0, RenderTextureFormat.ARGB32);
         renderTexture.antiAliasing = 1;
         renderTexture.anisoLevel = 0;
         renderTexture.useMipMap = true;
@@ -208,8 +213,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         _Pixel[] pixelsArray = new _Pixel[pointsOnLine.Length];
         for (var i = 0; i < pointsOnLine.Length; i++)
         {
-            pixelsArray[i].position_x = (uint) Mathf.Round(pointsOnLine[i].x * textureWidth); 
-            pixelsArray[i].position_y = (uint) Mathf.Round(pointsOnLine[i].y * textureHeight); 
+            pixelsArray[i].position_x = (uint) Mathf.Round(pointsOnLine[i].x * m_RenderTextureWidth); 
+            pixelsArray[i].position_y = (uint) Mathf.Round(pointsOnLine[i].y * m_RenderTextureHeight); 
             pixelsArray[i].color_r = drawingColor.r;
             pixelsArray[i].color_g = drawingColor.g;
             pixelsArray[i].color_b = drawingColor.b;
@@ -283,8 +288,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     /// Transfer the X and Y coordinates in a 2D pixel grid to a 1D array coordinate.
     /// </summary>
     int TransferXYtoN(int x, int y){
-        int n = x + (textureWidth * y);
-        if(n >= textureWidth * textureHeight) return -1; 
+        int n = x + (m_RenderTextureWidth * y);
+        if(n >= m_RenderTextureWidth * m_RenderTextureHeight) return -1; 
         return n;
     }
 
