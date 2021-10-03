@@ -4,17 +4,20 @@ using UnityEngine;
 
 public class ColorSwatch : MonoBehaviour
 {
-    [SerializeField] Color color;
+    [SerializeField] Color m_Color;
+    public Color Color {get => m_Color;}
+    [SerializeField] ColorSwatches_UI colorSwatches_UI;
 
     private void Start() {
-        GetComponent<Renderer>().material.color = color;
+        GetComponent<Renderer>().material.color = m_Color;
     }
 
     private void OnTriggerEnter(Collider other) {
         // set draw color
         // set brush color
         DrawingStickController drawingStickController = other.GetComponentInParent<DrawingStickController>();
-        drawingStickController.drawingColor = color;
-        drawingStickController.stickRenderer.material.color = color;
+        drawingStickController.drawingColor = m_Color;
+        drawingStickController.stickRenderer.material.color = m_Color;
+        colorSwatches_UI.SetActiveColorSwatch(this);
     }
 }

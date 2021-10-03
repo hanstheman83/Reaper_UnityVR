@@ -14,6 +14,9 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     // Test : on grab cache controller -- 
     // haptic = trigger
 
+    [SerializeField] Transform m_ColorPickingDrawPoint;
+    public Transform ColorPickingDrawPoint {get => m_ColorPickingDrawPoint;}
+
     ControllerHand controlledBy = ControllerHand.None;
     [SerializeField] private string nameOfTriggerController;
     public Renderer stickRenderer;
