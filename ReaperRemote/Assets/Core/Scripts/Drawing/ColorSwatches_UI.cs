@@ -7,9 +7,9 @@ public class ColorSwatches_UI : MonoBehaviour
 {
     private ColorSwatch m_ActiveColorSwatch;
     // [SerializeField] List<ColorSwatch> m_ColorSwatches;
-    [SerializeField]private Slider m_Hue_Slider;
-    [SerializeField]private Slider m_Saturation_Slider;
-    [SerializeField]private Slider m_Value_Slider;
+    // [SerializeField]private Slider m_Hue_Slider;
+    // [SerializeField]private Slider m_Saturation_Slider;
+    // [SerializeField]private Slider m_Value_Slider;
 
     // Start is called before the first frame update
     void Start()
@@ -24,9 +24,9 @@ public class ColorSwatches_UI : MonoBehaviour
     }
 
     private void OnEnable() {
-        m_Hue_Slider.onValueChanged.AddListener(delegate { OnSliderChanged(); }) ;
-        m_Saturation_Slider.onValueChanged.AddListener(delegate { OnSliderChanged(); }) ;
-        m_Value_Slider.onValueChanged.AddListener(delegate { OnSliderChanged(); }) ;
+        // m_Hue_Slider.onValueChanged.AddListener(delegate { OnSliderChanged(); }) ;
+        // m_Saturation_Slider.onValueChanged.AddListener(delegate { OnSliderChanged(); }) ;
+        // m_Value_Slider.onValueChanged.AddListener(delegate { OnSliderChanged(); }) ;
     }
     private void OnDisable() {
         

@@ -6,6 +6,11 @@ public class SliderController : MonoBehaviour
 {
     [SerializeField] GameObject m_Handle;
 
+
+    private void OnEnable() {
+        // subscribe to handle event
+    }
+
     // Start is called before the first frame update
     void Start()
     {

@@ -4,8 +4,11 @@ using UnityEngine;
 
 public class HandleController : MonoBehaviour
 {
+    [SerializeField] float m_MinX = -0.433f;
+    [SerializeField] float m_MaxX = 0.441f;
+
     private DrawingStickController m_DrawingStickController;
-    private bool isMoved = false;
+    private bool isMoving = false;
 
     // Start is called before the first frame update
     void Start()
@@ -16,27 +19,37 @@ public class HandleController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(isMoved){
+        if(isMoving){
             transform.position = m_DrawingStickController.ColorPickingDrawPoint.position;
             Debug.Log("Moving handle..");
             // lowest x 
             // highest x 
-            transform.localPosition = new Vector3(Mathf.Clamp(transform.localPosition.x, -0.433f, 0.441f), 0f, 0f);
+            transform.localPosition = new Vector3(Mathf.Clamp(transform.localPosition.x, m_MinX, m_MaxX ), 0f, 0f);
             // moved by drawing stick within borders
-
-
         }
+        // check value has changed - raise event "OnValueChanged"
     }
+
+    public float GetValue(){
+        float totalRange = Mathf.Abs(m_MinX) + m_MaxX;
+        float normalized = (transform.localPosition.x + Mathf.Abs(m_MinX)) / totalRange;
+
+        return normalized;
+    }
+
+
+
+
 
     private void OnTriggerEnter(Collider other) {
         Debug.Log("starting moving handle..");
-        isMoved = true;
+        isMoving = true;
         m_DrawingStickController = other.GetComponentInParent<DrawingStickController>();
 
     }
     private void OnTriggerExit(Collider other) {
         Debug.Log("stopping moving handle..");
-        isMoved = false;        
+        isMoving = false;        
         m_DrawingStickController = null;
     }
 }
