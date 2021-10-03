@@ -70,6 +70,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     private RenderTexture renderTexture_01;
     private RenderTexture renderTexture_02;
     private RenderTexture renderTexture_03;
+#if !UNITY_EDITOR
+
     private RenderTexture renderTexture_04;
     private RenderTexture renderTexture_05;
     private RenderTexture renderTexture_06;
@@ -82,6 +84,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     private RenderTexture renderTexture_13;
     private RenderTexture renderTexture_14;
     private RenderTexture renderTexture_15;
+#endif
     private int m_ImageWidth;
     private int m_ImageHeight;
 
@@ -116,6 +119,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         InitRenderTexture(renderTexture_01_Renderer, ref renderTexture_01,"_RenderTexture01");
         InitRenderTexture(renderTexture_02_Renderer, ref renderTexture_02,"_RenderTexture02");
         InitRenderTexture(renderTexture_03_Renderer, ref renderTexture_03,"_RenderTexture03");
+#if !UNITY_EDITOR
         InitRenderTexture(renderTexture_04_Renderer, ref renderTexture_04,"_RenderTexture04");
         InitRenderTexture(renderTexture_05_Renderer, ref renderTexture_05,"_RenderTexture05");
         InitRenderTexture(renderTexture_06_Renderer, ref renderTexture_06,"_RenderTexture06");
@@ -128,7 +132,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         InitRenderTexture(renderTexture_13_Renderer, ref renderTexture_13,"_RenderTexture13");
         InitRenderTexture(renderTexture_14_Renderer, ref renderTexture_14,"_RenderTexture14");
         InitRenderTexture(renderTexture_15_Renderer, ref renderTexture_15,"_RenderTexture15");
-
+#endif
         drawOnTexture_Compute.SetInt("_TextureWidth", m_RenderTextureWidth);
         drawOnTexture_Compute.SetInt("_TextureHeight", m_RenderTextureHeight);
         drawOnTexture_Compute.SetInt("_ImageWidth", m_ImageWidth);
@@ -356,6 +360,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             renderTexture_01.GenerateMips();
             renderTexture_02.GenerateMips();
             renderTexture_03.GenerateMips();
+#if !UNITY_EDITOR
             renderTexture_04.GenerateMips();
             renderTexture_05.GenerateMips();
             renderTexture_06.GenerateMips();
@@ -368,6 +373,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             renderTexture_13.GenerateMips();
             renderTexture_14.GenerateMips();
             renderTexture_15.GenerateMips();
+#endif
             yield return new WaitForSeconds(renderTextureMipsRefreshRate);
         }
     }
@@ -378,6 +384,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         renderTexture_01.GenerateMips();
         renderTexture_02.GenerateMips();
         renderTexture_03.GenerateMips();
+#if !UNITY_EDITOR
         renderTexture_04.GenerateMips();
         renderTexture_05.GenerateMips();
         renderTexture_06.GenerateMips();
@@ -390,7 +397,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         renderTexture_13.GenerateMips();
         renderTexture_14.GenerateMips();
         renderTexture_15.GenerateMips();
+#endif
     }
-    #endregion Drawing Methods
+#endregion Drawing Methods
 
 }
