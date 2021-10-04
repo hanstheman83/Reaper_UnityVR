@@ -1,12 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Core.UI;
 
 public class ColorSwatch : MonoBehaviour
 {
     [SerializeField] Color m_Color;
-    public Color Color {get => m_Color;}
-    [SerializeField] ColorSwatches_UI colorSwatches_UI;
+    public Color Color {get => m_Color; 
+                        set {m_Color = value; 
+                            GetComponent<Renderer>().material.color = m_Color;}
+                        }
+    [SerializeField] ColorSwatches_UI m_ColorSwatches_UI;
 
     private void Start() {
         GetComponent<Renderer>().material.color = m_Color;
@@ -18,6 +22,6 @@ public class ColorSwatch : MonoBehaviour
         DrawingStickController drawingStickController = other.GetComponentInParent<DrawingStickController>();
         drawingStickController.drawingColor = m_Color;
         drawingStickController.stickRenderer.material.color = m_Color;
-        colorSwatches_UI.SetActiveColorSwatch(this);
+        m_ColorSwatches_UI.SetActiveColorSwatch(this);
     }
 }

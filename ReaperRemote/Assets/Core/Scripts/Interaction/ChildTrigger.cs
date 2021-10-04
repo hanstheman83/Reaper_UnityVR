@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Core.Interactions{
-
 public class ChildTrigger : MonoBehaviour
 {
     public delegate void childTriggeredEnter(Collider c);
@@ -19,8 +17,5 @@ public class ChildTrigger : MonoBehaviour
     void OnTriggerExit(Collider c){
         childTriggeredExitEvent?.Invoke(c);
     }
- 
-}
-
 
 }

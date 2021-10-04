@@ -4,6 +4,7 @@ using UnityEngine;
 using Core.Controls;
 using UnityEngine.XR.Interaction.Toolkit;
 
+namespace Core.UI{
 
 public class SetSwatches_UI : MonoBehaviour
 {
@@ -41,4 +42,6 @@ public class SetSwatches_UI : MonoBehaviour
     public void OnSelectExited(SelectExitEventArgs args){
         m_ColorSwatches_UI.gameObject.SetActive(false);
     }
+}
+
 }
