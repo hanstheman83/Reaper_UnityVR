@@ -290,7 +290,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         lastStroke = new Vector2(-1f, -1f); // skip first frame, no stroke length!
         otherObject = other.transform.Find("DrawPoint");
         drawingStickController = other.GetComponentInParent<DrawingStickController>();
-        drawingColor = drawingStickController.drawingColor;
+        drawingColor = drawingStickController.DrawingColor;
         drawingStickController.StartResistance(); 
         strokePositionTransform.position = otherObject.position;
         depthPositionTransform.position = otherObject.position;

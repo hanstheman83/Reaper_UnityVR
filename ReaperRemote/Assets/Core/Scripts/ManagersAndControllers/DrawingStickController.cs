@@ -29,7 +29,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     private InputActionController inputActionController;
     private XRBaseController baseController;
     private Coroutine haptics = null;
-    public Color drawingColor;
+    public Color DrawingColor;
 
     private enum ResistanceLevel{
         None, Lowest, Low, Medium, High, Highest 

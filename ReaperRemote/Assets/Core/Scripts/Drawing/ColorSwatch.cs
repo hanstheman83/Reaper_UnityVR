@@ -6,9 +6,12 @@ using Core.UI;
 public class ColorSwatch : MonoBehaviour
 {
     [SerializeField] Color m_Color;
+    DrawingStickController m_DrawingStickController;
     public Color Color {get => m_Color; 
                         set {m_Color = value; 
-                            GetComponent<Renderer>().material.color = m_Color;}
+                            GetComponent<Renderer>().material.color = m_Color;
+                            m_DrawingStickController.DrawingColor = m_Color;
+                            m_DrawingStickController.stickRenderer.material.color = m_Color;}
                         }
     [SerializeField] ColorSwatches_UI m_ColorSwatches_UI;
 
@@ -19,9 +22,9 @@ public class ColorSwatch : MonoBehaviour
     private void OnTriggerEnter(Collider other) {
         // set draw color
         // set brush color
-        DrawingStickController drawingStickController = other.GetComponentInParent<DrawingStickController>();
-        drawingStickController.drawingColor = m_Color;
-        drawingStickController.stickRenderer.material.color = m_Color;
+        m_DrawingStickController = other.GetComponentInParent<DrawingStickController>();
+        m_DrawingStickController.DrawingColor = m_Color;
+        m_DrawingStickController.stickRenderer.material.color = m_Color;
         m_ColorSwatches_UI.SetActiveColorSwatch(this);
     }
 }
