@@ -70,8 +70,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     private RenderTexture renderTexture_01;
     private RenderTexture renderTexture_02;
     private RenderTexture renderTexture_03;
-#if !UNITY_EDITOR
-
+#if !UNITY_EDITOR // DirectX11 doesn't support many textures in a compute shader!
     private RenderTexture renderTexture_04;
     private RenderTexture renderTexture_05;
     private RenderTexture renderTexture_06;
@@ -142,7 +141,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         targetPositionTransform = targetPosition.transform;
         depthPositionTransform = depthPosition.transform;
     }
-
+    // Init methods for Start()
     void InitRenderTexture(Renderer renderer, ref RenderTexture renderTexture, string name){
         // setting up RenderTexture
         int kernel = drawOnTexture_Compute.FindKernel("CSMain");
@@ -153,6 +152,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         renderTexture.useMipMap = true;
         renderTexture.autoGenerateMips = false;
         renderTexture.enableRandomWrite = true;
+        
+        Debug.Log("Rendertexture sRGB :" + renderTexture.sRGB); 
         renderTexture.filterMode = FilterMode.Trilinear;
         //Debug.Log($"RT filter : {renderTexture.filterMode}"); 
         renderTexture.Create();
@@ -161,6 +162,12 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         
         drawOnTexture_Compute.SetTexture(kernel, name, renderTexture);
     }
+    // TODO: release texture when they are not needed- free resources [also on loading another scene!]:
+    // RenderTexture.Release()  Releases the RenderTexture.
+    // This function releases the hardware resources used by the render texture. The texture itself is not destroyed, and will be automatically created again when being used.
+    // As with other "native engine object" types, it is important to pay attention to the lifetime of any render textures and release them when you are finished using them, as they will not be garbage collected like normal managed types.
+
+
     private void OnDestroy() {
         childTrigger.childTriggeredEnterEvent += null;
         childTrigger.childTriggeredExitEvent += null;
@@ -231,22 +238,6 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     #region Drawing Methods
     // ------------------------------------------------------------------ //
     // ------------------------------------------------------------------ //
-
-    // _Pixel[] CalculateBrushStroke(int width){
-    //     _Pixel[] pixelsArray = new _Pixel[width * width];
-    //     int count = 0;
-    //     for (var i = 0; i < width; i++)
-    //     {
-    //         for (var j = 0; j < width; j++)
-    //         {
-    //             pixelsArray[count] = new _Pixel(
-    //                 new Vector2Int(j, i), 
-    //                 Color.blue);  
-    //             count++;     
-    //         }
-    //     }
-    //     return pixelsArray;
-    // }
 
     _Pixel[] CalculatePointsOnLine_Pixels2D(Vector2[] pointsOnLine){
         //
