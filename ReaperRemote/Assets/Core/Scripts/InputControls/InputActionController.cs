@@ -53,6 +53,12 @@ public class InputActionController : MonoBehaviour
     private List<IContinousTrigger> continousRightTriggers;
     private List<IJoystickPress> joystickPressLeft;
     private List<IJoystickPress> joystickPressRight;
+
+    private ControllerHand m_MainController = ControllerHand.Right;
+
+
+
+    
  
     #region Unity Methods
     private void Awake() {
@@ -94,59 +100,12 @@ public class InputActionController : MonoBehaviour
             Debug.Log("Joy button is pressed");
         }
 
-
-        // toggle
+        // Debug toggle
         if(oldState != rightIsActive){
-            if(rightIsActive) {
-                Debug.Log("right controller active"); // this is default
-                // right controller is main controller :
-                // 
-                rightUI_Controller.SetActive(false);
-                rightTeleportController.SetActive(true);
-                rightActionBasedControllerManager.enabled = true;
-                rightUI_InteractionController.enabled = false;
-
-                leftActionBasedControllerManager.enabled = false;
-                leftUI_InteractionController.enabled = true;
-                leftUI_Controller.SetActive(true);
-                leftTeleportController.SetActive(false);
-
-                //customMoveProvider.ActivateComponent();
-                customMoveProvider.ActivateControl(leftMove, ControllerHand.Left);
-                //customSnapTurnProvider.ActivateComponent();
-                customSnapTurnProvider.ActivateControl(rightTurn, ControllerHand.Right);
-
-                customMoveProvider.DeactivateControl(ControllerHand.Right);
-                //customMoveProvider.DeactivateComponent();
-                customSnapTurnProvider.DeactivateControl(ControllerHand.Left);
-                //customSnapTurnProvider.DeactivateComponent();
-                
-                }
-            else {
-                // leftHandMoveAction = controlScheme_01.leftHandMoveAction;
-                Debug.Log("left controller active");
-
-                leftUI_Controller.SetActive(false);
-                leftTeleportController.SetActive(true);
-                
-                leftActionBasedControllerManager.enabled = true; // TODO add this to right controller if script starts disabled...
-                leftUI_InteractionController.enabled = false;
-                
-                rightActionBasedControllerManager.enabled = false;
-                rightUI_InteractionController.enabled = true;
-                rightUI_Controller.SetActive(true);
-                rightTeleportController.SetActive(false);
-                
-                //customMoveProvider.ActivateComponent();
-                customMoveProvider.ActivateControl(rightMove, ControllerHand.Right);
-                //customSnapTurnProvider.ActivateComponent();
-                customSnapTurnProvider.ActivateControl(leftTurn, ControllerHand.Left);
-                
-                customMoveProvider.DeactivateControl(ControllerHand.Left);
-                //customMoveProvider.DeactivateComponent();
-                customSnapTurnProvider.DeactivateControl(ControllerHand.Right);
-                //customSnapTurnProvider.DeactivateComponent();
-
+            if(rightIsActive){
+                SetMainController(ControllerHand.Right);
+            }else{
+                SetMainController(ControllerHand.Left);
             }
         }
         oldState = rightIsActive;
@@ -157,6 +116,77 @@ public class InputActionController : MonoBehaviour
 
     // ----------- 
     #region Control Setup
+
+    void SetMainController(ControllerHand controllerHand){
+        switch(controllerHand){
+            case ControllerHand.Left:
+                m_MainController = ControllerHand.Left;
+                Debug.Log("left controller active");
+                leftUI_Controller.SetActive(false);
+                leftTeleportController.SetActive(true);
+                leftActionBasedControllerManager.enabled = true; // TODO add this to right controller if script starts disabled...
+                leftUI_InteractionController.enabled = false;
+                
+                rightActionBasedControllerManager.enabled = false;
+
+                rightUI_InteractionController.enabled = true;
+                rightUI_Controller.SetActive(true);
+                
+                rightTeleportController.SetActive(false);
+                customMoveProvider.ActivateControl(rightMove, ControllerHand.Right);
+                customSnapTurnProvider.ActivateControl(leftTurn, ControllerHand.Left);
+                customMoveProvider.DeactivateControl(ControllerHand.Left);
+                customSnapTurnProvider.DeactivateControl(ControllerHand.Right);
+                break;
+            case ControllerHand.Right:
+                Debug.Log("right controller is main controller"); // this is default
+                m_MainController = ControllerHand.Right;
+                rightUI_Controller.SetActive(false);
+                rightTeleportController.SetActive(true);
+                rightActionBasedControllerManager.enabled = true;
+                rightUI_InteractionController.enabled = false;
+                leftActionBasedControllerManager.enabled = false;
+
+                SetControllerUI_State(ControllerHand.Left, true);
+                
+
+                leftTeleportController.SetActive(false);
+                customMoveProvider.ActivateControl(leftMove, ControllerHand.Left);
+                customSnapTurnProvider.ActivateControl(rightTurn, ControllerHand.Right);
+                customMoveProvider.DeactivateControl(ControllerHand.Right);
+                customSnapTurnProvider.DeactivateControl(ControllerHand.Left);
+                break;
+            case ControllerHand.None:
+            // TODO: turn off all controls!
+                Debug.LogError("Input a controller hand for main controls!");
+                break;
+        }
+    }
+
+    void SetControllerUI_State(ControllerHand controllerHand, bool state){ // Unity World UI
+        switch(controllerHand){
+            case ControllerHand.Left:
+                if(state == true){
+                    leftUI_InteractionController.enabled = true;
+                    leftUI_Controller.SetActive(true);
+                }else {
+                    
+                }
+                break;
+            case ControllerHand.Right:
+                if(state == true){
+
+                }else {
+
+                }
+                break;
+            case ControllerHand.None:
+                Debug.LogError("Please Input a correct controller hand");
+                break;
+            
+        }
+    }
+
     public void RegisterTriggerControl(IContinousTrigger trigger, ControllerHand controllerHand){
         switch(controllerHand){
             case ControllerHand.Left:
