@@ -1157,7 +1157,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 392053001}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.1246}
+  m_LocalPosition: {x: 0, y: 0.0139, z: -0.1246}
   m_LocalScale: {x: 0.04, y: 0.001, z: 0.02}
   m_Children: []
   m_Father: {fileID: 323145650}
@@ -2092,7 +2092,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &701797144
 Transform:
   m_ObjectHideFlags: 0
@@ -2423,7 +2423,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 789200734}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.0996}
+  m_LocalPosition: {x: 0, y: 0.0139, z: -0.0996}
   m_LocalScale: {x: 0.04, y: 0.001, z: 0.02}
   m_Children: []
   m_Father: {fileID: 323145650}
@@ -2535,6 +2535,36 @@ Transform:
   - {fileID: 685359440}
   m_Father: {fileID: 724595258}
   m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &803597867
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 803597868}
+  m_Layer: 0
+  m_Name: World UI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &803597868
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 803597867}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.674175, y: 0.7649999, z: 0.529675}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &806645726 stripped
 Transform:
@@ -4258,7 +4288,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1350771876}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.0232, z: 0}
+  m_LocalPosition: {x: 0, y: 0.0371, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 352886587}
@@ -5227,7 +5257,7 @@ SphereCollider:
   m_GameObject: {fileID: 1830778725}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
@@ -5238,7 +5268,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1830778725}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -5308,7 +5338,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1832218077}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.0743}
+  m_LocalPosition: {x: 0, y: 0.0139, z: -0.0743}
   m_LocalScale: {x: 0.04, y: 0.001, z: 0.02}
   m_Children: []
   m_Father: {fileID: 323145650}
@@ -5638,6 +5668,7 @@ GameObject:
   - component: {fileID: 1939891087}
   - component: {fileID: 1939891086}
   - component: {fileID: 1939891085}
+  - component: {fileID: 1939891089}
   m_Layer: 9
   m_Name: Drawing Board_GPU
   m_TagString: Untagged
@@ -5690,10 +5721,34 @@ MonoBehaviour:
       m_Calls: []
   m_SelectEntered:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1939891089}
+        m_TargetAssemblyTypeName: DrawingBoardController, Assembly-CSharp
+        m_MethodName: OnSelectEntered
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_SelectExited:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1939891089}
+        m_TargetAssemblyTypeName: DrawingBoardController, Assembly-CSharp
+        m_MethodName: OnSelectExited
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_Activated:
     m_PersistentCalls:
       m_Calls: []
@@ -5795,6 +5850,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 180, y: 0, z: 0}
+--- !u!114 &1939891089
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1939891084}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a168ff47231df6b40a02b52c85f65f8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1955358150
 GameObject:
   m_ObjectHideFlags: 0
@@ -6297,7 +6364,7 @@ GameObject:
   - component: {fileID: 2136953836}
   - component: {fileID: 2136953835}
   m_Layer: 9
-  m_Name: Capsule
+  m_Name: Eraser
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7074,7 +7141,7 @@ MonoBehaviour:
   m_ColorPickingDrawPoint: {fileID: 1924104738}
   nameOfTriggerController: 
   stickRenderer: {fileID: 6409181433423008928}
-  drawingColor: {r: 0.6132076, g: 0.28635636, b: 0.28635636, a: 1}
+  DrawingColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!114 &6409181432592313325
 MonoBehaviour:
   m_ObjectHideFlags: 0
