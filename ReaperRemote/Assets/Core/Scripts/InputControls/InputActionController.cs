@@ -55,7 +55,8 @@ public class InputActionController : MonoBehaviour
     private List<IJoystickPress> joystickPressRight;
 
     private ControllerHand m_MainController = ControllerHand.Right;
-
+    private enum ControllerState { Drawing, NotDrawing }
+    private ControllerState m_ControllerState = ControllerState.NotDrawing;
 
 
     
@@ -122,15 +123,12 @@ public class InputActionController : MonoBehaviour
             case ControllerHand.Left:
                 m_MainController = ControllerHand.Left;
                 Debug.Log("left controller active");
-                leftUI_Controller.SetActive(false);
                 leftTeleportController.SetActive(true);
                 leftActionBasedControllerManager.enabled = true; // TODO add this to right controller if script starts disabled...
-                leftUI_InteractionController.enabled = false;
-                
                 rightActionBasedControllerManager.enabled = false;
 
-                rightUI_InteractionController.enabled = true;
-                rightUI_Controller.SetActive(true);
+                SetControllerUI_State(ControllerHand.Left, false);
+                SetControllerUI_State(ControllerHand.Right, true);
                 
                 rightTeleportController.SetActive(false);
                 customMoveProvider.ActivateControl(rightMove, ControllerHand.Right);
@@ -141,14 +139,12 @@ public class InputActionController : MonoBehaviour
             case ControllerHand.Right:
                 Debug.Log("right controller is main controller"); // this is default
                 m_MainController = ControllerHand.Right;
-                rightUI_Controller.SetActive(false);
                 rightTeleportController.SetActive(true);
                 rightActionBasedControllerManager.enabled = true;
-                rightUI_InteractionController.enabled = false;
                 leftActionBasedControllerManager.enabled = false;
 
                 SetControllerUI_State(ControllerHand.Left, true);
-                
+                SetControllerUI_State(ControllerHand.Right, false);
 
                 leftTeleportController.SetActive(false);
                 customMoveProvider.ActivateControl(leftMove, ControllerHand.Left);
@@ -170,14 +166,17 @@ public class InputActionController : MonoBehaviour
                     leftUI_InteractionController.enabled = true;
                     leftUI_Controller.SetActive(true);
                 }else {
-                    
+                    leftUI_Controller.SetActive(false);
+                    leftUI_InteractionController.enabled = false;
                 }
                 break;
             case ControllerHand.Right:
                 if(state == true){
-
+                    rightUI_InteractionController.enabled = true;
+                    rightUI_Controller.SetActive(true);
                 }else {
-
+                    rightUI_InteractionController.enabled = false;
+                    rightUI_Controller.SetActive(false);
                 }
                 break;
             case ControllerHand.None:
@@ -276,8 +275,6 @@ public class InputActionController : MonoBehaviour
             j.ProcessJoystickPress(result);
         }
     }
-
-
     #endregion Control Setup
 
     void Test(InputAction.CallbackContext obj){
@@ -288,9 +285,26 @@ public class InputActionController : MonoBehaviour
         Debug.Log($"value {v}".Colorize(Color.green));
     }
 
-   
-  
-    
+    #region Scene Callbacks
+    public void SetControllerStateToDrawing(){
+        m_ControllerState = ControllerState.Drawing;
+        if(m_MainController == ControllerHand.Left){
+            SetControllerUI_State(ControllerHand.Right, false);
+        }else if(m_MainController == ControllerHand.Right){
+            SetControllerUI_State(ControllerHand.Left, false);
+        }
+
+    }
+    public void SetControllerStateToNotDrawing(){
+        m_ControllerState = ControllerState.NotDrawing;
+        if(m_MainController == ControllerHand.Left){
+            SetControllerUI_State(ControllerHand.Right, true);
+        }else if(m_MainController == ControllerHand.Right){
+            SetControllerUI_State(ControllerHand.Left, true);
+        }
+    }
+
+    #endregion Scene Callbacks
 
     #region UI callbacks
     // change control config and store in playerprefs
