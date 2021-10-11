@@ -47,6 +47,10 @@ RWTexture2D<float4> _RenderTexture12; // The Output render texture
 RWTexture2D<float4> _RenderTexture13; // The Output render texture
 RWTexture2D<float4> _RenderTexture14; // The Output render texture
 RWTexture2D<float4> _RenderTexture15; // The Output render texture
+RWTexture2D<float4> _RenderTexture16; // The Output render texture
+RWTexture2D<float4> _RenderTexture17; // The Output render texture
+RWTexture2D<float4> _RenderTexture18; // The Output render texture
+RWTexture2D<float4> _RenderTexture19; // The Output render texture
 #endif
 
 // 
@@ -57,8 +61,8 @@ RWTexture2D<float4> _RenderTexture15; // The Output render texture
 // Graphics.CopyTexture(). This lets you copy data from any kind of texture to another* (depending the platform). If you copy the contents of a RenderTexture into a Texture2D using CopyTexture() it'll show up changed on the GPU, 
 
 uint TransferXYtoN(uint x, uint y){
-    uint n = x + (_TextureWidth * y);
-    if(n >= _TextureWidth * _TextureHeight) return -1; 
+    uint n = x + (_ImageWidth * y);
+    if(n >= _ImageWidth * _ImageHeight) return -1; 
     return n;
 }
 
@@ -159,6 +163,30 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             float2 pixelPosition = float2(posX - ((_TextureWidth << 1) + _TextureWidth), posY - ( (_TextureHeight << 1) + _TextureHeight));
             _RenderTexture15[pixelPosition] = brushCenterPosition.color;
         }
+        //
+        else if( posX < _TextureWidth && posY < ((_TextureHeight << 2) + _TextureHeight)){ //16
+            float2 pixelPosition = float2(posX, posY - (_TextureHeight << 2));
+            _RenderTexture16[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX < (_TextureWidth << 1) && posY < ((_TextureHeight << 2) + _TextureHeight)){ //17
+            float2 pixelPosition = float2(posX - _TextureWidth, posY - (_TextureHeight << 2));
+            _RenderTexture17[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX < ((_TextureWidth << 1) + _TextureWidth) && posY < ((_TextureHeight << 2) + _TextureHeight)){ //18
+            float2 pixelPosition = float2(posX - (_TextureWidth << 1), posY - (_TextureHeight << 2));
+            _RenderTexture18[pixelPosition] = brushCenterPosition.color;
+        }
+        else if( posX < (_TextureWidth << 2) && posY < ((_TextureHeight << 2) + _TextureHeight)){ //19
+            float2 pixelPosition = float2(posX - ((_TextureWidth << 1) + _TextureWidth), posY - (_TextureHeight << 2));
+            _RenderTexture19[pixelPosition] = brushCenterPosition.color;
+        }
+        
+
+
+
+
+
+
         // Bit shift : x << 1 same as x * 2
         // x << 2 same as x * 4
         // (_TextureHeight << 1)
@@ -167,6 +195,11 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         // (_TextureWidth << 1)
         // ((_TextureWidth << 1) + _TextureWidth)
         // (_TextureWidth << 2)
+
+        // ((_TextureHeight << 2) + _TextureHeight)
+
+
+        // ((_TextureWidth << 2) + _TextureWidth)
         // 
 #endif
     }
