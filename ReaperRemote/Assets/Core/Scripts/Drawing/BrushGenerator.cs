@@ -60,16 +60,16 @@ using Core;
 // }
 public static class BrushGenerator
 {
-    static public _Pixel[] smallBrush3x3 = {
-        new _Pixel(new Vector2Int(-1,-1), Color.blue),
-        new _Pixel(new Vector2Int(0,-1), Color.blue),
-        new _Pixel(new Vector2Int(1,-1), Color.blue),
-        new _Pixel(new Vector2Int(-1,0), Color.blue),
-        new _Pixel(new Vector2Int(0,0), Color.blue),
-        new _Pixel(new Vector2Int(1,0), Color.blue),
-        new _Pixel(new Vector2Int(-1,1), Color.blue),
-        new _Pixel(new Vector2Int(0,1), Color.blue),
-        new _Pixel(new Vector2Int(1,1), Color.blue)
+    static public Pixel[] smallBrush3x3 = {
+        new Pixel(new Vector2Int(-1,-1), Color.blue),
+        new Pixel(new Vector2Int(0,-1), Color.blue),
+        new Pixel(new Vector2Int(1,-1), Color.blue),
+        new Pixel(new Vector2Int(-1,0), Color.blue),
+        new Pixel(new Vector2Int(0,0), Color.blue),
+        new Pixel(new Vector2Int(1,0), Color.blue),
+        new Pixel(new Vector2Int(-1,1), Color.blue),
+        new Pixel(new Vector2Int(0,1), Color.blue),
+        new Pixel(new Vector2Int(1,1), Color.blue)
     };
 
     // public static Brush GenerateBrush(int height = 5, int width = 5, float softness = 0f){ // minimum pixel sizes for brush!

@@ -18,15 +18,26 @@ uint _TextureWidth;
 uint _TextureHeight;
 uint _ImageWidth;
 uint _ImageHeight;
-uint _BrushSizeStart;
-uint _BrushSizeEnd; // TODO: implement variating brush sizes
-uint _BrushStrokeArrayLength;
+//uint _BrushSizeStart;
+//uint _BrushSizeEnd; // TODO: implement variating brush sizes
+uint _BrushStrokeShapeSize0_ArrayLength;
+uint _BrushStrokeShapeSize1_ArrayLength;
+uint _BrushStrokeShapeSize2_ArrayLength;
+uint _BrushStrokeShapeSize3_ArrayLength;
+uint _BrushStrokeShapeSize4_ArrayLength;
 
 RWStructuredBuffer<uint> _JobDoneBuffer; // dummy data to check Kernel job done - full when all id.x are called!
 //RWStructuredBuffer<float4> _ActiveLayerBuffer; // 1D of active layer
 StructuredBuffer<_Pixel> _BrushStrokePositionsBuffer; // array of 2D vectors, positions in pixels
-StructuredBuffer<_Pixel> _BrushStrokeShapeBuffer; // 1D array of pixels - 1size stroke
+// Contains all brush stroke sizes 
 
+StructuredBuffer<float> _BrushStrokeShapeSize0_Buffer; 
+StructuredBuffer<float> _BrushStrokeShapeSize1_Buffer; 
+StructuredBuffer<float> _BrushStrokeShapeSize2_Buffer; 
+StructuredBuffer<float> _BrushStrokeShapeSize3_Buffer; 
+StructuredBuffer<float> _BrushStrokeShapeSize4_Buffer; 
+// Array of sizes matching number of points
+StructuredBuffer<uint> _BrushStrokeSizes_Buffer;
 
 // https://logins.github.io/graphics/2020/10/31/D3D12ComputeShaders.html
 // Quest 2 build works fine - Editor does not!

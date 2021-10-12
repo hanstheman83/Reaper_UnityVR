@@ -58,8 +58,8 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     private XRBaseController baseController;
     private Coroutine haptics = null;
     public Color DrawingColor;
-    public Brush brush;
-    public int ActiveBrushSize = 1;
+    public Brush Brush;
+    public int ActiveBrushSize = 0;
 
     private enum ResistanceLevel{
         None, Lowest, Low, Medium, High, Highest 
@@ -73,7 +73,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     void Start()
     {
         inputActionController = FindObjectOfType<InputActionController>();
-        brush = new Brush(5);
+        Brush = new Brush(5);
     }
 
     public void OnSelectEntered(SelectEnterEventArgs args){
@@ -94,11 +94,8 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
 
     public void ProcessTriggerInput(float val) // called from inputActionController
     {
-        //int numSizes = brush.NumberOfSizes;
-        
-        int newSize = Mathf.Clamp( Mathf.RoundToInt( val * (brush.NumberOfSizes - 1) ), 0, (brush.NumberOfSizes - 1) );
-        Debug.Log("new brush size : " + newSize);
-
+        ActiveBrushSize = Mathf.Clamp( Mathf.RoundToInt( val * (Brush.NumberOfSizes - 1) ), 0, (Brush.NumberOfSizes - 1) );
+        Debug.Log("new brush size : " + ActiveBrushSize);
     }
 
     /// <summary>

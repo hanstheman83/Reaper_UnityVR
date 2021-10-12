@@ -48,7 +48,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     [SerializeField] ComputeShader drawOnTexture_Compute;
     Transform strokePositionTransform, targetPositionTransform, depthPositionTransform;
     StrokePositionController strokePositionController;
-    DrawingStickController drawingStickController;
+    DrawingStickController m_DrawingStickController;
     Coroutine refreshRenderTextureMips;
     ChildTrigger childTrigger; // for XR interaction
     Collider childCollider; // XR interaction
@@ -59,7 +59,11 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     ComputeBuffer GPU_ActiveLayerBuffer; // 1D array of _Pixel structs
     
     // update per update call. 
-    ComputeBuffer GPU_BrushStrokeShapeBuffer; // 1D array of _Pixel structs! (later blend their colors)
+    ComputeBuffer GPU_BrushStrokeShapeSize0_Buffer; // 1D array of _Pixel structs! (later blend their colors)
+    ComputeBuffer GPU_BrushStrokeShapeSize1_Buffer; // 1D array of _Pixel structs! (later blend their colors)
+    ComputeBuffer GPU_BrushStrokeShapeSize2_Buffer; // 1D array of _Pixel structs! (later blend their colors)
+    ComputeBuffer GPU_BrushStrokeShapeSize3_Buffer; // 1D array of _Pixel structs! (later blend their colors)
+    ComputeBuffer GPU_BrushStrokeShapeSize4_Buffer; // 1D array of _Pixel structs! (later blend their colors)
 
     // update per update call. 
     ComputeBuffer GPU_BrushStrokePositionsBuffer; // 1D array of _Pixel structs (positions are from 0,0)
@@ -67,8 +71,13 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
     // CPU buffers : arrays for compute buffers 
     private uint[] m_CPU_JobDoneBuffer;
-    private _Pixel[] m_CPU_PointsOnLineBuffer;
-    private _Pixel[] m_CPU_BrushStrokeShapeBuffer;
+    private Pixel[] m_CPU_PointsOnLineBuffer;
+    // 1D array 0-1f brush alpha, a x a dimension when converted to 2D
+    private float[] m_CPU_BrushStrokeShapeSize0_Buffer;
+    private float[] m_CPU_BrushStrokeShapeSize1_Buffer;
+    private float[] m_CPU_BrushStrokeShapeSize2_Buffer;
+    private float[] m_CPU_BrushStrokeShapeSize3_Buffer;
+    private float[] m_CPU_BrushStrokeShapeSize4_Buffer;
     private Vector4[] m_CPU_ActiveLayerBuffer; // update and reset per stroke
     private RenderTexture renderTexture_00;
     private RenderTexture renderTexture_01;
@@ -103,6 +112,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     Transform otherObject;
 
     Vector2 lastStroke = new Vector2(-1f, -1f); // init
+    int lastActiveBrushSize = 0;
 
     
 
@@ -179,11 +189,9 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     // This function releases the hardware resources used by the render texture. The texture itself is not destroyed, and will be automatically created again when being used.
     // As with other "native engine object" types, it is important to pay attention to the lifetime of any render textures and release them when you are finished using them, as they will not be garbage collected like normal managed types.
 
-
     private void OnDestroy() {
         childTrigger.childTriggeredEnterEvent += null;
         childTrigger.childTriggeredExitEvent += null;
-
     }
 
     // Update is called once per frame
@@ -194,111 +202,80 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             UpdateResistance();
             Vector2 canvasCoordinates = CalculateCanvasCoordinates();
 
+            // int brushSizeIndex = drawingStickController.ActiveBrushSize;// index of brush array
+            // float[] brushArray = drawingStickController.Brush.BrushSizes[brushSizeIndex];
+
+            // save last frame trigger press
+            // new function calculate brush strokes on line 
+            // save new buffer with brush sizes matching number of strokes
+            // 
+
             if(lastStroke.x < 0){ 
                 Debug.Log("Skipping first frame in new brush stroke..."); 
                 lastStroke = canvasCoordinates;
                 return;
             }
+            (Pixel[], int[]) pointsOnLineTuple; // pixel positions, brush width [in pixels] per point
+            pointsOnLineTuple = CalculatePointsOnLine(lastStroke, canvasCoordinates, 
+                                        m_DrawingStickController.Brush.WidthOfBrushSize[lastActiveBrushSize], 
+                                        m_DrawingStickController.Brush.WidthOfBrushSize[m_DrawingStickController.ActiveBrushSize]); // if lastStroke = -1 calculate only 1 point
+            Pixel[] m_CPU_PointsOnLineBuffer = pointsOnLineTuple.Item1;
+            int[] pointSizes = pointsOnLineTuple.Item2;
 
-            Vector2[] pointsOnLine = CalculatePointsOnLine(lastStroke, canvasCoordinates); // if lastStroke = -1 calculate only 1 point
-            
-            if(pointsOnLine.Length > 0){
-                Debug.Log($"Points on line {pointsOnLine.Length}:".Colorize(Color.magenta));
-                m_CPU_PointsOnLineBuffer = CalculatePointsOnLine_Pixels2D(pointsOnLine);
+
+            if(m_CPU_PointsOnLineBuffer.Length > 0){
+                Debug.Log($"Points on line {m_CPU_PointsOnLineBuffer.Length}:".Colorize(Color.magenta));
+                //m_CPU_PointsOnLineBuffer = CalculatePointsOnLine_Pixels2D(pointsOnLine);
 
                 int kernel = drawOnTexture_Compute.FindKernel("CSMain");
                 // SET BUFFERS
-                // SET BRUSH STROKE
-                int brushStrokeWidth = 3;
-                int brushStrokeArrayLength = 9;
-                drawOnTexture_Compute.SetInt("_BrushSizeStart", brushStrokeWidth);
-                drawOnTexture_Compute.SetInt("_BrushStrokeArrayLength", brushStrokeArrayLength);
-
-
-                // set brush shape
                 var structSize = sizeof(float)*4 + sizeof(uint)*2; // for all _Pixel 
-                m_CPU_BrushStrokeShapeBuffer = BrushGenerator.smallBrush3x3;
-                GPU_BrushStrokeShapeBuffer = new ComputeBuffer(m_CPU_BrushStrokeShapeBuffer.Length, structSize); // TODO: dispose old buffer ?
-                GPU_BrushStrokeShapeBuffer.SetData(m_CPU_BrushStrokeShapeBuffer);
-                drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeBuffer", GPU_BrushStrokeShapeBuffer);
-               
-               
+
                // set points on line
                 GPU_BrushStrokePositionsBuffer = new ComputeBuffer(m_CPU_PointsOnLineBuffer.Length, structSize);
                 GPU_BrushStrokePositionsBuffer.SetData(m_CPU_PointsOnLineBuffer);
                 drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokePositionsBuffer", GPU_BrushStrokePositionsBuffer);
+                
+                // Calculate number of kernel runs 
+                // 
+                int numberOfRuns = 0; // pointSizes - radius of each point
+                for (var i = 0; i < m_CPU_PointsOnLineBuffer.Length; i++)
+                {
+                    numberOfRuns += pointSizes[i] * pointSizes[i];
+                }
                 // set dummy data all done buffer
-                m_CPU_JobDoneBuffer = new uint[m_CPU_PointsOnLineBuffer.Length * m_CPU_BrushStrokeShapeBuffer.Length];
+                m_CPU_JobDoneBuffer = new uint[numberOfRuns];
+                
                 GPU_JobDoneBuffer = new ComputeBuffer(m_CPU_JobDoneBuffer.Length, sizeof(uint));
                 drawOnTexture_Compute.SetBuffer(kernel, "_JobDoneBuffer", GPU_JobDoneBuffer);
+                // DISPATCH!
+                drawOnTexture_Compute.Dispatch(kernel, numberOfRuns, 1, 1);
 
-                // DISPATCH
-                drawOnTexture_Compute.Dispatch(kernel, m_CPU_PointsOnLineBuffer.Length * m_CPU_BrushStrokeShapeBuffer.Length, 1, 1);
-
+                // --------------------------------- GET DATA AND BUFFER RELEASE--------------------
                 // GET DATA will block update thread, 
                 // TODO: replace with dummy bool array - per kernel run
 
                 // Dummy call - to stop update loop when kernel is done - to delay .Release() calls!
                 GPU_JobDoneBuffer.GetData(m_CPU_JobDoneBuffer);
-
                 GPU_JobDoneBuffer.Release();
                 GPU_BrushStrokePositionsBuffer.Release();
-                GPU_BrushStrokeShapeBuffer.Release();
             }
             lastStroke = canvasCoordinates;
+            lastActiveBrushSize = m_DrawingStickController.ActiveBrushSize;
+
         }
     }// end Update()
     #endregion Unity Methods
 
+    #region Start Stop strokes
 
-    #region Drawing Methods
-    // ------------------------------------------------------------------ //
-    // ------------------------------------------------------------------ //
-
-    _Pixel[] CalculatePointsOnLine_Pixels2D(Vector2[] pointsOnLine){
-        //
-        _Pixel[] pixelsArray = new _Pixel[pointsOnLine.Length];
-        for (var i = 0; i < pointsOnLine.Length; i++)
-        {
-            pixelsArray[i].position_x = (uint) Mathf.Round(pointsOnLine[i].x * m_ImageWidth); 
-            pixelsArray[i].position_y = (uint) Mathf.Round(pointsOnLine[i].y * m_ImageHeight); 
-            pixelsArray[i].color_r = drawingColor.r;
-            pixelsArray[i].color_g = drawingColor.g;
-            pixelsArray[i].color_b = drawingColor.b;
-            pixelsArray[i].color_a = drawingColor.a;
-        }
-        return pixelsArray;
-    }
-
-    // TODO: gradient between points, trigger = value, depth = size
-    Vector2[] CalculatePointsOnLine(Vector2 start, Vector2 end){
-        if(start.x < 0) Debug.LogError("Only positive values!");
-        //Debug.Log("Calculating in between points".Colorize(Color.white));
-        float r = .001f; // TODO: dynamic, brush radius
-        float distanceBetweenBrushHits = Vector2.Distance(end, start);
-        int numberOfStamps = Mathf.RoundToInt( (distanceBetweenBrushHits / r) );// 
-        //Debug.Log("number of stamps :".Colorize(Color.blue) + numberOfStamps);
-        float percentageIncrease = 1f/numberOfStamps;
-        Vector2 deltaVector = end - start;
-        Vector2[] inBetweenPoints = new Vector2[numberOfStamps];
-
-        for (var i = 1; i <= numberOfStamps; i++) // TODO: include start of line
-        {
-            inBetweenPoints[i - 1] = start + deltaVector * (percentageIncrease * i);
-        }
-        return inBetweenPoints;
-    }
-
-    // Brush Strokes
-    // TODO: Depth : No new stroke.. 
-   // Trigger : erase hasColor array when changed! 
     void StartStroke(Collider other){
         isDrawing = true;
         lastStroke = new Vector2(-1f, -1f); // skip first frame, no stroke length!
         otherObject = other.transform.Find("DrawPoint");
-        drawingStickController = other.GetComponentInParent<DrawingStickController>();
-        drawingColor = drawingStickController.DrawingColor;
-        drawingStickController.StartResistance(); 
+        m_DrawingStickController = other.GetComponentInParent<DrawingStickController>();
+        drawingColor = m_DrawingStickController.DrawingColor;
+        m_DrawingStickController.StartResistance(); 
         strokePositionTransform.position = otherObject.position;
         depthPositionTransform.position = otherObject.position;
         strokePositionTransform.localPosition = new Vector3(strokePositionTransform.localPosition.x, 
@@ -307,8 +284,40 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         targetPositionTransform.position = otherObject.position;
         targetPositionTransform.localPosition = new Vector3(targetPositionTransform.localPosition.x, 
                                                             targetPositionTransform.localPosition.y, 0f);
+        int kernel = drawOnTexture_Compute.FindKernel("CSMain");
+
+        // brush stroke shapes
+        m_CPU_BrushStrokeShapeSize0_Buffer = m_DrawingStickController.Brush.BrushSizes[0];
+        m_CPU_BrushStrokeShapeSize1_Buffer = m_DrawingStickController.Brush.BrushSizes[1];
+        m_CPU_BrushStrokeShapeSize2_Buffer = m_DrawingStickController.Brush.BrushSizes[2];
+        m_CPU_BrushStrokeShapeSize3_Buffer = m_DrawingStickController.Brush.BrushSizes[3];
+        m_CPU_BrushStrokeShapeSize4_Buffer = m_DrawingStickController.Brush.BrushSizes[4];
+
+        drawOnTexture_Compute.SetInt("_BrushStrokeShapeSize0_ArrayLength", m_CPU_BrushStrokeShapeSize0_Buffer.Length);
+        drawOnTexture_Compute.SetInt("_BrushStrokeShapeSize1_ArrayLength", m_CPU_BrushStrokeShapeSize1_Buffer.Length);
+        drawOnTexture_Compute.SetInt("_BrushStrokeShapeSize2_ArrayLength", m_CPU_BrushStrokeShapeSize2_Buffer.Length);
+        drawOnTexture_Compute.SetInt("_BrushStrokeShapeSize3_ArrayLength", m_CPU_BrushStrokeShapeSize3_Buffer.Length);
+        drawOnTexture_Compute.SetInt("_BrushStrokeShapeSize4_ArrayLength", m_CPU_BrushStrokeShapeSize4_Buffer.Length);
+
+        GPU_BrushStrokeShapeSize0_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize0_Buffer.Length, sizeof(float) ); 
+        GPU_BrushStrokeShapeSize1_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize1_Buffer.Length, sizeof(float) ); 
+        GPU_BrushStrokeShapeSize2_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize2_Buffer.Length, sizeof(float) ); 
+        GPU_BrushStrokeShapeSize3_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize3_Buffer.Length, sizeof(float) ); 
+        GPU_BrushStrokeShapeSize4_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize4_Buffer.Length, sizeof(float) ); 
+
+        GPU_BrushStrokeShapeSize0_Buffer.SetData(m_CPU_BrushStrokeShapeSize0_Buffer);
+        GPU_BrushStrokeShapeSize1_Buffer.SetData(m_CPU_BrushStrokeShapeSize1_Buffer);
+        GPU_BrushStrokeShapeSize2_Buffer.SetData(m_CPU_BrushStrokeShapeSize2_Buffer);
+        GPU_BrushStrokeShapeSize3_Buffer.SetData(m_CPU_BrushStrokeShapeSize3_Buffer);
+        GPU_BrushStrokeShapeSize4_Buffer.SetData(m_CPU_BrushStrokeShapeSize4_Buffer);
+        
+        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize0_Buffer", GPU_BrushStrokeShapeSize0_Buffer);
+        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize1_Buffer", GPU_BrushStrokeShapeSize1_Buffer);
+        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize2_Buffer", GPU_BrushStrokeShapeSize2_Buffer);
+        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize3_Buffer", GPU_BrushStrokeShapeSize3_Buffer);
+        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize4_Buffer", GPU_BrushStrokeShapeSize4_Buffer);
+
         // SET ACTIVE LAYER
-        // int kernel = drawOnTexture_Compute.FindKernel("CSMain");
         // int sizeOfVector4 = System.Runtime.InteropServices.Marshal.SizeOf((object)Vector4.zero);
         // GPU_ActiveLayerBuffer = new ComputeBuffer(textureHeight * textureWidth, sizeOfVector4); // bytesize of struct = all floats is struct!
         // m_CPU_ActiveLayerBuffer = layerManager.ActiveLayer.Pixels;
@@ -320,15 +329,75 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         otherObject = null;
         StopCoroutine(refreshRenderTextureMips);
         refreshRenderTextureMips = null;
-        drawingStickController.StopResistance();
-        drawingStickController = null;
+        m_DrawingStickController.StopResistance();
+        m_DrawingStickController = null;
         StartCoroutine(UpdateTexturesOnce()); // need to wait
+
+        GPU_BrushStrokeShapeSize0_Buffer.Release();
+        GPU_BrushStrokeShapeSize1_Buffer.Release();
+        GPU_BrushStrokeShapeSize2_Buffer.Release();
+        GPU_BrushStrokeShapeSize3_Buffer.Release();
+        GPU_BrushStrokeShapeSize4_Buffer.Release();
+
         // GPU_ActiveLayerBuffer.GetData(m_CPU_ActiveLayerBuffer);
         // m_CPU_ActiveLayerBuffer.CopyTo(layerManager.ActiveLayer.Pixels, 0);
         // GPU_ActiveLayerBuffer.Release();
 
 
         // TODO: update active layer and final update of render texture
+    }
+    #endregion Start Stop strokes
+
+
+    #region Drawing Methods
+    // ------------------------------------------------------------------ //
+    // ------------------------------------------------------------------ //
+
+    // _Pixel[] CalculatePointsOnLine_Pixels2D(Vector2[] pointsOnLine){
+    //     //
+    //     _Pixel[] pixelsArray = new _Pixel[pointsOnLine.Length];
+    //     for (var i = 0; i < pointsOnLine.Length; i++)
+    //     {
+    //         pixelsArray[i].position_x = (uint) Mathf.Round(pointsOnLine[i].x * m_ImageWidth); 
+    //         pixelsArray[i].position_y = (uint) Mathf.Round(pointsOnLine[i].y * m_ImageHeight); 
+    //         pixelsArray[i].color_r = drawingColor.r;
+    //         pixelsArray[i].color_g = drawingColor.g;
+    //         pixelsArray[i].color_b = drawingColor.b;
+    //         pixelsArray[i].color_a = drawingColor.a;
+    //     }
+    //     return pixelsArray;
+    // }
+
+    // TODO: gradient between points, trigger = value, depth = size
+    /// <summary>
+    /// brush widths in pixel sizes
+    /// </summary>
+    (Pixel[], int[]) CalculatePointsOnLine(Vector2 start, Vector2 end, int lastFrameBrushSize, int thisFrameBrushSize){
+
+        // brush size in pixel radius
+
+        float distanceBetweenBrushHits = Vector2.Distance(end, start);
+        Vector2 deltaVector = end - start;
+
+        float rFirstStroke = m_DrawingStickController.Brush.WidthOfBrushSize[lastFrameBrushSize];
+        // int numberOfStamps = Mathf.RoundToInt( (distanceBetweenBrushHits / r) );// 
+
+
+        // float percentageIncrease = 1f/numberOfStamps;
+        // Vector2[] inBetweenPoints = new Vector2[numberOfStamps];
+
+        // for (var i = 1; i <= numberOfStamps; i++) // TODO: include start of line
+        // {
+        //     inBetweenPoints[i - 1] = start + deltaVector * (percentageIncrease * i);
+        // }
+        // return inBetweenPoints;
+        return (new Pixel[2], new int[2]);
+    }
+
+    float PixelLengthToFloatLengthConversion(int pixelLength){
+        // remember scale factor - height > width!!
+        
+        return 0f;
     }
 
     /// <summary>
@@ -343,7 +412,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     void UpdateResistance(){
         float resistance = Mathf.Clamp( (depthPositionTransform.localPosition.z + .5f), 0f, 1f );
         // if(resistance > .8f) Debug.Log("Resistance : ".Colorize(Color.white) + resistance);
-        drawingStickController.HandleResistance(resistance);
+        m_DrawingStickController.HandleResistance(resistance);
     }
 
     void UpdateStrokeAndTargetAndDepth(){

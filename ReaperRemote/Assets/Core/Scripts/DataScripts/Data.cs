@@ -7,10 +7,10 @@ namespace Core{
 
     #region Colors etc...
     
-    public struct _Pixel{
+    public struct Pixel{
         public uint position_x, position_y;
         public float color_r, color_g, color_b, color_a;
-        public _Pixel(Vector2Int position, Color color){ // should auto unpack to compute shader!
+        public Pixel(Vector2Int position, Color color){ // should auto unpack to compute shader!
             position_x = (uint)position.x;
             position_y = (uint)position.y;
             color_r = color.r;
