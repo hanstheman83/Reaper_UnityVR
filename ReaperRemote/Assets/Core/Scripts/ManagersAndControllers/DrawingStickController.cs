@@ -5,15 +5,43 @@ using Core.Controls;
 using UnityEngine.XR.Interaction.Toolkit;
 using Core;
 
+
+public struct Brush{
+    // list of all brush sizes - 1D float arrays [0 to 1, alpha]
+    // 
+    public List<float[]> BrushSizes;
+    public List<int> WidthOfBrushSize;
+    public int NumberOfSizes;
+
+    public Brush(int numberOfSizes){
+        BrushSizes = new List<float[]>();
+        WidthOfBrushSize = new List<int>();
+        this.NumberOfSizes = numberOfSizes;
+        //
+        GenerateList();
+    }
+
+    void GenerateList(){ // TODO: add softness algo!!
+        int brushWidth = 3;
+        for (var i = 0; i < NumberOfSizes; i++)
+        {
+            int sizeOfNewArray = brushWidth * brushWidth; 
+            float[] newBrushSizeArray = new float[sizeOfNewArray];
+            for (var j = 0; j < sizeOfNewArray; j++)
+            {
+                newBrushSizeArray[j] = 1f;
+            }
+            WidthOfBrushSize.Add(brushWidth);
+            BrushSizes.Add(newBrushSizeArray);
+            brushWidth += 2;
+        }
+    }
+}
+
+
 [RequireComponent(typeof(XRGrabInteractable))]
 public class DrawingStickController : MonoBehaviour, IContinousTrigger
 {
-    // Get info from drawingboard - z coord on stroke
-    // send haptic
-
-    // Test : on grab cache controller -- 
-    // haptic = trigger
-
     [SerializeField] Transform m_ColorPickingDrawPoint;
     public Transform ColorPickingDrawPoint {get => m_ColorPickingDrawPoint;}
 
@@ -30,6 +58,8 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     private XRBaseController baseController;
     private Coroutine haptics = null;
     public Color DrawingColor;
+    public Brush brush;
+    public int ActiveBrushSize = 1;
 
     private enum ResistanceLevel{
         None, Lowest, Low, Medium, High, Highest 
@@ -43,13 +73,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     void Start()
     {
         inputActionController = FindObjectOfType<InputActionController>();
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        brush = new Brush(5);
     }
 
     public void OnSelectEntered(SelectEnterEventArgs args){
@@ -66,15 +90,15 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         inputActionController.RemoveTriggerControl(this, controlledBy);
         controlledBy = ControllerHand.None;
         baseController = null;
-        // if(haptics != null) {
-        //     StopCoroutine(haptics);
-        //     haptics = null;
-        // }
     }
 
     public void ProcessTriggerInput(float val) // called from inputActionController
     {
+        //int numSizes = brush.NumberOfSizes;
         
+        int newSize = Mathf.Clamp( Mathf.RoundToInt( val * (brush.NumberOfSizes - 1) ), 0, (brush.NumberOfSizes - 1) );
+        Debug.Log("new brush size : " + newSize);
+
     }
 
     /// <summary>
@@ -133,8 +157,6 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
             }
         }
     }
-
-
 
     IEnumerator StartHaptics()
     {

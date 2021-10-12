@@ -213,13 +213,17 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                 int brushStrokeArrayLength = 9;
                 drawOnTexture_Compute.SetInt("_BrushSizeStart", brushStrokeWidth);
                 drawOnTexture_Compute.SetInt("_BrushStrokeArrayLength", brushStrokeArrayLength);
+
+
                 // set brush shape
                 var structSize = sizeof(float)*4 + sizeof(uint)*2; // for all _Pixel 
                 m_CPU_BrushStrokeShapeBuffer = BrushGenerator.smallBrush3x3;
                 GPU_BrushStrokeShapeBuffer = new ComputeBuffer(m_CPU_BrushStrokeShapeBuffer.Length, structSize); // TODO: dispose old buffer ?
                 GPU_BrushStrokeShapeBuffer.SetData(m_CPU_BrushStrokeShapeBuffer);
                 drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeBuffer", GPU_BrushStrokeShapeBuffer);
-                // set points on line
+               
+               
+               // set points on line
                 GPU_BrushStrokePositionsBuffer = new ComputeBuffer(m_CPU_PointsOnLineBuffer.Length, structSize);
                 GPU_BrushStrokePositionsBuffer.SetData(m_CPU_PointsOnLineBuffer);
                 drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokePositionsBuffer", GPU_BrushStrokePositionsBuffer);

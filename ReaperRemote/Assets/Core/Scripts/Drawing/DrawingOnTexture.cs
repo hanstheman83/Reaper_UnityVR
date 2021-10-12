@@ -76,7 +76,7 @@ public class DrawingOnTexture : MonoBehaviour
         // TODO: auto fill texture
         //renderTexture.GenerateMips(); // -- update this when moving canvas
 
-        Brush someB = new Brush();
+        //Brush someB = new Brush();
 
         // init color array
         colors1D = new Color32[25];
