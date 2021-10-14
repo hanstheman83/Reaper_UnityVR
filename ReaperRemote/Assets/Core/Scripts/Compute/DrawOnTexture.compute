@@ -18,27 +18,23 @@ uint _TextureWidth;
 uint _TextureHeight;
 uint _ImageWidth;
 uint _ImageHeight;
-//uint _BrushSizeStart;
-//uint _BrushSizeEnd; // TODO: implement variating brush sizes
-uint _BrushStrokeShapeSize0_ArrayLength;
-uint _BrushStrokeShapeSize1_ArrayLength;
-uint _BrushStrokeShapeSize2_ArrayLength;
-uint _BrushStrokeShapeSize3_ArrayLength;
-uint _BrushStrokeShapeSize4_ArrayLength;
+uint _BrushStrokePointSizesOnLine_BufferLength;
 
-RWStructuredBuffer<uint> _JobDoneBuffer; // dummy data to check Kernel job done - full when all id.x are called!
-//RWStructuredBuffer<float4> _ActiveLayerBuffer; // 1D of active layer
-StructuredBuffer<_Pixel> _BrushStrokePositionsBuffer; // array of 2D vectors, positions in pixels
+//RWStructuredBuffer<float4> _ActiveLayer_Buffer; // 1D of active layer
+StructuredBuffer<_Pixel> _BrushStrokePointsOnLine_Buffer; // array of 2D vectors, positions and color in pixels
 // Contains all brush stroke sizes 
-
+// list of array lengths - lookup table for brush sizes
+StructuredBuffer<uint> _BrushStrokeSizesArrayLengths_Buffer;
+  
 StructuredBuffer<float> _BrushStrokeShapeSize0_Buffer; 
 StructuredBuffer<float> _BrushStrokeShapeSize1_Buffer; 
 StructuredBuffer<float> _BrushStrokeShapeSize2_Buffer; 
 StructuredBuffer<float> _BrushStrokeShapeSize3_Buffer; 
 StructuredBuffer<float> _BrushStrokeShapeSize4_Buffer; 
 // Array of sizes matching number of points
-StructuredBuffer<uint> _BrushStrokeSizes_Buffer;
+StructuredBuffer<uint> _BrushStrokePointSizesOnLine_Buffer;
 
+RWStructuredBuffer<uint> _JobDone_Buffer; // dummy data to check Kernel job done - full when all id.x are called!
 // https://logins.github.io/graphics/2020/10/31/D3D12ComputeShaders.html
 // Quest 2 build works fine - Editor does not!
 RWTexture2D<float4> _RenderTexture00; // The Output render texture
@@ -81,23 +77,35 @@ uint TransferXYtoN(uint x, uint y){
 [numthreads(1,1,1)] // if increasing this reduce workload in .Dispatch()
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    // id.x : number of brush strokes * size of a brush stroke
-    // 
+    // id.x : summation of all brush strokes [different size of a brush strokes]
+    uint sumOfAddedBrushStrokes = 0;
+    uint indexInBrushStrokesPositionsArray = 0;
+    uint indexInBrushStrokeShapeArray = 0;
+    for(uint i; i < _BrushStrokePointSizesOnLine_BufferLength; i++){
+        uint brushSize = _BrushStrokePointSizesOnLine_Buffer[i];
+        sumOfAddedBrushStrokes += _BrushStrokeSizesArrayLengths_Buffer[brushSize];
+        if(sumOfAddedBrushStrokes >= id.x){
+            // find brush size, find position in brush size shape array
+            indexInBrushStrokesPositionsArray = i;
 
-    // position in 1D array (render texture and activeLayer) = # brushStroke * position in brushStroke from center
-    // check out of bounds for pixels 
-    
-    // Determine what brushStroke index is active
-    // Max x is all brushStrokes combined
-    // Divide x by brushStrokeShapeArray size (brushStroke width * height)  = brushStroke index in positionsBuffer
-    uint indexInBrushStrokesPositionsArray = id.x/(_BrushStrokeArrayLength); 
-    uint indexInBrushStrokeShape = id.x - (indexInBrushStrokesPositionsArray * _BrushStrokeArrayLength);
 
-    _Pixel pixelInBrushShape = _BrushStrokeShapeBuffer[indexInBrushStrokeShape];
-    _Pixel brushCenterPosition = _BrushStrokePositionsBuffer[indexInBrushStrokesPositionsArray];
+            //TODO: if doesn't work can do without 
+            break;
+        }
 
-    uint posX = brushCenterPosition.position_x + pixelInBrushShape.position_x;
-    uint posY = brushCenterPosition.position_y + pixelInBrushShape.position_y;
+
+    }
+
+    // find right brushShape and right pixel position in that shape!
+   
+    float alphaInBrushShape = _BrushStrokeShapeSize0_Buffer[indexInBrushStrokeShapeArray];
+
+    _Pixel brushCenterPosition = _BrushStrokePointsOnLine_Buffer[indexInBrushStrokesPositionsArray];
+
+    //uint posX = brushCenterPosition.position_x + pixelInBrushShape.position_x;
+    //uint posY = brushCenterPosition.position_y + pixelInBrushShape.position_y;
+    uint posX = 0;
+    uint posY = 0;
     
     uint n;
 
@@ -107,7 +115,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     }else {
         // draw pixel in maps
         n = TransferXYtoN(posX, posY);  
-        //_ActiveLayerBuffer[n] = pixelInBrushShape.color;
+        //_ActiveLayer_Buffer[n] = pixelInBrushShape.color;
         if(posX < _TextureWidth && posY < _TextureHeight ){ // 00
             float2 pixelPosition = float2(posX, posY);
             _RenderTexture00[pixelPosition] = brushCenterPosition.color;
@@ -138,7 +146,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             _RenderTexture06[pixelPosition] = brushCenterPosition.color;
         }
         else if( posX < (_TextureWidth << 2) && posY < (_TextureHeight << 1)){ //07
-            // float2 pixelPosition = float2(posX - _TextureWidth * 3, posY - _TextureHeight); // 
             float2 pixelPosition = float2(posX - ( (_TextureWidth << 1) + (_TextureWidth) ), posY - _TextureHeight);
             _RenderTexture07[pixelPosition] = brushCenterPosition.color;
         }
@@ -191,13 +198,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             float2 pixelPosition = float2(posX - ((_TextureWidth << 1) + _TextureWidth), posY - (_TextureHeight << 2));
             _RenderTexture19[pixelPosition] = brushCenterPosition.color;
         }
+#endif
         
-
-
-
-
-
-
         // Bit shift : x << 1 same as x * 2
         // x << 2 same as x * 4
         // (_TextureHeight << 1)
@@ -212,10 +214,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
         // ((_TextureWidth << 2) + _TextureWidth)
         // 
-#endif
+
     }
 
-    _JobDoneBuffer[id.x] = 1;
+    _JobDone_Buffer[id.x] = 1; 
 
     // TODO: Blend pixel color if already color
 
