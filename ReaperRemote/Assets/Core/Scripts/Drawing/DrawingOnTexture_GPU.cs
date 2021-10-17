@@ -459,21 +459,23 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         float lengthOfIterationLine = Vector2.Distance(iterationLineEnd, iterationLineStart);
 
         // Determine what quadrant the delta vector is moving in 
-        if(normalizedDeltaVector.x >= 0 && normalizedDeltaVector.y >= 0){
+        if(normalizedDeltaVector.x > 0 && normalizedDeltaVector.y > 0){
             activeQuadrant = ActiveQuadrant.Q1;
-        }else if(normalizedDeltaVector.x <= 0 && normalizedDeltaVector.y >= 0){
+        }else if(normalizedDeltaVector.x < 0 && normalizedDeltaVector.y > 0){
             activeQuadrant = ActiveQuadrant.Q2;
-        }else if(normalizedDeltaVector.x <= 0 && normalizedDeltaVector.y <= 0){
+        }else if(normalizedDeltaVector.x < 0 && normalizedDeltaVector.y < 0){
             activeQuadrant = ActiveQuadrant.Q3;
-        }else if(normalizedDeltaVector.x >= 0 && normalizedDeltaVector.y <= 0){
+        }else if(normalizedDeltaVector.x > 0 && normalizedDeltaVector.y < 0){
             activeQuadrant = ActiveQuadrant.Q4;
+        }else {
+            Debug.LogError("No active quadrant set for delta vector!");
         }
 
         // Iteration
         bool shouldIterate = true; // stop iteration when overlaping last point + radius of that point's brush size. 
         float addedSteps = 0f;
         Vector2 currentPosition = iterationLineStart;
-        Vector2 lastAddedBrushStrokePlusRadius = iterationLineStart; // 
+        Vector2 lastAddedBrushStrokePlusRadiusPosition = iterationLineStart; // 
         float radiusOfCurrentPositionBrushStroke = 0f;
 
         while(shouldIterate){
@@ -491,28 +493,31 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                     // 
                     int currentBrushSize = GetCurrentBrushSize(); // get current brush size by calculation - interpolation
                     float radiusOfCurrentPositionBrushStroke = RadiusOfCurrentPositionBrushStroke(currentPosition);
-                    Vector2 radiusOfCurrentPositionBrushStrokeVector = normalizedDeltaVector * radiusOfCurrentPositionBrushStroke;
+                    Vector2 vectorRadiusOfCurrentPositionBrushStroke = normalizedDeltaVector * radiusOfCurrentPositionBrushStroke;
                     switch(activeQuadrant){
                         case ActiveQuadrant.Q1:
-                            if( (currentPosition - radiusOfCurrentPositionBrushStrokeVector).x > lastAddedBrushStrokePlusRadius.x && 
-                                (currentPosition - radiusOfCurrentPositionBrushStrokeVector).y > lastAddedBrushStrokePlusRadius.y )
+                            if( (currentPosition - vectorRadiusOfCurrentPositionBrushStroke).x > lastAddedBrushStrokePlusRadiusPosition.x && 
+                                (currentPosition - vectorRadiusOfCurrentPositionBrushStroke).y > lastAddedBrushStrokePlusRadiusPosition.y )
                             {
                                 sizeOfBrushPerPoint.Add(currentBrushSize);
+                                lastAddedBrushStrokePlusRadiusPosition = currentPosition + vectorRadiusOfCurrentPositionBrushStroke;
                                 //TODO: add pixel
                             }
                             break;
                         case ActiveQuadrant.Q2:
+                            if( (currentPosition - vectorRadiusOfCurrentPositionBrushStroke).x < lastAddedBrushStrokePlusRadiusPosition.x && 
+                                (currentPosition - vectorRadiusOfCurrentPositionBrushStroke).y > lastAddedBrushStrokePlusRadiusPosition.y )
+                            {
+                                sizeOfBrushPerPoint.Add(currentBrushSize);
+                                lastAddedBrushStrokePlusRadiusPosition = currentPosition + vectorRadiusOfCurrentPositionBrushStroke;
+                                //TODO: add pixel
+                            }
                             break;
                         case ActiveQuadrant.Q3:
                             break;
                         case ActiveQuadrant.Q4:
                             break;
                     }
-                    // added ? : when currentPosition > lastAddedBrushStrokePlusRadius + radiusOfCurrentPositionBrushStroke; 
-
-                    // can measure rotation on component level!!
-                    
-                    // save lastAddedBrushStrokePlusRadius = currentPosition + radiusOfCurrentPositionBrushStroke * normalizedDeltaVector;
                     break;
                 case BiggestBrushSize.ThisFrame:
                     break;
