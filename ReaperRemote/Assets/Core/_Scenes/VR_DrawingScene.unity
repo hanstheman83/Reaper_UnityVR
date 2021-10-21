@@ -2577,6 +2577,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Psyche_Decimated_Lowesst
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 815377344530eb34ab20f58addea9a6c, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 815377344530eb34ab20f58addea9a6c, type: 3}
 --- !u!4 &729807018 stripped
@@ -8488,6 +8492,7 @@ MonoBehaviour:
   nameOfTriggerController: 
   stickRenderer: {fileID: 6409181433423008928}
   DrawingColor: {r: 0, g: 0, b: 0, a: 0}
+  ActiveBrushSize: 0
 --- !u!114 &6409181432592313325
 MonoBehaviour:
   m_ObjectHideFlags: 0

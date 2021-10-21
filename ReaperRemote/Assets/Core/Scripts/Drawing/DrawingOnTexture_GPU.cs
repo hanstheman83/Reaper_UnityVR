@@ -230,7 +230,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                                         m_DrawingStickController.Brush.WidthOfBrushSize[m_LastActiveBrushSize], 
                                         m_DrawingStickController.Brush.WidthOfBrushSize[m_DrawingStickController.ActiveBrushSize]); // if lastStroke = -1 calculate only 1 point
             Pixel[] m_CPU_PointsOnLineBuffer = pointsOnLineTuple.Item1;
-            int[] pointSizes = pointsOnLineTuple.Item2; // TODO: save in buffer!
+            int[] pointsPixelWidth = pointsOnLineTuple.Item2; // TODO: save in buffer!
             
             // TODO: set buffer
             //uint _BrushStrokePointSizesOnLine_BufferLength;
@@ -257,7 +257,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                 int numberOfRuns = 0; // pointSizes - radius of each point
                 for (var i = 0; i < m_CPU_PointsOnLineBuffer.Length; i++)
                 {
-                    numberOfRuns += pointSizes[i] * pointSizes[i];
+                    numberOfRuns += pointsPixelWidth[i] * pointsPixelWidth[i];
                 }
                 // set dummy data all done buffer
                 m_CPU_JobDone_Buffer = new uint[numberOfRuns];
@@ -400,15 +400,16 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
     // TODO: gradient between points, trigger = value, depth = size
     /// <summary>
-    /// brush widths in pixel sizes
+    /// Calculated line can start from either point - dependent on what point (this frame or last) has largest brush size.
     /// </summary>
-    (Pixel[], int[]) CalculatePointsOnLine(Vector2 startPoint, Vector2 endPoint, int lastFrameBrushSize, int thisFrameBrushSize){
+    /// <returns>Pixel Coordinates and brush widths in pixel sizes.</returns>
+    (Pixel[], int[]) CalculatePointsOnLine(Vector2 pointLastFrame, Vector2 pointThisFrame, int lastFrameBrushSize, int thisFrameBrushSize){ 
         BiggestBrushSize biggestBrushSize = default;
         if(lastFrameBrushSize == thisFrameBrushSize) { biggestBrushSize = BiggestBrushSize.Idem; }
         else if(lastFrameBrushSize > thisFrameBrushSize) { biggestBrushSize = BiggestBrushSize.LastFrame; }
         else if(lastFrameBrushSize < thisFrameBrushSize) { biggestBrushSize = BiggestBrushSize.ThisFrame; }
 
-        float distanceBetweenBrushHits = Vector2.Distance(endPoint, startPoint); // magnitude of delta vector
+        float distanceBetweenBrushHits = Vector2.Distance(pointThisFrame, pointLastFrame); // magnitude of delta vector
         List<int> sizeOfBrushPerPoint = new List<int>(); // from biggest brush stroke to smallest
         List<Pixel> pixelCoordinates = new List<Pixel>(); // from biggest brush stroke to smallest
         
@@ -417,7 +418,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         switch(biggestBrushSize){
             case BiggestBrushSize.Idem: // normal, iterate starting from lastFrameStroke to thisFrameStroke
             case BiggestBrushSize.LastFrame:
-                deltaVector = endPoint - startPoint;
+                deltaVector = pointThisFrame - pointLastFrame;
                 sizeOfBrushPerPoint.Add(lastFrameBrushSize);
                 // pixelCoordinates TODO: from canvas to pixel coordinates function - with unscaled y. 
                 // TODO: center the pixel - avoid rounding error. Subtract .5 of pixel width and length for correct position!
@@ -425,7 +426,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                 break;
             case BiggestBrushSize.ThisFrame:
                 sizeOfBrushPerPoint.Add(thisFrameBrushSize);
-                deltaVector = startPoint - endPoint;
+                deltaVector = pointLastFrame - pointThisFrame;
                 break;
         }
         // TODO: edge case, one component has 0 increase!!
@@ -444,16 +445,17 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         // calculate line on which to iterate - 
         Vector2 iterationLineStart = Vector2.zero;
         Vector2 iterationLineEnd = Vector2.zero;  
-        switch(biggestBrushSize){
+        switch(biggestBrushSize){ // Making sure that in both cases the line starts with the biggest brush size!
             case BiggestBrushSize.LastFrame:
             case BiggestBrushSize.Idem:
                 // P0 : start from last frame
-                iterationLineStart = startPoint + (normalizedDeltaVector * radiusLastStroke);
-                iterationLineEnd = (normalizedDeltaVector * radiusThisStroke) - endPoint;
+                iterationLineStart = pointLastFrame + (normalizedDeltaVector * radiusLastStroke);
+                iterationLineEnd = (normalizedDeltaVector * radiusThisStroke) - pointThisFrame;
                 break;
             case BiggestBrushSize.ThisFrame:
-                iterationLineStart = endPoint + (normalizedDeltaVector * radiusThisStroke);
-                iterationLineEnd = (normalizedDeltaVector * radiusLastStroke) - startPoint;
+                // P0 : start from this frame
+                iterationLineStart = pointThisFrame + (normalizedDeltaVector * radiusThisStroke);
+                iterationLineEnd = (normalizedDeltaVector * radiusLastStroke) - pointLastFrame;
                 break;
         }
         float lengthOfIterationLine = Vector2.Distance(iterationLineEnd, iterationLineStart);
@@ -476,7 +478,6 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         float addedSteps = 0f;
         Vector2 currentPosition = iterationLineStart;
         Vector2 lastAddedBrushStrokePlusRadiusPosition = iterationLineStart; // 
-        float radiusOfCurrentPositionBrushStroke = 0f;
 
         while(shouldIterate){
             switch(biggestBrushSize){
@@ -491,31 +492,47 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                         break;
                     }
                     // 
-                    int currentBrushSize = GetCurrentBrushSize(); // get current brush size by calculation - interpolation
-                    float radiusOfCurrentPositionBrushStroke = RadiusOfCurrentPositionBrushStroke(currentPosition);
-                    Vector2 vectorRadiusOfCurrentPositionBrushStroke = normalizedDeltaVector * radiusOfCurrentPositionBrushStroke;
-                    switch(activeQuadrant){
+                    // % of line from start to end
+                    float percentageOfLine = addedSteps/lengthOfIterationLine;
+                    (int, float) brushSizeAndRadius;
+                    brushSizeAndRadius = GetCurrentBrushSizeAndRadius(percentageOfLine, biggestBrushSize, thisFrameBrushSize, lastFrameBrushSize); // get current brush size by calculation - interpolation
+                    Vector2 deltaVectorRadiusOfCurrentPositionBrushStroke = normalizedDeltaVector * brushSizeAndRadius.Item2;
+                    switch(activeQuadrant){ // in what quadrant of cartesion space does the delta vector grow
                         case ActiveQuadrant.Q1:
-                            if( (currentPosition - vectorRadiusOfCurrentPositionBrushStroke).x > lastAddedBrushStrokePlusRadiusPosition.x && 
-                                (currentPosition - vectorRadiusOfCurrentPositionBrushStroke).y > lastAddedBrushStrokePlusRadiusPosition.y )
+                            if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x > lastAddedBrushStrokePlusRadiusPosition.x && 
+                                (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y > lastAddedBrushStrokePlusRadiusPosition.y )
                             {
-                                sizeOfBrushPerPoint.Add(currentBrushSize);
-                                lastAddedBrushStrokePlusRadiusPosition = currentPosition + vectorRadiusOfCurrentPositionBrushStroke;
+                                sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
+                                lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
                                 //TODO: add pixel
                             }
                             break;
                         case ActiveQuadrant.Q2:
-                            if( (currentPosition - vectorRadiusOfCurrentPositionBrushStroke).x < lastAddedBrushStrokePlusRadiusPosition.x && 
-                                (currentPosition - vectorRadiusOfCurrentPositionBrushStroke).y > lastAddedBrushStrokePlusRadiusPosition.y )
+                            if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x < lastAddedBrushStrokePlusRadiusPosition.x && 
+                                (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y > lastAddedBrushStrokePlusRadiusPosition.y )
                             {
-                                sizeOfBrushPerPoint.Add(currentBrushSize);
-                                lastAddedBrushStrokePlusRadiusPosition = currentPosition + vectorRadiusOfCurrentPositionBrushStroke;
+                                sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
+                                lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
                                 //TODO: add pixel
                             }
                             break;
                         case ActiveQuadrant.Q3:
+                            if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x < lastAddedBrushStrokePlusRadiusPosition.x && 
+                                (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y < lastAddedBrushStrokePlusRadiusPosition.y )
+                            {
+                                sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
+                                lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
+                                //TODO: add pixel
+                            }
                             break;
                         case ActiveQuadrant.Q4:
+                            if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x > lastAddedBrushStrokePlusRadiusPosition.x && 
+                                (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y < lastAddedBrushStrokePlusRadiusPosition.y )
+                            {
+                                sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
+                                lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
+                                //TODO: add pixel
+                            }
                             break;
                     }
                     break;
@@ -524,15 +541,46 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             }
         }
 
-        // lookup size function : 
+        // TODO: add the 2 very last entries - end of line 
+
         
         return (new Pixel[2], new int[2]);
     }
 
-    float PixelLengthToFloatLengthConversion(int pixelLength){
-        // remember scale factor - height > width!!
+
+    // / <summary>
+    // / 
+    // / </summary>
+    // / <return></return>
+
+    /// <summary>
+    /// From big brush size to small lerp.
+    /// </summary>
+    /// <returns>Returns current brush size diameter in pixel width (int) 
+    /// and brush size radius in percentage of image width (float) </returns>
+    (int, float) GetCurrentBrushSizeAndRadius(float percentageOfLine, BiggestBrushSize biggestBrushSize, int smallestBrush, int biggestBrush){
+        if(percentageOfLine > 1f || percentageOfLine <0f) { Debug.LogError("percentageOfLine must be between 0 and 1f");}
         
-        return 0f;
+        switch(biggestBrushSize){
+            case BiggestBrushSize.Idem:
+                // return smallestBrush, but they are the same
+                float brushWidth = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingStickController.Brush.WidthOfBrushSize[smallestBrush]);
+                float brushRadius = brushWidth/2f;
+                return (smallestBrush, brushRadius);
+                // calculate its pixel width
+            case BiggestBrushSize.LastFrame: // from big to small
+            
+                break;
+            case BiggestBrushSize.ThisFrame: //
+                // interpolate 
+
+                break;
+        }
+        return (0,0f);
+    }
+
+    float ConvertPixelWidthToPercentageOfImageWidth(int pixelWidth){
+        return (float)pixelWidth/(float)m_ImageWidth;
     }
 
     /// <summary>
