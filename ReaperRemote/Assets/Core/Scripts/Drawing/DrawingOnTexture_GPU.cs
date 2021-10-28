@@ -428,6 +428,9 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                 sizeOfBrushPerPoint.Add(thisFrameBrushSize);
                 deltaVector = pointLastFrame - pointThisFrame;
                 break;
+            default:
+                Debug.LogError("Error - no biggest brush size!!!");
+                break;
         }
         // TODO: edge case, one component has 0 increase!!
         if(deltaVector.x == 0) { deltaVector.x = 0.000001f; }
@@ -457,7 +460,10 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                 iterationLineStart = pointThisFrame + (normalizedDeltaVector * radiusThisStroke);
                 iterationLineEnd = (normalizedDeltaVector * radiusLastStroke) - pointLastFrame;
                 break;
-        }
+            default:
+                Debug.LogError("Error - no biggest brush size!!!");
+                break;
+    }
         float lengthOfIterationLine = Vector2.Distance(iterationLineEnd, iterationLineStart);
 
         // Determine what quadrant the delta vector is moving in 
@@ -480,63 +486,72 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         Vector2 lastAddedBrushStrokePlusRadiusPosition = iterationLineStart; // 
 
         while(shouldIterate){
+            // calculate next step - (start of line is on circumference of first brushstroke)
+            currentPosition += stepSizedDeltaVector;
+            addedSteps += stepSize;
+            // end ? :
+            if(addedSteps >= lengthOfIterationLine){
+                shouldIterate = false;
+                //  TODO: add goto ?
+            }
+            // 
+            // % of line from start to end
+            float percentageOfLine = addedSteps/lengthOfIterationLine;
+            (int, float) brushSizeAndRadius = (-1, -1f);
+
             switch(biggestBrushSize){
                 case BiggestBrushSize.Idem:
                 case BiggestBrushSize.LastFrame:
-                    // calculate next step - (start of line is on circumference of first brushstroke)
-                    currentPosition += stepSizedDeltaVector;
-                    addedSteps += stepSize;
-                    // end ? :
-                    if(addedSteps >= lengthOfIterationLine){
-                        shouldIterate = false;
-                        break;
-                    }
-                    // 
-                    // % of line from start to end
-                    float percentageOfLine = addedSteps/lengthOfIterationLine;
-                    (int, float) brushSizeAndRadius;
                     brushSizeAndRadius = GetCurrentBrushSizeAndRadius(percentageOfLine, biggestBrushSize, thisFrameBrushSize, lastFrameBrushSize); // get current brush size by calculation - interpolation
-                    Vector2 deltaVectorRadiusOfCurrentPositionBrushStroke = normalizedDeltaVector * brushSizeAndRadius.Item2;
-                    switch(activeQuadrant){ // in what quadrant of cartesion space does the delta vector grow
-                        case ActiveQuadrant.Q1:
-                            if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x > lastAddedBrushStrokePlusRadiusPosition.x && 
-                                (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y > lastAddedBrushStrokePlusRadiusPosition.y )
-                            {
-                                sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
-                                lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
-                                //TODO: add pixel
-                            }
-                            break;
-                        case ActiveQuadrant.Q2:
-                            if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x < lastAddedBrushStrokePlusRadiusPosition.x && 
-                                (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y > lastAddedBrushStrokePlusRadiusPosition.y )
-                            {
-                                sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
-                                lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
-                                //TODO: add pixel
-                            }
-                            break;
-                        case ActiveQuadrant.Q3:
-                            if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x < lastAddedBrushStrokePlusRadiusPosition.x && 
-                                (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y < lastAddedBrushStrokePlusRadiusPosition.y )
-                            {
-                                sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
-                                lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
-                                //TODO: add pixel
-                            }
-                            break;
-                        case ActiveQuadrant.Q4:
-                            if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x > lastAddedBrushStrokePlusRadiusPosition.x && 
-                                (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y < lastAddedBrushStrokePlusRadiusPosition.y )
-                            {
-                                sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
-                                lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
-                                //TODO: add pixel
-                            }
-                            break;
-                    }
                     break;
                 case BiggestBrushSize.ThisFrame:
+                    brushSizeAndRadius = GetCurrentBrushSizeAndRadius(percentageOfLine, biggestBrushSize, lastFrameBrushSize, thisFrameBrushSize); // get current brush size by calculation - interpolation
+                    break;
+                default:
+                    Debug.LogError("Error - no biggest brush size!!!");
+                    break;
+            }
+            
+            Vector2 deltaVectorRadiusOfCurrentPositionBrushStroke = normalizedDeltaVector * brushSizeAndRadius.Item2;
+            switch(activeQuadrant){ // in what quadrant of cartesion space does the delta vector grow
+                case ActiveQuadrant.Q1:
+                    if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x > lastAddedBrushStrokePlusRadiusPosition.x && 
+                        (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y > lastAddedBrushStrokePlusRadiusPosition.y )
+                    {
+                        sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
+                        lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
+                        //TODO: add pixel
+                    }
+                    break;
+                case ActiveQuadrant.Q2:
+                    if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x < lastAddedBrushStrokePlusRadiusPosition.x && 
+                        (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y > lastAddedBrushStrokePlusRadiusPosition.y )
+                    {
+                        sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
+                        lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
+                        //TODO: add pixel
+                    }
+                    break;
+                case ActiveQuadrant.Q3:
+                    if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x < lastAddedBrushStrokePlusRadiusPosition.x && 
+                        (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y < lastAddedBrushStrokePlusRadiusPosition.y )
+                    {
+                        sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
+                        lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
+                        //TODO: add pixel
+                    }
+                    break;
+                case ActiveQuadrant.Q4:
+                    if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x > lastAddedBrushStrokePlusRadiusPosition.x && 
+                        (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y < lastAddedBrushStrokePlusRadiusPosition.y )
+                    {
+                        sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
+                        lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
+                        //TODO: add pixel
+                    }
+                    break;
+                default:
+                    Debug.LogError("Error - no active quadrant!!!");
                     break;
             }
         }
@@ -568,13 +583,14 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                 float brushRadius = brushWidth/2f;
                 return (smallestBrush, brushRadius);
                 // calculate its pixel width
-            case BiggestBrushSize.LastFrame: // from big to small
-            
-                break;
+            case BiggestBrushSize.LastFrame: 
             case BiggestBrushSize.ThisFrame: //
-                // interpolate 
-
+                // interpolate - big to small!
+                // add % of difference to small brush - round up
+                
+                
                 break;
+
         }
         return (0,0f);
     }
