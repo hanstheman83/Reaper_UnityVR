@@ -398,7 +398,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     //     return pixelsArray;
     // }
 
-    // TODO: gradient between points, trigger = value, depth = size
+    // TODO: gradient between points
     /// <summary>
     /// Calculated line can start from either point - dependent on what point (this frame or last) has largest brush size.
     /// </summary>
@@ -558,41 +558,32 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
         // TODO: add the 2 very last entries - end of line 
 
-        
-        return (new Pixel[2], new int[2]);
+        return (pixelCoordinates.ToArray(), sizeOfBrushPerPoint.ToArray());
     }
-
-
-    // / <summary>
-    // / 
-    // / </summary>
-    // / <return></return>
 
     /// <summary>
     /// From big brush size to small lerp.
     /// </summary>
-    /// <returns>Returns current brush size diameter in pixel width (int) 
+    /// <returns>Returns current brush size diameter in pixel width (rounded up, int) 
     /// and brush size radius in percentage of image width (float) </returns>
     (int, float) GetCurrentBrushSizeAndRadius(float percentageOfLine, BiggestBrushSize biggestBrushSize, int smallestBrush, int biggestBrush){
         if(percentageOfLine > 1f || percentageOfLine <0f) { Debug.LogError("percentageOfLine must be between 0 and 1f");}
         
-        switch(biggestBrushSize){
-            case BiggestBrushSize.Idem:
-                // return smallestBrush, but they are the same
-                float brushWidth = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingStickController.Brush.WidthOfBrushSize[smallestBrush]);
-                float brushRadius = brushWidth/2f;
-                return (smallestBrush, brushRadius);
-                // calculate its pixel width
-            case BiggestBrushSize.LastFrame: 
-            case BiggestBrushSize.ThisFrame: //
-                // interpolate - big to small!
-                // add % of difference to small brush - round up
-                
-                
-                break;
-
+        if(biggestBrushSize == BiggestBrushSize.Idem){
+            // return smallestBrush, skip lerp.
+            float brushWidth = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingStickController.Brush.WidthOfBrushSize[smallestBrush]);
+            float brushRadius = brushWidth/2f;
+            return (smallestBrush, brushRadius);
+        }else {
+            // interpolate - big to small!
+            // add % of difference to small brush - round to int
+            float difference = biggestBrush - smallestBrush;
+            int brushSizeIndex = smallestBrush + Mathf.RoundToInt(difference * percentageOfLine);
+            int brushSizePixelWidth = m_DrawingStickController.Brush.WidthOfBrushSize[brushSizeIndex];
+            float brushWidth = ConvertPixelWidthToPercentageOfImageWidth(brushSizePixelWidth);
+            float brushRadius = brushWidth/2f;
+            return(brushSizePixelWidth, brushRadius);
         }
-        return (0,0f);
     }
 
     float ConvertPixelWidthToPercentageOfImageWidth(int pixelWidth){
