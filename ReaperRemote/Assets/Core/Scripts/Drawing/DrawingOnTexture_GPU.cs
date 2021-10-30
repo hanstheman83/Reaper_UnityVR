@@ -212,13 +212,13 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             // new function calculate brush strokes on line 
             // save new buffer with brush sizes matching number of strokes
             // 
-#region return break
             if(m_LastStroke.x < 0){ 
                 Debug.Log("Skipping first frame in new brush stroke..."); 
                 m_LastStroke = canvasCoordinates;
+#region return break
                 return;
-            }
 #endregion return break
+            }
 
 
             // Conversion based on RenderTextures , 4x5 - thus scale y dimension from 1 to 1.25, basically unscalling stretch in canvas dimensions. 
@@ -226,6 +226,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             m_LastStroke = new Vector2(m_LastStroke.x, m_LastStroke.y * 1.25f);
 
             (Pixel[], int[]) pointsOnLineTuple; // pixel positions, brush width [in pixels] per point
+            // TODO: what is int[] used for ???
             pointsOnLineTuple = CalculatePointsOnLine(m_LastStroke, canvasCoordinates, // TODO: convert to unscaled coordinates
                                         m_DrawingStickController.Brush.WidthOfBrushSize[m_LastActiveBrushSize], 
                                         m_DrawingStickController.Brush.WidthOfBrushSize[m_DrawingStickController.ActiveBrushSize]); // if lastStroke = -1 calculate only 1 point
@@ -440,7 +441,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         float radiusLastStroke = ( (float)m_DrawingStickController.Brush.WidthOfBrushSize[lastFrameBrushSize] / (float)m_ImageWidth ) /2f;
         float radiusThisStroke = ( (float)m_DrawingStickController.Brush.WidthOfBrushSize[thisFrameBrushSize] / (float)m_ImageWidth ) /2f;
         // Calculate stepSize based on smallest brush size radius
-        float stepSize = ( ((float)m_DrawingStickController.Brush.WidthOfBrushSize[0]) / (float)m_ImageWidth ) /2f;
+        float stepSize = ( ((float)m_DrawingStickController.Brush.WidthOfBrushSize[0]) / (float)m_ImageWidth ) /2f; // stepSize is the radius of the smallest brush
         // scaling normalized deltaVector by stepSize
         Vector2 normalizedDeltaVector = (deltaVector/distanceBetweenBrushHits);
         Vector2 stepSizedDeltaVector =  normalizedDeltaVector * stepSize; 
@@ -519,8 +520,9 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                         (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y > lastAddedBrushStrokePlusRadiusPosition.y )
                     {
                         sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
+                        //TODO: calculate and add pixel
+
                         lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
-                        //TODO: add pixel
                     }
                     break;
                 case ActiveQuadrant.Q2:

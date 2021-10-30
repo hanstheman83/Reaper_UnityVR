@@ -18,21 +18,22 @@ uint _TextureWidth;
 uint _TextureHeight;
 uint _ImageWidth;
 uint _ImageHeight;
-uint _BrushStrokePointSizesOnLine_BufferLength;
+uint _BrushStrokePointSizesOnLineLengthOfBuffer;
 
 //RWStructuredBuffer<float4> _ActiveLayer_Buffer; // 1D of active layer
 StructuredBuffer<_Pixel> _BrushStrokePointsOnLine_Buffer; // array of 2D vectors, positions and color in pixels
-// Contains all brush stroke sizes 
 // list of array lengths - lookup table for brush sizes
 StructuredBuffer<uint> _BrushStrokeSizesArrayLengths_Buffer;
-  
+// Array of points on line - brush sizes [numbers/indices] 
+StructuredBuffer<uint> _BrushStrokePointSizesOnLine_Buffer;
+// Array of brush sizes width from [numbers/indices]
+StructuredBuffer<uint> _BrushStrokeShapesWidths_Buffer;  
+// 
 StructuredBuffer<float> _BrushStrokeShapeSize0_Buffer; 
 StructuredBuffer<float> _BrushStrokeShapeSize1_Buffer; 
 StructuredBuffer<float> _BrushStrokeShapeSize2_Buffer; 
 StructuredBuffer<float> _BrushStrokeShapeSize3_Buffer; 
 StructuredBuffer<float> _BrushStrokeShapeSize4_Buffer; 
-// Array of sizes matching number of points
-StructuredBuffer<uint> _BrushStrokePointSizesOnLine_Buffer;
 
 RWStructuredBuffer<uint> _JobDone_Buffer; // dummy data to check Kernel job done - full when all id.x are called!
 // https://logins.github.io/graphics/2020/10/31/D3D12ComputeShaders.html
@@ -81,31 +82,49 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     uint sumOfAddedBrushStrokes = 0;
     uint indexInBrushStrokesPositionsArray = 0;
     uint indexInBrushStrokeShapeArray = 0;
-    for(uint i; i < _BrushStrokePointSizesOnLine_BufferLength; i++){
-        uint brushSize = _BrushStrokePointSizesOnLine_Buffer[i];
+    
+    for(uint i; i < _BrushStrokePointSizesOnLineLengthOfBuffer; i++){
+        uint brushSize = _BrushStrokePointSizesOnLine_Buffer[i]; // number/index of brushSize
+        indexInBrushStrokeShapeArray = id.x - sumOfAddedBrushStrokes;  
         sumOfAddedBrushStrokes += _BrushStrokeSizesArrayLengths_Buffer[brushSize];
-        if(sumOfAddedBrushStrokes >= id.x){
+        if(sumOfAddedBrushStrokes > id.x){
             // find brush size, find position in brush size shape array
-            indexInBrushStrokesPositionsArray = i;
-
-
-            //TODO: if doesn't work can do without 
+            indexInBrushStrokesPositionsArray = i; // to get the right brush size
+            //TODO: if doesn't work can do without :
             break;
         }
-
-
     }
 
-    // find right brushShape and right pixel position in that shape!
-   
-    float alphaInBrushShape = _BrushStrokeShapeSize0_Buffer[indexInBrushStrokeShapeArray];
+    float alphaInBrushShape;
+    uint brushStrokeWidth;
+    
+    if(_BrushStrokePointSizesOnLine_Buffer[indexInBrushStrokesPositionsArray] == 0){
+        alphaInBrushShape = _BrushStrokeShapeSize0_Buffer[indexInBrushStrokeShapeArray];
+        brushStrokeWidth = _BrushStrokeShapesWidths_Buffer[0];
+    }else if(_BrushStrokePointSizesOnLine_Buffer[indexInBrushStrokesPositionsArray] == 1){
+        alphaInBrushShape = _BrushStrokeShapeSize1_Buffer[indexInBrushStrokeShapeArray];
+        brushStrokeWidth = _BrushStrokeShapesWidths_Buffer[1];
+    }else if(_BrushStrokePointSizesOnLine_Buffer[indexInBrushStrokesPositionsArray] == 2){
+        alphaInBrushShape = _BrushStrokeShapeSize2_Buffer[indexInBrushStrokeShapeArray];
+        brushStrokeWidth = _BrushStrokeShapesWidths_Buffer[2];
+    }else if(_BrushStrokePointSizesOnLine_Buffer[indexInBrushStrokesPositionsArray] == 3){
+        alphaInBrushShape = _BrushStrokeShapeSize3_Buffer[indexInBrushStrokeShapeArray];
+        brushStrokeWidth = _BrushStrokeShapesWidths_Buffer[3];
+    }else if(_BrushStrokePointSizesOnLine_Buffer[indexInBrushStrokesPositionsArray] == 4){
+        alphaInBrushShape = _BrushStrokeShapeSize4_Buffer[indexInBrushStrokeShapeArray];
+        brushStrokeWidth = _BrushStrokeShapesWidths_Buffer[4];
+    }
 
+    // center of brush stroke - calculate offset
     _Pixel brushCenterPosition = _BrushStrokePointsOnLine_Buffer[indexInBrushStrokesPositionsArray];
+
+    uint posX = 0;
+    uint posY = 0;
+
+    // new function : input brushCenterPosition, brushWidth, and position in brushShapeArray
 
     //uint posX = brushCenterPosition.position_x + pixelInBrushShape.position_x;
     //uint posY = brushCenterPosition.position_y + pixelInBrushShape.position_y;
-    uint posX = 0;
-    uint posY = 0;
     
     uint n;
 
