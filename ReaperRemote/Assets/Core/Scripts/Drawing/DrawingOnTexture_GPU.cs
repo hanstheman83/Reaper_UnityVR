@@ -77,11 +77,14 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     ComputeBuffer GPU_JobDone_Buffer; // dummy data - to block update loop waiting for data from compute shader
 
 
-    // CPU buffers : arrays for compute buffers 
+    // ---------------------------------------------
+    // ---- CPU buffers : arrays for compute buffers 
+    // ---------------------------------------------
+
     // Per update call : (could make non global ??)
     uint[] m_CPU_BrushStrokeSizesOnLine_Buffer;
+    private Pixel[] m_CPU_BrushStrokePositionsOnLine_Buffer;
     private uint[] m_CPU_JobDone_Buffer;
-    private Pixel[] m_CPU_PointsOnLine_Buffer;
 
     // Per start stop stroke
     // 1D arrays 0-1f brush alpha, a x a dimension when converted to 2D
@@ -221,6 +224,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         UpdateStrokeAndTargetAndDepth();
         UpdateResistance();
         Vector2 canvasCoordinates = CalculateCanvasCoordinatesRaw(); // scaled/stretched in y dimension
+        // Conversion based on RenderTextures , 4x5 - thus scale y dimension from 1 to 1.25, basically unscalling stretch in canvas dimensions. 
+        canvasCoordinates = new Vector2(canvasCoordinates.x, canvasCoordinates.y * 1.25f );
 
     #region return break -- first frame, can't calculate line
         if(m_LastStroke.x < 0){ 
@@ -231,20 +236,19 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         }
     #endregion return break
 
-        // Conversion based on RenderTextures , 4x5 - thus scale y dimension from 1 to 1.25, basically unscalling stretch in canvas dimensions. 
-        canvasCoordinates = new Vector2(canvasCoordinates.x, canvasCoordinates.y * 1.25f );
-        m_LastStroke = new Vector2(m_LastStroke.x, m_LastStroke.y * 1.25f);
-
-        (Pixel[], int[]) pointsOnLineTuple; // pixel positions, brush width [in pixels] per point
+        // iterating and lerping the line between the known (captured) brush strokes. 
+        (Pixel[], uint[]) pointsOnLineTuple; // pixel positions, brush width [in pixels] per point
         pointsOnLineTuple = CalculatePointsOnLine(m_LastStroke, canvasCoordinates,
                                     m_DrawingStickController.Brush.WidthOfBrushSize[m_LastActiveBrushSize], 
                                     m_DrawingStickController.Brush.WidthOfBrushSize[m_DrawingStickController.ActiveBrushSize]); // if lastStroke = -1 calculate only 1 point
-        Pixel[] m_CPU_BrushStrokePositionsOnLineBuffer = pointsOnLineTuple.Item1;
-        int[] pointsPixelWidth = pointsOnLineTuple.Item2; // TODO: save in buffer!
+        m_CPU_BrushStrokePositionsOnLine_Buffer = pointsOnLineTuple.Item1;
+        m_CPU_BrushStrokeSizesOnLine_Buffer = pointsOnLineTuple.Item2; // TODO: save in buffer!
+        if(m_CPU_BrushStrokePositionsOnLine_Buffer.Length != m_CPU_BrushStrokeSizesOnLine_Buffer.Length){
+            Debug.LogError("The two arrays have uneven lengths?!");
+        }
         
-
     #region return break -- no calculated strokes, nothing to draw!
-        if(m_CPU_PointsOnLine_Buffer.Length <= 0){ // should never happen!
+        if(m_CPU_BrushStrokePositionsOnLine_Buffer.Length <= 0){ // should never happen!
             m_LastStroke = canvasCoordinates;
             return;
         }
@@ -252,27 +256,28 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
         // -----------------
         // For compute shader 
-        Debug.Log($"Points on line {m_CPU_BrushStrokePositionsOnLineBuffer.Length}:".Colorize(Color.magenta));
+        Debug.Log($"Points on line {m_CPU_BrushStrokePositionsOnLine_Buffer.Length}:".Colorize(Color.magenta));
         int kernel = drawOnTexture_Compute.FindKernel("CSMain");
         // SET VARIABLES
-        drawOnTexture_Compute.SetInt("_NumberOfBrushStrokesOnLine", m_CPU_BrushStrokePositionsOnLineBuffer.Length);
+        drawOnTexture_Compute.SetInt("_NumberOfBrushStrokesOnLine", m_CPU_BrushStrokePositionsOnLine_Buffer.Length);
         // Stride
         var structSize = sizeof(float)*4 + sizeof(uint)*2; // for all _Pixel 
         // SET BUFFERS
         // set pixel points on line
-        GPU_BrushStrokePositionsOnLine_Buffer = new ComputeBuffer(m_CPU_BrushStrokePositionsOnLineBuffer.Length, structSize);
-        GPU_BrushStrokePositionsOnLine_Buffer.SetData(m_CPU_BrushStrokePositionsOnLineBuffer);
+        GPU_BrushStrokePositionsOnLine_Buffer = new ComputeBuffer(m_CPU_BrushStrokePositionsOnLine_Buffer.Length, structSize);
+        GPU_BrushStrokePositionsOnLine_Buffer.SetData(m_CPU_BrushStrokePositionsOnLine_Buffer);
         drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokePositionsOnLine_Buffer", GPU_BrushStrokePositionsOnLine_Buffer);
         // set sizes of points on line
-        //GPU
-        
+        GPU_BrushStrokeSizesOnLine_Buffer = new ComputeBuffer(m_CPU_BrushStrokeSizesOnLine_Buffer.Length, sizeof(uint));
+        GPU_BrushStrokeSizesOnLine_Buffer.SetData(m_CPU_BrushStrokeSizesOnLine_Buffer);
+        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeSizesOnLine_Buffer", GPU_BrushStrokeSizesOnLine_Buffer);
 
         // Calculate number of kernel runs 
-        // 
         int numberOfRuns = 0; // pointSizes - radius of each point
-        for (var i = 0; i < m_CPU_BrushStrokePositionsOnLineBuffer.Length; i++)
+        for (var i = 0; i < m_CPU_BrushStrokePositionsOnLine_Buffer.Length; i++)
         {
-            numberOfRuns += pointsPixelWidth[i] * pointsPixelWidth[i]; // TODO: look up array lengths instead
+            numberOfRuns += (   m_DrawingStickController.Brush.WidthOfBrushSize[(int)m_CPU_BrushStrokeSizesOnLine_Buffer[i]] * 
+                                m_DrawingStickController.Brush.WidthOfBrushSize[(int)m_CPU_BrushStrokeSizesOnLine_Buffer[i]] ); // TODO: look up array lengths instead
         }
 
         // set dummy data all done buffer
@@ -291,6 +296,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         GPU_JobDone_Buffer.GetData(m_CPU_JobDone_Buffer);
         GPU_JobDone_Buffer.Release();
         GPU_BrushStrokePositionsOnLine_Buffer.Release();
+        GPU_BrushStrokeSizesOnLine_Buffer.Release();
+
         // TODO: release stroke sizes on line buffer
         m_LastStroke = canvasCoordinates;
         m_LastActiveBrushSize = m_DrawingStickController.ActiveBrushSize;
@@ -329,7 +336,6 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         m_CPU_BrushStrokeShapeSize3_Buffer = m_DrawingStickController.Brush.BrushSizes[3];
         m_CPU_BrushStrokeShapeSize4_Buffer = m_DrawingStickController.Brush.BrushSizes[4];
 
-
         // TODO: set and dispose
         m_CPU_BrushStrokeShapesWidths_Buffer = new uint[m_DrawingStickController.Brush.NumberOfSizes];
         m_CPU_BrushStrokeShapesOffset_Buffer = new int[m_DrawingStickController.Brush.NumberOfSizes];
@@ -358,6 +364,9 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
         GPU_BrushStrokeSizesArrayLengths_Buffer = new ComputeBuffer(m_CPU_BrushStrokeSizesArrayLengths_Buffer.Length, sizeof(uint));
         
+        GPU_BrushStrokeShapesWidths_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapesWidths_Buffer.Length, sizeof(uint));
+        GPU_BrushStrokeShapesOffset_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapesOffset_Buffer.Length, sizeof(int));
+
         GPU_BrushStrokeShapeSize0_Buffer.SetData(m_CPU_BrushStrokeShapeSize0_Buffer);
         GPU_BrushStrokeShapeSize1_Buffer.SetData(m_CPU_BrushStrokeShapeSize1_Buffer);
         GPU_BrushStrokeShapeSize2_Buffer.SetData(m_CPU_BrushStrokeShapeSize2_Buffer);
@@ -365,6 +374,9 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         GPU_BrushStrokeShapeSize4_Buffer.SetData(m_CPU_BrushStrokeShapeSize4_Buffer);
 
         GPU_BrushStrokeSizesArrayLengths_Buffer.SetData(m_CPU_BrushStrokeSizesArrayLengths_Buffer);
+
+        GPU_BrushStrokeShapesWidths_Buffer.SetData(m_CPU_BrushStrokeShapesWidths_Buffer);
+        GPU_BrushStrokeShapesOffset_Buffer.SetData(m_CPU_BrushStrokeShapesOffset_Buffer);
         
         drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize0_Buffer", GPU_BrushStrokeShapeSize0_Buffer);
         drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize1_Buffer", GPU_BrushStrokeShapeSize1_Buffer);
@@ -373,6 +385,9 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize4_Buffer", GPU_BrushStrokeShapeSize4_Buffer);
 
         drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeSizesArrayLengths_Buffer", GPU_BrushStrokeSizesArrayLengths_Buffer);
+
+        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesWidths_Buffer", GPU_BrushStrokeShapesWidths_Buffer);
+        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesOffset_Buffer", GPU_BrushStrokeShapesOffset_Buffer);
 
         // TODO: research native array!
     }
@@ -392,6 +407,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         GPU_BrushStrokeShapeSize4_Buffer.Release();
 
         GPU_BrushStrokeSizesArrayLengths_Buffer.Release();
+
 
         // GPU_ActiveLayerBuffer.GetData(m_CPU_ActiveLayerBuffer);
         // m_CPU_ActiveLayerBuffer.CopyTo(layerManager.ActiveLayer.Pixels, 0);
@@ -427,14 +443,14 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     /// Calculated line can start from either point - dependent on what point (this frame or last) has largest brush size.
     /// </summary>
     /// <returns>Pixel Coordinates and brush widths in pixel sizes.</returns>
-    (Pixel[], int[]) CalculatePointsOnLine(Vector2 pointLastFrame, Vector2 pointThisFrame, int lastFrameBrushSize, int thisFrameBrushSize){ 
+    (Pixel[], uint[]) CalculatePointsOnLine(Vector2 pointLastFrame, Vector2 pointThisFrame, int lastFrameBrushSize, int thisFrameBrushSize){ 
         BiggestBrushSize biggestBrushSize = default;
         if(lastFrameBrushSize == thisFrameBrushSize) { biggestBrushSize = BiggestBrushSize.Idem; }
         else if(lastFrameBrushSize > thisFrameBrushSize) { biggestBrushSize = BiggestBrushSize.LastFrame; }
         else if(lastFrameBrushSize < thisFrameBrushSize) { biggestBrushSize = BiggestBrushSize.ThisFrame; }
 
         float distanceBetweenBrushHits = Vector2.Distance(pointThisFrame, pointLastFrame); // magnitude of delta vector
-        List<int> sizeOfBrushPerPoint = new List<int>(); // from biggest brush stroke to smallest
+        List<uint> sizeOfBrushPerPoint = new List<uint>(); // from biggest brush stroke to smallest
         List<Pixel> pixelCoordinates = new List<Pixel>(); // from biggest brush stroke to smallest
         
         // Adding first points to list, before starting the iteration
@@ -450,14 +466,14 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                 firstPixelPosition = CalculatePixelCoordinates(pointLastFrame);
                 firstNewPixel = new Pixel(firstPixelPosition, m_DrawingStickController.DrawingColor);
                 pixelCoordinates.Add(firstNewPixel);
-                sizeOfBrushPerPoint.Add(lastFrameBrushSize);
+                sizeOfBrushPerPoint.Add((uint)lastFrameBrushSize);
                 break;
             case BiggestBrushSize.ThisFrame:
                 deltaVector = pointLastFrame - pointThisFrame;
                 firstPixelPosition = CalculatePixelCoordinates(pointThisFrame);
                 firstNewPixel = new Pixel(firstPixelPosition, m_DrawingStickController.DrawingColor);
                 pixelCoordinates.Add(firstNewPixel);
-                sizeOfBrushPerPoint.Add(thisFrameBrushSize);
+                sizeOfBrushPerPoint.Add((uint)thisFrameBrushSize);
                 break;
             default:
                 Debug.LogError("Error - no biggest brush size!!!");
@@ -548,7 +564,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                     if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x > lastAddedBrushStrokePlusRadiusPosition.x && 
                         (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y > lastAddedBrushStrokePlusRadiusPosition.y )
                     {
-                        sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
+                        sizeOfBrushPerPoint.Add((uint)brushSizeAndRadius.Item1);
                         Vector2Int pixelPosition = CalculatePixelCoordinates(currentPosition);
                         Pixel newPixel = new Pixel(pixelPosition, m_DrawingStickController.DrawingColor);
                         pixelCoordinates.Add(newPixel);
@@ -559,7 +575,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                     if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x < lastAddedBrushStrokePlusRadiusPosition.x && 
                         (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y > lastAddedBrushStrokePlusRadiusPosition.y )
                     {
-                        sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
+                        sizeOfBrushPerPoint.Add((uint)brushSizeAndRadius.Item1);
                         Vector2Int pixelPosition = CalculatePixelCoordinates(currentPosition);
                         Pixel newPixel = new Pixel(pixelPosition, m_DrawingStickController.DrawingColor);
                         pixelCoordinates.Add(newPixel);
@@ -570,7 +586,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                     if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x < lastAddedBrushStrokePlusRadiusPosition.x && 
                         (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y < lastAddedBrushStrokePlusRadiusPosition.y )
                     {
-                        sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
+                        sizeOfBrushPerPoint.Add((uint)brushSizeAndRadius.Item1);
                         Vector2Int pixelPosition = CalculatePixelCoordinates(currentPosition);
                         Pixel newPixel = new Pixel(pixelPosition, m_DrawingStickController.DrawingColor);
                         pixelCoordinates.Add(newPixel);
@@ -581,7 +597,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                     if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x > lastAddedBrushStrokePlusRadiusPosition.x && 
                         (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y < lastAddedBrushStrokePlusRadiusPosition.y )
                     {
-                        sizeOfBrushPerPoint.Add(brushSizeAndRadius.Item1);
+                        sizeOfBrushPerPoint.Add((uint)brushSizeAndRadius.Item1);
                         Vector2Int pixelPosition = CalculatePixelCoordinates(currentPosition);
                         Pixel newPixel = new Pixel(pixelPosition, m_DrawingStickController.DrawingColor);
                         pixelCoordinates.Add(newPixel);
@@ -602,14 +618,14 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                 lastPixelPosition = CalculatePixelCoordinates(pointLastFrame);
                 lastNewPixel = new Pixel(lastPixelPosition, m_DrawingStickController.DrawingColor);
                 pixelCoordinates.Add(lastNewPixel);
-                sizeOfBrushPerPoint.Add(lastFrameBrushSize);
+                sizeOfBrushPerPoint.Add((uint)lastFrameBrushSize);
                 break;
             case BiggestBrushSize.Idem:
             case BiggestBrushSize.LastFrame:
                 lastPixelPosition = CalculatePixelCoordinates(pointThisFrame);
                 lastNewPixel = new Pixel(lastPixelPosition, m_DrawingStickController.DrawingColor);
                 pixelCoordinates.Add(lastNewPixel);
-                sizeOfBrushPerPoint.Add(thisFrameBrushSize);
+                sizeOfBrushPerPoint.Add((uint)thisFrameBrushSize);
                 break;
         }
 
