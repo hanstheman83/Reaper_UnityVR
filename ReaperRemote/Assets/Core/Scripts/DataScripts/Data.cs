@@ -7,6 +7,9 @@ namespace Core{
 
     #region Colors etc...
     
+    /// <summary>
+    /// Constructor : (Vector2Int position, Color color).
+    /// </summary>
     public struct Pixel{
         public uint position_x, position_y;
         public float color_r, color_g, color_b, color_a;
