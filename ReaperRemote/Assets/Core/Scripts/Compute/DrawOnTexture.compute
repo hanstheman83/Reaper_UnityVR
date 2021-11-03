@@ -17,31 +17,26 @@ struct _Pixel {
 // TODO: convert uint to ushort where possible
 
 // per start of scene
-uint _TextureWidth;
-uint _TextureHeight;
-uint _ImageWidth;
-uint _ImageHeight;
+int _TextureWidth;
+int _TextureHeight;
+int _ImageWidth;
+int _ImageHeight;
 
-// TODO: check all buffers are init and disposed
 // per update call
 uint _NumberOfBrushStrokesOnLine; // length of _BrushStrokeSizesOnLine_Buffer
 RWStructuredBuffer<uint> _JobDone_Buffer; // dummy data to check Kernel job done - full when all id.x are called!
 // array of 2D vectors, positions and color in pixels
 StructuredBuffer<_Pixel> _BrushStrokePositionsOnLine_Buffer; 
 // Array of points on line - brush sizes [numbers/indices] 
-// TODO: set and dispose
 StructuredBuffer<uint> _BrushStrokeSizesOnLine_Buffer;
-// TODO: set and dispose
 StructuredBuffer<uint> _BrushStrokeShapesWidths_Buffer;
 // Since 1D arrays start at 0, we need to know the offset. Offset = -x from midpoint, eg, a 3x3 array would run -1, 0 1 etc
-// TODO: set and dispose
 StructuredBuffer<int> _BrushStrokeShapesOffset_Buffer;
 
 // Set per start/stop stroke
 // list of array lengths - lookup table for brush sizes
-// TODO: dispose
 StructuredBuffer<uint> _BrushStrokeSizesArrayLengths_Buffer;
-// Array of brush sizes width from [numbers/indices]
+// Arrays of brush sizes alphas
 StructuredBuffer<float> _BrushStrokeShapeSize0_Buffer; 
 StructuredBuffer<float> _BrushStrokeShapeSize1_Buffer; 
 StructuredBuffer<float> _BrushStrokeShapeSize2_Buffer; 
@@ -81,27 +76,29 @@ RWTexture2D<float4> _RenderTexture19; // The Output render texture
 
 // Graphics.CopyTexture(). This lets you copy data from any kind of texture to another* (depending the platform). If you copy the contents of a RenderTexture into a Texture2D using CopyTexture() it'll show up changed on the GPU, 
 
-uint TransferXYtoN(uint x, uint y){
-    uint n = x + (_ImageWidth * y);
+int TransferXYtoN(int x, int y){
+    int n = x + (_ImageWidth * y);
     if(n >= _ImageWidth * _ImageHeight) return -1; 
     return n;
 }
 
-uint2 CalculatePixelPosition(_Pixel brushCenterPosition, uint brushWidth, uint indexInBrushShapeArray, uint brushSize){
+int2 CalculatePixelPosition(_Pixel brushCenterPosition, uint brushWidth, uint indexInBrushShapeArray, uint brushSize){
     // calculate offset
     // y offset from center, x offset from center
     uint sum = 0;
     int offset = _BrushStrokeShapesOffset_Buffer[brushSize];
-    uint2 pos;
-    // 
+    int2 pos;
+
     for(uint i = 0; i < brushWidth; i++){
         if(sum >= indexInBrushShapeArray){
-            pos.y = brushCenterPosition.position_y + (i - offset);
-            pos.x = brushCenterPosition.position_x + (indexInBrushShapeArray - sum + brushWidth); 
+            pos.y = brushCenterPosition.position_y + (i + offset); // offsets are negative ?!
+            // TODO: check logic : 
+            pos.x = brushCenterPosition.position_x + (indexInBrushShapeArray - sum + brushWidth + offset); 
             break;
         }
         sum += brushWidth;
     }
+
     return pos;
 }
 
@@ -149,9 +146,11 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     // center of brush stroke - calculate offset
     _Pixel brushCenterPosition = _BrushStrokePositionsOnLine_Buffer[indexInBrushStrokesPositionsArray];
-    uint2 pixelPosition = CalculatePixelPosition(brushCenterPosition, brushStrokeWidth, indexInBrushStrokeShapeArray, brushSize);
+    int2 pixelPosition = CalculatePixelPosition(brushCenterPosition, brushStrokeWidth, indexInBrushStrokeShapeArray, brushSize);
+    
     uint n; // TODO: check max uint value
 
+    // check out of bounds
     if( pixelPosition.x < 0 || pixelPosition.x >= _ImageWidth || pixelPosition.y < 0 || pixelPosition.y >= _ImageHeight )
     {
         // do nothing, pixel out of bounds

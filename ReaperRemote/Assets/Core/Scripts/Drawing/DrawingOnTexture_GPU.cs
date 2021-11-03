@@ -408,11 +408,12 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
         GPU_BrushStrokeSizesArrayLengths_Buffer.Release();
 
+        GPU_BrushStrokeShapesWidths_Buffer.Release();
+        GPU_BrushStrokeShapesOffset_Buffer.Release();
 
         // GPU_ActiveLayerBuffer.GetData(m_CPU_ActiveLayerBuffer);
         // m_CPU_ActiveLayerBuffer.CopyTo(layerManager.ActiveLayer.Pixels, 0);
         // GPU_ActiveLayerBuffer.Release();
-
 
         // TODO: update active layer and final update of render texture
     }
