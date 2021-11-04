@@ -94,8 +94,11 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
 
     public void ProcessTriggerInput(float val) // called from inputActionController
     {
-        ActiveBrushSize = Mathf.Clamp( Mathf.RoundToInt( val * (Brush.NumberOfSizes - 1) ), 0, (Brush.NumberOfSizes - 1) );
-        Debug.Log("new brush size : " + ActiveBrushSize);
+        ActiveBrushSize = Mathf.Clamp( 
+                                (Mathf.RoundToInt( val * (Brush.NumberOfSizes - 1) )), 0, 
+                                (Brush.NumberOfSizes - 1)
+                                );
+        //Debug.Log("new brush size : " + ActiveBrushSize);
     }
 
     /// <summary>
