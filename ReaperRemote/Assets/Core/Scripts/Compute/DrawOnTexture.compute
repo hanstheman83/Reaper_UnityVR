@@ -24,7 +24,7 @@ int _ImageHeight;
 
 // per update call
 uint _NumberOfBrushStrokesOnLine; // length of _BrushStrokeSizesOnLine_Buffer
-RWStructuredBuffer<uint> _JobDone_Buffer; // dummy data to check Kernel job done - full when all id.x are called!
+RWStructuredBuffer<int> _JobDone_Buffer; // dummy data to check Kernel job done - full when all id.x are called!
 // array of 2D vectors, positions and color in pixels
 StructuredBuffer<_Pixel> _BrushStrokePositionsOnLine_Buffer; 
 // Array of points on line - brush sizes [numbers/indices] 

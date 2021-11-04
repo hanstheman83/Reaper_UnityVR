@@ -84,7 +84,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     // Per update call : (could make non global ??)
     uint[] m_CPU_BrushStrokeSizesOnLine_Buffer;
     private Pixel[] m_CPU_BrushStrokePositionsOnLine_Buffer;
-    private uint[] m_CPU_JobDone_Buffer;
+    private int[] m_CPU_JobDone_Buffer;
 
     // Per start stop stroke
     // 1D arrays 0-1f brush alpha, a x a dimension when converted to 2D
@@ -122,7 +122,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 #endif
     
 
-    private enum BiggestBrushSize {ThisFrame, LastFrame, Idem}
+    private enum BiggestBrushSize {ThisFrame, PreviousFrame, Idem}
     private enum ActiveQuadrant {Q1, Q2, Q3, Q4}
     ActiveQuadrant activeQuadrant = default;
 
@@ -281,9 +281,9 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         }
 
         // set dummy data all done buffer
-        m_CPU_JobDone_Buffer = new uint[numberOfRuns];
-        GPU_JobDone_Buffer = new ComputeBuffer(m_CPU_JobDone_Buffer.Length, sizeof(uint));
-        drawOnTexture_Compute.SetBuffer(kernel, "_JobDoneBuffer", GPU_JobDone_Buffer);
+        m_CPU_JobDone_Buffer = new int[numberOfRuns];
+        GPU_JobDone_Buffer = new ComputeBuffer(m_CPU_JobDone_Buffer.Length, sizeof(int));
+        drawOnTexture_Compute.SetBuffer(kernel, "_JobDone_Buffer", GPU_JobDone_Buffer);
 
         // --------
         // DISPATCH!
@@ -444,37 +444,45 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     /// Calculated line can start from either point - dependent on what point (this frame or last) has largest brush size.
     /// </summary>
     /// <returns>Pixel Coordinates and brush widths in pixel sizes.</returns>
-    (Pixel[], uint[]) CalculatePointsOnLine(Vector2 pointLastFrame, Vector2 pointThisFrame, int lastFrameBrushSize, int thisFrameBrushSize){ 
+    (Pixel[], uint[]) CalculatePointsOnLine(Vector2 pointPreviousFrame, Vector2 pointThisFrame, int previousFrameBrushSize, int thisFrameBrushSize){ 
+        Debug.Log("Point prev frame : " + pointPreviousFrame);
+        Debug.Log("Point this frame : " + pointThisFrame);
+        
         BiggestBrushSize biggestBrushSize = default;
-        if(lastFrameBrushSize == thisFrameBrushSize) { biggestBrushSize = BiggestBrushSize.Idem; }
-        else if(lastFrameBrushSize > thisFrameBrushSize) { biggestBrushSize = BiggestBrushSize.LastFrame; }
-        else if(lastFrameBrushSize < thisFrameBrushSize) { biggestBrushSize = BiggestBrushSize.ThisFrame; }
+        if(previousFrameBrushSize == thisFrameBrushSize) { biggestBrushSize = BiggestBrushSize.Idem; }
+        else if(previousFrameBrushSize > thisFrameBrushSize) { biggestBrushSize = BiggestBrushSize.PreviousFrame; }
+        else if(previousFrameBrushSize < thisFrameBrushSize) { biggestBrushSize = BiggestBrushSize.ThisFrame; }
 
-        float distanceBetweenBrushHits = Vector2.Distance(pointThisFrame, pointLastFrame); // magnitude of delta vector
+        float distanceBetweenBrushHits = Vector2.Distance(pointThisFrame, pointPreviousFrame); // magnitude of delta vector
+        Debug.Log($"Distance between hits : {distanceBetweenBrushHits}");
         List<uint> sizeOfBrushPerPoint = new List<uint>(); // from biggest brush stroke to smallest
         List<Pixel> pixelCoordinates = new List<Pixel>(); // from biggest brush stroke to smallest
-        
-        // Adding first points to list, before starting the iteration
+
+        // Adding first points to list, before starting the iteration. Calculate deltavector
         // flip vector direction if brush size is reversed! Iteration will also be reversed, iterate from big to small brush size
-                // TODO: center the pixel - avoid rounding error. Subtract .5 of pixel width and length for correct position!
+        // TODO: center the pixel - avoid rounding error. Subtract .5 of pixel width and length for correct position!
         Vector2 deltaVector = Vector2.zero;
         Vector2Int firstPixelPosition;
         Pixel firstNewPixel;
+        Debug.Log("Brush size previous frame : " + previousFrameBrushSize);
+        Debug.Log("Brush size this frame : " + thisFrameBrushSize);
         switch(biggestBrushSize){
             case BiggestBrushSize.Idem: // normal, iterate starting from lastFrameStroke to thisFrameStroke
-            case BiggestBrushSize.LastFrame:
-                deltaVector = pointThisFrame - pointLastFrame;
-                firstPixelPosition = CalculatePixelCoordinates(pointLastFrame);
+            case BiggestBrushSize.PreviousFrame:
+                deltaVector = pointThisFrame - pointPreviousFrame;
+                firstPixelPosition = CalculatePixelCoordinates(pointPreviousFrame);
                 firstNewPixel = new Pixel(firstPixelPosition, m_DrawingStickController.DrawingColor);
                 pixelCoordinates.Add(firstNewPixel);
-                sizeOfBrushPerPoint.Add((uint)lastFrameBrushSize);
+                sizeOfBrushPerPoint.Add((uint)previousFrameBrushSize);
+                Debug.Log($"Biggest brush size previous frame or idem \n First pixel in array : {firstPixelPosition} \n Added coords to list..");
                 break;
             case BiggestBrushSize.ThisFrame:
-                deltaVector = pointLastFrame - pointThisFrame;
+                deltaVector = pointPreviousFrame - pointThisFrame;
                 firstPixelPosition = CalculatePixelCoordinates(pointThisFrame);
                 firstNewPixel = new Pixel(firstPixelPosition, m_DrawingStickController.DrawingColor);
                 pixelCoordinates.Add(firstNewPixel);
                 sizeOfBrushPerPoint.Add((uint)thisFrameBrushSize);
+                Debug.Log($"Biggest brush size this frame \n First pixel in array : {firstPixelPosition} Added coords to list..");
                 break;
             default:
                 Debug.LogError("Error - no biggest brush size!!!");
@@ -483,160 +491,137 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         if(deltaVector.x == 0) { deltaVector.x = 0.000001f; }
         if(deltaVector.y == 0) { deltaVector.y = 0.000001f; }
 
+        // -- Preparing Iteration
         // Calculate radiuses. Brush size is in pixel width (diameter)
-        float radiusLastStroke = ( (float)m_DrawingStickController.Brush.WidthOfBrushSize[lastFrameBrushSize] / (float)m_ImageWidth ) /2f;
-        float radiusThisStroke = ( (float)m_DrawingStickController.Brush.WidthOfBrushSize[thisFrameBrushSize] / (float)m_ImageWidth ) /2f;
+        float radiusPreviousStroke = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingStickController.Brush.WidthOfBrushSize[previousFrameBrushSize]) /2f;
+        Debug.Log("radiusLastStroke : " + radiusPreviousStroke);
+        float radiusThisStroke = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingStickController.Brush.WidthOfBrushSize[thisFrameBrushSize]) /2f;
+        Debug.Log("RadiusThisStroke : " + radiusThisStroke);
         // Calculate stepSize based on smallest brush size radius
-        float stepSize = ( ((float)m_DrawingStickController.Brush.WidthOfBrushSize[0]) / (float)m_ImageWidth ) /2f; // stepSize is the radius of the smallest brush
+        float stepSize = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingStickController.Brush.WidthOfBrushSize[0]) /2f; // stepSize is the radius of the smallest brush
+        Debug.Log("stepsize : " + stepSize);
         // scaling normalized deltaVector by stepSize
         Vector2 normalizedDeltaVector = (deltaVector/distanceBetweenBrushHits);
-        Vector2 stepSizedDeltaVector =  normalizedDeltaVector * stepSize; 
-        
+        Debug.Log("normalized delta vector : " + normalizedDeltaVector.ToString("F6"));
+        Vector2 stepSizedDeltaVector =  normalizedDeltaVector * stepSize;
+        Debug.Log("stepsized deltavector : " + stepSizedDeltaVector.ToString("F6")); 
         // calculate line on which to iterate - 
-        Vector2 iterationLineStart = Vector2.zero;
+        Vector2 iterationLineStart = Vector2.zero; // delta vector added to this
         Vector2 iterationLineEnd = Vector2.zero;  
         switch(biggestBrushSize){ // Making sure that in both cases the line starts with the biggest brush size!
-            case BiggestBrushSize.LastFrame:
-            case BiggestBrushSize.Idem:
-                // P0 : start from last frame
-                iterationLineStart = pointLastFrame + (normalizedDeltaVector * radiusLastStroke);
-                iterationLineEnd = (normalizedDeltaVector * radiusThisStroke) - pointThisFrame;
+            case BiggestBrushSize.PreviousFrame:
+            case BiggestBrushSize.Idem: //TODO: fix
+                // P0 : start from last frame -- direction of deltavector in direction from previous stroke point to this frame stroke point
+                iterationLineStart = pointPreviousFrame + (normalizedDeltaVector * radiusPreviousStroke);
+                iterationLineEnd = pointThisFrame - (normalizedDeltaVector * radiusThisStroke);
                 break;
             case BiggestBrushSize.ThisFrame:
                 // P0 : start from this frame
                 iterationLineStart = pointThisFrame + (normalizedDeltaVector * radiusThisStroke);
-                iterationLineEnd = (normalizedDeltaVector * radiusLastStroke) - pointLastFrame;
+                iterationLineEnd = pointPreviousFrame - (normalizedDeltaVector * radiusPreviousStroke);
                 break;
             default:
                 Debug.LogError("Error - no biggest brush size!!!");
                 break;
-    }
-        float lengthOfIterationLine = Vector2.Distance(iterationLineEnd, iterationLineStart);
-
-        // Determine what quadrant the delta vector is moving in 
-        if(normalizedDeltaVector.x > 0 && normalizedDeltaVector.y > 0){
-            activeQuadrant = ActiveQuadrant.Q1;
-        }else if(normalizedDeltaVector.x < 0 && normalizedDeltaVector.y > 0){
-            activeQuadrant = ActiveQuadrant.Q2;
-        }else if(normalizedDeltaVector.x < 0 && normalizedDeltaVector.y < 0){
-            activeQuadrant = ActiveQuadrant.Q3;
-        }else if(normalizedDeltaVector.x > 0 && normalizedDeltaVector.y < 0){
-            activeQuadrant = ActiveQuadrant.Q4;
-        }else {
-            Debug.LogError("No active quadrant set for delta vector!");
         }
+        Debug.Log("Iteration line start : " + iterationLineStart);
+        Debug.Log("Iteration line end : " + iterationLineEnd);
+        float lengthOfIterationLine = Vector2.Distance(iterationLineEnd, iterationLineStart);
+        Debug.Log("length of iteration line " + lengthOfIterationLine);
+
+        bool shouldIterate = true; // stop iteration when overlaping last point + radius of that point's brush size. 
+        float currentPos1D = 0f;
+        Vector2 currentPos = iterationLineStart;
+        Vector2 lastAddedBrushStrokePlusRadiusPos = iterationLineStart; // 
+        float lastAddedBrushStrokePlusRadiusPos1D = 0; // add brush radius and see if will fit! 
 
         // Iteration
-        bool shouldIterate = true; // stop iteration when overlaping last point + radius of that point's brush size. 
-        float addedSteps = 0f;
-        Vector2 currentPosition = iterationLineStart;
-        Vector2 lastAddedBrushStrokePlusRadiusPosition = iterationLineStart; // 
-
         while(shouldIterate){
             // calculate next step - (start of line is on circumference of first brushstroke)
-            currentPosition += stepSizedDeltaVector;
-            addedSteps += stepSize;
+            currentPos += stepSizedDeltaVector;
+            currentPos1D += stepSize;
             // end ? :
-            if(addedSteps >= lengthOfIterationLine){
+            if(currentPos1D >= lengthOfIterationLine){
+                Debug.Log("added steps : " + currentPos1D);
+                Debug.Log("current position " + currentPos);
                 shouldIterate = false;
                 break;
             }
-            // 
+       
+            // Calculate brush size
             // % of line from start to end
-            float percentageOfLine = addedSteps/lengthOfIterationLine;
+            float percentageOfLine = currentPos1D/lengthOfIterationLine;
             (int, float) brushSizeAndRadius = (-1, -1f);
 
             switch(biggestBrushSize){
                 case BiggestBrushSize.Idem:
-                case BiggestBrushSize.LastFrame:
-                    brushSizeAndRadius = GetCurrentBrushSizeAndRadius(percentageOfLine, biggestBrushSize, thisFrameBrushSize, lastFrameBrushSize); // get current brush size by calculation - interpolation
+                case BiggestBrushSize.PreviousFrame:
+                    brushSizeAndRadius = GetCurrentBrushSizeAndRadius(percentageOfLine, biggestBrushSize, thisFrameBrushSize, previousFrameBrushSize); // get current brush size by calculation - interpolation
                     break;
                 case BiggestBrushSize.ThisFrame:
-                    brushSizeAndRadius = GetCurrentBrushSizeAndRadius(percentageOfLine, biggestBrushSize, lastFrameBrushSize, thisFrameBrushSize); // get current brush size by calculation - interpolation
+                    brushSizeAndRadius = GetCurrentBrushSizeAndRadius(percentageOfLine, biggestBrushSize, previousFrameBrushSize, thisFrameBrushSize); // get current brush size by calculation - interpolation
                     break;
                 default:
                     Debug.LogError("Error - no biggest brush size!!!");
                     break;
             }
+            bool hasAddedToList = false;
+            float currentBrushSizeRadius = brushSizeAndRadius.Item2;
+
+            // check if brush size can fit per iteration. (All added - LastBrushRadiusPos) > brush radius
+            // check if it doesn't cross last brush stroke - if (LastBrushRadiusPos1D > lengthOfIterationLine) - break
             
-            Vector2 deltaVectorRadiusOfCurrentPositionBrushStroke = normalizedDeltaVector * brushSizeAndRadius.Item2;
-            switch(activeQuadrant){ // in what quadrant of cartesion space does the delta vector point
-                case ActiveQuadrant.Q1:
-                    if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x > lastAddedBrushStrokePlusRadiusPosition.x && 
-                        (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y > lastAddedBrushStrokePlusRadiusPosition.y )
-                    {
-                        sizeOfBrushPerPoint.Add((uint)brushSizeAndRadius.Item1);
-                        Vector2Int pixelPosition = CalculatePixelCoordinates(currentPosition);
-                        Pixel newPixel = new Pixel(pixelPosition, m_DrawingStickController.DrawingColor);
-                        pixelCoordinates.Add(newPixel);
-                        lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
-                    }
-                    break;
-                case ActiveQuadrant.Q2:
-                    if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x < lastAddedBrushStrokePlusRadiusPosition.x && 
-                        (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y > lastAddedBrushStrokePlusRadiusPosition.y )
-                    {
-                        sizeOfBrushPerPoint.Add((uint)brushSizeAndRadius.Item1);
-                        Vector2Int pixelPosition = CalculatePixelCoordinates(currentPosition);
-                        Pixel newPixel = new Pixel(pixelPosition, m_DrawingStickController.DrawingColor);
-                        pixelCoordinates.Add(newPixel);
-                        lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
-                    }
-                    break;
-                case ActiveQuadrant.Q3:
-                    if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x < lastAddedBrushStrokePlusRadiusPosition.x && 
-                        (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y < lastAddedBrushStrokePlusRadiusPosition.y )
-                    {
-                        sizeOfBrushPerPoint.Add((uint)brushSizeAndRadius.Item1);
-                        Vector2Int pixelPosition = CalculatePixelCoordinates(currentPosition);
-                        Pixel newPixel = new Pixel(pixelPosition, m_DrawingStickController.DrawingColor);
-                        pixelCoordinates.Add(newPixel);
-                        lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
-                    }
-                    break;
-                case ActiveQuadrant.Q4:
-                    if( (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).x > lastAddedBrushStrokePlusRadiusPosition.x && 
-                        (currentPosition - deltaVectorRadiusOfCurrentPositionBrushStroke).y < lastAddedBrushStrokePlusRadiusPosition.y )
-                    {
-                        sizeOfBrushPerPoint.Add((uint)brushSizeAndRadius.Item1);
-                        Vector2Int pixelPosition = CalculatePixelCoordinates(currentPosition);
-                        Pixel newPixel = new Pixel(pixelPosition, m_DrawingStickController.DrawingColor);
-                        pixelCoordinates.Add(newPixel);
-                        lastAddedBrushStrokePlusRadiusPosition = currentPosition + deltaVectorRadiusOfCurrentPositionBrushStroke;
-                    }
-                    break;
-                default:
-                    Debug.LogError("Error - no active quadrant!!!");
-                    break;
+            bool strokeCanFit = false;
+            // check if should add to list, if stroke can fit 
+            if( currentPos1D - lastAddedBrushStrokePlusRadiusPos1D > currentBrushSizeRadius &&
+                lengthOfIterationLine - currentPos1D > currentBrushSizeRadius)
+            {
+                strokeCanFit = true;
+            }else{ //Debug.Log("Stroke can't fit!".Colorize(Color.magenta)); 
+            }
+            // Add stroke and update 
+            if( strokeCanFit ){
+                sizeOfBrushPerPoint.Add((uint)brushSizeAndRadius.Item1);
+                Vector2Int pixelPosition = CalculatePixelCoordinates(currentPos);
+                Pixel newPixel = new Pixel(pixelPosition, m_DrawingStickController.DrawingColor);
+                pixelCoordinates.Add(newPixel);
+                // Update
+                currentPos1D += brushSizeAndRadius.Item2; // move pos to end of radius
+                lastAddedBrushStrokePlusRadiusPos1D = currentPos1D; // caching 1D position
+                Vector2 deltaVectorRadiusOfCurrentPositionBrushStroke = normalizedDeltaVector * currentBrushSizeRadius;
+                currentPos += deltaVectorRadiusOfCurrentPositionBrushStroke;
             }
         } // end While - iteration
 
+
         // Adding the last points to the lists
+        Debug.Log("Adding two last points to list");
         Vector2Int lastPixelPosition;
         Pixel lastNewPixel;
         switch(biggestBrushSize){ // end iteration list with smallest brush size
             case BiggestBrushSize.ThisFrame:
-                lastPixelPosition = CalculatePixelCoordinates(pointLastFrame);
+                lastPixelPosition = CalculatePixelCoordinates(pointPreviousFrame);
                 lastNewPixel = new Pixel(lastPixelPosition, m_DrawingStickController.DrawingColor);
                 pixelCoordinates.Add(lastNewPixel);
-                sizeOfBrushPerPoint.Add((uint)lastFrameBrushSize);
+                sizeOfBrushPerPoint.Add((uint)previousFrameBrushSize);
                 break;
             case BiggestBrushSize.Idem:
-            case BiggestBrushSize.LastFrame:
+            case BiggestBrushSize.PreviousFrame:
                 lastPixelPosition = CalculatePixelCoordinates(pointThisFrame);
                 lastNewPixel = new Pixel(lastPixelPosition, m_DrawingStickController.DrawingColor);
                 pixelCoordinates.Add(lastNewPixel);
                 sizeOfBrushPerPoint.Add((uint)thisFrameBrushSize);
                 break;
         }
-
+        Debug.Log($"pixel coord array size {pixelCoordinates.Count}");
+        Debug.Log($"brush sizes array size {sizeOfBrushPerPoint.Count}");
         return (pixelCoordinates.ToArray(), sizeOfBrushPerPoint.ToArray());
-    }
+    } // End CalculatePointsOnLine(...)
 
     /// <summary>
     /// From big brush size to small lerp.
     /// </summary>
-    /// <returns>Returns current brush size diameter in pixel width (rounded up, int) 
+    /// <returns>Returns current brush size diameter in pixel width (rounded, int) 
     /// and brush size radius in percentage of image width (float) </returns>
     (int, float) GetCurrentBrushSizeAndRadius(float percentageOfLine, BiggestBrushSize biggestBrushSize, int smallestBrush, int biggestBrush){
         if(percentageOfLine > 1f || percentageOfLine <0f) { Debug.LogError("percentageOfLine must be between 0 and 1f");}
