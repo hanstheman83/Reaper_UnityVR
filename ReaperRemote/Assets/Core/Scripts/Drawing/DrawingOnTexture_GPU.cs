@@ -10,7 +10,7 @@ using Core.Interactions;
 // Color32.Lerp
 
 // TODO: Shader to combine background and layers! 
-// https://docs.unity3d.com/Manual/OptimizingGraphicsPerformance.html
+// https://docs.unity3d.com/Manual/OptimizingGraphicsPerformance.html  
 
 // Drawing Stroke handling, set data in layers, get data from layers, update FinalTexture
 public class DrawingOnTexture_GPU : MonoBehaviour
