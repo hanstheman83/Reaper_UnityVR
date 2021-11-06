@@ -163,81 +163,81 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             _RenderTexture00[pixelPosition] = brushCenterPosition.color; // TODO: add alpha from other array
         }
         else if(pixelPosition.x < (_TextureWidth << 1) && pixelPosition.y < _TextureHeight){ // 01
-            pixelPosition = (pixelPosition.x - _TextureWidth, pixelPosition.y);
+            pixelPosition = int2(pixelPosition.x - _TextureWidth, pixelPosition.y );  
             _RenderTexture01[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < ((_TextureWidth << 1) + _TextureWidth) && pixelPosition.y < _TextureHeight){ //02
-            pixelPosition = (pixelPosition.x - (_TextureWidth << 1), pixelPosition.y);
+            pixelPosition = int2(pixelPosition.x - (_TextureWidth << 1), pixelPosition.y);
             _RenderTexture02[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < (_TextureWidth << 2) && pixelPosition.y < _TextureHeight){ //03
-            pixelPosition = (pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth) , pixelPosition.y); // bit shift (_TextureWidth << 1) + (_TextureWidth) same as _TextureWidth *
+            pixelPosition = int2(pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth) , pixelPosition.y); // bit shift (_TextureWidth << 1) + (_TextureWidth) same as _TextureWidth *
             _RenderTexture03[pixelPosition] = brushCenterPosition.color;
         }
 #if !SHADER_API_D3D11
         else if( pixelPosition.x < _TextureWidth && pixelPosition.y < (_TextureHeight << 1)){ //04
-            pixelPosition = (pixelPosition.x, pixelPosition.y - _TextureHeight);
+            pixelPosition = int2(pixelPosition.x, pixelPosition.y - _TextureHeight);
             _RenderTexture04[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < (_TextureWidth << 1) && pixelPosition.y < (_TextureHeight << 1)){ //05
-            pixelPosition = (pixelPosition.x - _TextureWidth, pixelPosition.y - _TextureHeight);
+            pixelPosition = int2(pixelPosition.x - _TextureWidth, pixelPosition.y - _TextureHeight);
             _RenderTexture05[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < ((_TextureWidth << 1) + _TextureWidth) && pixelPosition.y < (_TextureHeight << 1) ){ //06 // _TextureHeight * 2
-            pixelPosition = (pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - _TextureHeight);
+            pixelPosition = int2(pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - _TextureHeight);
             _RenderTexture06[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < (_TextureWidth << 2) && pixelPosition.y < (_TextureHeight << 1)){ //07
-            pixelPosition = (pixelPosition.x - ( (_TextureWidth << 1) + (_TextureWidth) ), pixelPosition.y - _TextureHeight);
+            pixelPosition = int2(pixelPosition.x - ( (_TextureWidth << 1) + (_TextureWidth) ), pixelPosition.y - _TextureHeight);
             _RenderTexture07[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < _TextureWidth && pixelPosition.y < ( (_TextureHeight << 1) + _TextureHeight) ){ //08
-            pixelPosition = (pixelPosition.x, pixelPosition.y - (_TextureHeight << 1));
+            pixelPosition = int2(pixelPosition.x, pixelPosition.y - (_TextureHeight << 1));
             _RenderTexture08[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < (_TextureWidth << 1) && pixelPosition.y < ( (_TextureHeight << 1) + _TextureHeight)){ //09
-            pixelPosition = (pixelPosition.x - _TextureWidth, pixelPosition.y - (_TextureHeight << 1));
+            pixelPosition = int2(pixelPosition.x - _TextureWidth, pixelPosition.y - (_TextureHeight << 1));
             _RenderTexture09[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < ((_TextureWidth << 1) + _TextureWidth) && pixelPosition.y < ( (_TextureHeight << 1) + _TextureHeight)){ //10
-            pixelPosition = (pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - (_TextureHeight << 1));
+            pixelPosition = int2(pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - (_TextureHeight << 1));
             _RenderTexture10[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < (_TextureWidth << 2) && pixelPosition.y < ( (_TextureHeight << 1) + _TextureHeight)){ //11
-            pixelPosition = (pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth), pixelPosition.y - (_TextureHeight << 1));
+            pixelPosition = int2(pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth), pixelPosition.y - (_TextureHeight << 1));
             _RenderTexture11[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < _TextureWidth && pixelPosition.y < (_TextureHeight << 2)){ //12
-            pixelPosition = (pixelPosition.x, pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
+            pixelPosition = int2(pixelPosition.x, pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
             _RenderTexture12[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < (_TextureWidth << 1) && pixelPosition.y < (_TextureHeight << 2)){ //13
-            pixelPosition = (pixelPosition.x - _TextureWidth, pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
+            pixelPosition = int2(pixelPosition.x - _TextureWidth, pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
             _RenderTexture13[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < ((_TextureWidth << 1) + _TextureWidth) && pixelPosition.y < (_TextureHeight << 2)){ //14
-            pixelPosition = (pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
+            pixelPosition = int2(pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
             _RenderTexture14[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < (_TextureWidth << 2) && pixelPosition.y < (_TextureHeight << 2)){ //15
-            pixelPosition = (pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth), pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
+            pixelPosition = int2(pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth), pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
             _RenderTexture15[pixelPosition] = brushCenterPosition.color;
         }
         //
         else if( pixelPosition.x < _TextureWidth && pixelPosition.y < ((_TextureHeight << 2) + _TextureHeight)){ //16
-            pixelPosition = (pixelPosition.x, pixelPosition.y - (_TextureHeight << 2));
+            pixelPosition = int2(pixelPosition.x, pixelPosition.y - (_TextureHeight << 2));
             _RenderTexture16[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < (_TextureWidth << 1) && pixelPosition.y < ((_TextureHeight << 2) + _TextureHeight)){ //17
-            pixelPosition = (pixelPosition.x - _TextureWidth, pixelPosition.y - (_TextureHeight << 2));
+            pixelPosition = int2(pixelPosition.x - _TextureWidth, pixelPosition.y - (_TextureHeight << 2));
             _RenderTexture17[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < ((_TextureWidth << 1) + _TextureWidth) && pixelPosition.y < ((_TextureHeight << 2) + _TextureHeight)){ //18
-            pixelPosition = (pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - (_TextureHeight << 2));
+            pixelPosition = int2(pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - (_TextureHeight << 2));
             _RenderTexture18[pixelPosition] = brushCenterPosition.color;
         }
         else if( pixelPosition.x < (_TextureWidth << 2) && pixelPosition.y < ((_TextureHeight << 2) + _TextureHeight)){ //19
-            pixelPosition = (pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth), pixelPosition.y - (_TextureHeight << 2));
+            pixelPosition = int2(pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth), pixelPosition.y - (_TextureHeight << 2));
             _RenderTexture19[pixelPosition] = brushCenterPosition.color;
         }
 #endif

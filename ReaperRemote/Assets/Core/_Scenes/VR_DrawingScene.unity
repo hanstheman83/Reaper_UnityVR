@@ -2656,8 +2656,8 @@ MonoBehaviour:
   renderTexture_17_Renderer: {fileID: 926422101}
   renderTexture_18_Renderer: {fileID: 79092795}
   renderTexture_19_Renderer: {fileID: 1842802842}
-  m_RenderTextureWidth: 1024
-  m_RenderTextureHeight: 1024
+  m_RenderTextureWidth: 512
+  m_RenderTextureHeight: 512
   drawSpeed: 0.8
   renderTextureMipsRefreshRate: 0.08
   strokePosition: {fileID: 657259255}
