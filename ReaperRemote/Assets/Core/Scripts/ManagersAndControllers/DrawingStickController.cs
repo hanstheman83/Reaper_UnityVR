@@ -45,17 +45,16 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     [SerializeField] Transform m_ColorPickingDrawPoint;
     public Transform ColorPickingDrawPoint {get => m_ColorPickingDrawPoint;}
 
+    public ControllerHand ControlledBy {get => controlledBy;}
     ControllerHand controlledBy = ControllerHand.None;
     [SerializeField] private string nameOfTriggerController;
+    [SerializeField] GameObject m_PencilMesh;
     public Renderer stickRenderer;
     public string NameOfTriggerController {get => nameOfTriggerController;} // name accessible from list of all controllers implementing IContinousTrigger
 
     public DataHandler TriggerDataFlow { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
-
-    public ControllerHand ControlledBy {get => controlledBy;}
-
     private InputActionController inputActionController;
-    private XRBaseController baseController;
+    private XRBaseController m_BaseController;
     private Coroutine haptics = null;
     public Color DrawingColor;
     public Brush Brush;
@@ -81,7 +80,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         controlledBy = customDirectInteractor.ControllerHand;
         customDirectInteractor.attachTransform.position = GetComponent<XRGrabInteractable>().attachTransform.position;
         customDirectInteractor.attachTransform.rotation = GetComponent<XRGrabInteractable>().attachTransform.rotation;
-        baseController = customDirectInteractor.gameObject.GetComponent<XRBaseController>(); 
+        m_BaseController = customDirectInteractor.gameObject.GetComponent<XRBaseController>(); 
         inputActionController.RegisterTriggerControl(this, controlledBy);
     }
     public void OnSelectExited(SelectExitEventArgs args){
@@ -89,7 +88,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         customDirectInteractor.attachTransform.localPosition = Vector3.zero;
         inputActionController.RemoveTriggerControl(this, controlledBy);
         controlledBy = ControllerHand.None;
-        baseController = null;
+        m_BaseController = null;
     }
 
     public void ProcessTriggerInput(float val) // called from inputActionController
@@ -99,6 +98,21 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
                                 (Brush.NumberOfSizes - 1)
                                 );
         //Debug.Log("new brush size : " + ActiveBrushSize);
+    }
+
+    // offset mesh during drawing a stroke - continously updated
+    public void OffsetMainMesh(float val){ // TODO: see Jason video, extension methods
+        m_PencilMesh.transform.localPosition.Set(m_PencilMesh.transform.localPosition.x, 
+                                                m_PencilMesh.transform.localPosition.y,
+                                                val); 
+    }
+
+    public void ReleasePencil(){
+        // m_BaseController.;
+        CustomDirectInteractor customDirectInteractor = m_BaseController.GetComponent<CustomDirectInteractor>();
+        //customDirectInteractor.EndManualInteraction();
+        // https://github.com/Unity-Technologies/XR-Interaction-Toolkit-Examples/issues/29
+        
     }
 
     /// <summary>
@@ -116,6 +130,9 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
             haptics = null;
         }
     }
+
+
+    // ------------------ Haptics -------------------
 
     /// <summary>
     /// Incr Decr haptic feedback <br/> Input should be normalized 0 to 1
@@ -168,7 +185,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     }
  
     void SendHaptics()
-    {   if(baseController == null) Debug.Log("controller is null");
-        baseController?.SendHapticImpulse(amplitude, 0.03f);
+    {   if(m_BaseController == null) Debug.Log("controller is null");
+        m_BaseController?.SendHapticImpulse(amplitude, 0.03f);
     }
 }

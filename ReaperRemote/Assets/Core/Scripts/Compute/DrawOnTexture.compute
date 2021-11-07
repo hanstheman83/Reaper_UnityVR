@@ -5,6 +5,9 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
+// TODO: Fix gaps in line  
+
+
 // User defined types
 
 // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct
@@ -92,7 +95,6 @@ int2 CalculatePixelPosition(_Pixel brushCenterPosition, uint brushWidth, uint in
     for(uint i = 0; i < brushWidth; i++){
         if(sum >= indexInBrushShapeArray){
             pos.y = brushCenterPosition.position_y + (i + offset); // offsets are negative ?!
-            // TODO: check logic : 
             pos.x = brushCenterPosition.position_x + (indexInBrushShapeArray - sum + brushWidth + offset); 
             break;
         }
@@ -119,7 +121,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         if(sumOfAddedBrushStrokesArrays >= id.x){
             // find brush size, find position in brush size shape array
             indexInBrushStrokesPositionsArray = i; // to get the right brush size
-            //TODO: if doesn't work can do without :
             break;
         }
     }

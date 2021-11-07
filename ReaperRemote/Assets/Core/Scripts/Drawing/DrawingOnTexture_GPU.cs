@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Core;
+using Core;  
 using Core.Interactions;
 
 // COLOR32 //
@@ -35,8 +35,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     [SerializeField] Renderer renderTexture_17_Renderer;
     [SerializeField] Renderer renderTexture_18_Renderer;
     [SerializeField] Renderer renderTexture_19_Renderer;
-    [SerializeField][Tooltip("Multiple of 2 - 1024, 2048, 4096, ...")] int m_RenderTextureWidth = 1024; // 
-    [SerializeField][Tooltip("Multiple of 2 - 1024, 2048, 4096, ...")] int m_RenderTextureHeight = 1024; //
+    [SerializeField][Tooltip("Multiple of 2 -512 1024, 2048, 4096, ...")] int m_RenderTextureWidth = 1024; // 
+    [SerializeField][Tooltip("Multiple of 2 -512 1024, 2048, 4096, ...")] int m_RenderTextureHeight = 1024; //
     [SerializeField][Range(0.02f, 2f)][Tooltip("How fast stroke moves towards brush (slow value = delayed brush stroke)")] float drawSpeed = 0.02f;
     [SerializeField][Range(0.02f, 1f)] float renderTextureMipsRefreshRate = 0.03f;
     [SerializeField] GameObject strokePosition;
@@ -242,7 +242,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                                     m_LastActiveBrushSize, 
                                     m_DrawingStickController.ActiveBrushSize); // if lastStroke = -1 calculate only 1 point
         m_CPU_BrushStrokePositionsOnLine_Buffer = pointsOnLineTuple.Item1;
-        m_CPU_BrushStrokeSizesOnLine_Buffer = pointsOnLineTuple.Item2; // TODO: save in buffer!
+        m_CPU_BrushStrokeSizesOnLine_Buffer = pointsOnLineTuple.Item2;
         if(m_CPU_BrushStrokePositionsOnLine_Buffer.Length != m_CPU_BrushStrokeSizesOnLine_Buffer.Length){
             Debug.LogError("The two arrays have uneven lengths?!");
         }
@@ -279,7 +279,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             int brushStrokeSize = (int)m_CPU_BrushStrokeSizesOnLine_Buffer[i];
             Debug.Log("brush stroke size : " + brushStrokeSize);
             numberOfRuns += (   m_DrawingStickController.Brush.WidthOfBrushSize[brushStrokeSize] * 
-                                m_DrawingStickController.Brush.WidthOfBrushSize[brushStrokeSize] ); // TODO: look up array lengths instead
+                                m_DrawingStickController.Brush.WidthOfBrushSize[brushStrokeSize] );
             Debug.Log("number or runs : " + numberOfRuns);
         }
         Debug.Log("number of runs total : " + numberOfRuns);
@@ -302,11 +302,12 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         GPU_BrushStrokePositionsOnLine_Buffer.Release();
         GPU_BrushStrokeSizesOnLine_Buffer.Release();
 
-        // TODO: release stroke sizes on line buffer
         m_PreviousStroke = currentStroke;
         m_LastActiveBrushSize = m_DrawingStickController.ActiveBrushSize;
     }// end Update()
 #endregion Unity Methods
+
+
 
 
             // -------------------------------------------------------------------- //
@@ -340,11 +341,10 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         m_CPU_BrushStrokeShapeSize3_Buffer = m_DrawingStickController.Brush.BrushSizes[3];
         m_CPU_BrushStrokeShapeSize4_Buffer = m_DrawingStickController.Brush.BrushSizes[4];
 
-        // TODO: set and dispose
         m_CPU_BrushStrokeShapesWidths_Buffer = new uint[m_DrawingStickController.Brush.NumberOfSizes];
         m_CPU_BrushStrokeShapesOffset_Buffer = new int[m_DrawingStickController.Brush.NumberOfSizes];
 
-        // TODO: set dynamic
+        // TODO: Nice to have : set dynamic
         m_CPU_BrushStrokeShapesOffset_Buffer[0] = -1; 
         m_CPU_BrushStrokeShapesOffset_Buffer[1] = -2; 
         m_CPU_BrushStrokeShapesOffset_Buffer[2] = -3; 
@@ -393,14 +393,21 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesWidths_Buffer", GPU_BrushStrokeShapesWidths_Buffer);
         drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesOffset_Buffer", GPU_BrushStrokeShapesOffset_Buffer);
 
+        // Handle Pencil : offset mesh from pencil
+        // 
+
         // TODO: research native array!
-    }
+    }// End StartStroke()
+
     void StopStroke(Collider other){
         m_IsDrawing = false;
         m_OtherObject = null;
         StopCoroutine(refreshRenderTextureMips);
         refreshRenderTextureMips = null;
         m_DrawingStickController.StopResistance();
+        // TODO: reset mesh offset
+        // TODO: let go holding pencil
+        // TODO: push pencil back
         m_DrawingStickController = null;
         StartCoroutine(UpdateTexturesOnce()); // need to wait
 
@@ -420,8 +427,14 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         // GPU_ActiveLayerBuffer.Release();
 
         // TODO: update active layer and final update of render texture
+
+        // Handle pencil : if through paper let go
+        // check if through paper
+        // let go of pencil and push back
     }
 #endregion Start Stop strokes
+
+
 
 
 #region Drawing Methods
@@ -444,6 +457,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     // }
 
     // TODO: gradient between points
+    // TODO: fix holes in line - add last stroke even when not space enough!
+    // TODO: remove redundant first added stroke (already added in prev frame)
     /// <summary>
     /// Calculated line can start from either point - dependent on what point (this frame or last) has largest brush size.
     /// </summary>
@@ -464,7 +479,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
         // Adding first points to list, before starting the iteration. Calculate deltavector
         // flip vector direction if brush size is reversed! Iteration will also be reversed, iterate from big to small brush size
-        // TODO: center the pixel - avoid rounding error. Subtract .5 of pixel width and length for correct position!
+        // TODO: Nice to have : center the pixel - avoid rounding error. Subtract .5 of pixel width and length for correct position!
         Vector2 deltaVector = Vector2.zero;
         Vector2Int firstPixelPosition;
         Pixel firstNewPixel;
@@ -514,7 +529,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         Vector2 iterationLineEnd = Vector2.zero;  
         switch(biggestBrushSize){ // Making sure that in both cases the line starts with the biggest brush size!
             case BiggestBrushSize.PreviousFrame:
-            case BiggestBrushSize.Idem: //TODO: fix
+            case BiggestBrushSize.Idem:
                 // P0 : start from last frame -- direction of deltavector in direction from previous stroke point to this frame stroke point
                 iterationLineStart = pointPreviousFrame + (normalizedDeltaVector * radiusPreviousStroke);
                 iterationLineEnd = pointThisFrame - (normalizedDeltaVector * radiusThisStroke);
@@ -629,7 +644,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     (int, float) GetCurrentBrushSizeAndRadius(float percentageOfLine, BiggestBrushSize biggestBrushSize, int smallestBrush, int biggestBrush){
         if(percentageOfLine > 1f || percentageOfLine <0f) { Debug.LogError("percentageOfLine must be between 0 and 1f");}
         
-        if(biggestBrushSize == BiggestBrushSize.Idem){ // TODO: cleanup 
+        if(biggestBrushSize == BiggestBrushSize.Idem){ 
             // return smallestBrush, skip lerp.
             float brushWidth = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingStickController.Brush.WidthOfBrushSize[smallestBrush]);
             float brushRadius = brushWidth/2f;
