@@ -3044,8 +3044,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 827894129}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0, z: 0.047}
-  m_LocalScale: {x: 1, y: 1, z: 0.1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.025}
+  m_LocalScale: {x: 1, y: 1, z: 0.05}
   m_Children:
   - {fileID: 1470501398}
   m_Father: {fileID: 749001978}
@@ -8572,7 +8572,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ColorPickingDrawPoint: {fileID: 1924104738}
   nameOfTriggerController: 
-  m_Pencil: {fileID: 2093966204}
+  m_PencilMesh: {fileID: 2093966204}
   stickRenderer: {fileID: 2093966205}
   DrawingColor: {r: 0, g: 0, b: 0, a: 0}
   ActiveBrushSize: 0

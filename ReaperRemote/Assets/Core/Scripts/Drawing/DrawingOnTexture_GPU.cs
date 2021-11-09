@@ -222,6 +222,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     #endregion return break
 
         UpdateStrokeAndTargetAndDepth();
+        UpdateDrawingStickOffset(); // based on depth
         UpdateResistance();
         Vector2 currentStroke = CalculateCanvasCoordinatesRaw(); // scaled/stretched in y dimension
         // Conversion based on RenderTextures , 4x5 - thus scale y dimension from 1 to 1.25, basically unscalling stretch in canvas dimensions. 
@@ -393,9 +394,6 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesWidths_Buffer", GPU_BrushStrokeShapesWidths_Buffer);
         drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesOffset_Buffer", GPU_BrushStrokeShapesOffset_Buffer);
 
-        // Handle Pencil : offset mesh from pencil
-        // 
-
         // TODO: research native array!
     }// End StartStroke()
 
@@ -408,6 +406,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         // TODO: reset mesh offset
         // TODO: let go holding pencil
         // TODO: push pencil back
+        m_DrawingStickController.OffsetMainMesh(Vector3.zero);
         m_DrawingStickController = null;
         StartCoroutine(UpdateTexturesOnce()); // need to wait
 
@@ -431,6 +430,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         // Handle pencil : if through paper let go
         // check if through paper
         // let go of pencil and push back
+
+
     }
 #endregion Start Stop strokes
 
@@ -688,6 +689,11 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         strokePositionTransform.localPosition = Vector2.MoveTowards(strokePositionTransform.localPosition, 
                                                                     targetPositionTransform.localPosition, 
                                                                     drawSpeed * Time.deltaTime);
+    }
+
+    void UpdateDrawingStickOffset(){
+        Vector3 offset = targetPositionTransform.position - depthPositionTransform.position;
+        m_DrawingStickController.OffsetMainMesh(offset);
     }
 
     Vector2 CalculateCanvasCoordinatesRaw(){ // from scaled gameobject, y diretion stretched by 1.25

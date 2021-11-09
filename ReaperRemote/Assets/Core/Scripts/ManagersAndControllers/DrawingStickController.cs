@@ -101,10 +101,15 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     }
 
     // offset mesh during drawing a stroke - continously updated
-    public void OffsetMainMesh(float val){ // TODO: see Jason video, extension methods
-        m_PencilMesh.transform.localPosition.Set(m_PencilMesh.transform.localPosition.x, 
-                                                m_PencilMesh.transform.localPosition.y,
-                                                val); 
+    public void OffsetMainMesh(Vector3 offset){ // TODO: see Jason video, extension methods
+        // m_PencilMesh.transform.localPosition.Set(m_PencilMesh.transform.localPosition.x, 
+        //                                         m_PencilMesh.transform.localPosition.y,
+        //                                         val); 
+
+        // offset relative to angle of drawing board!
+        m_PencilMesh.transform.localPosition = Vector3.zero;
+        m_PencilMesh.transform.position += offset;
+
     }
 
     public void ReleasePencil(){
