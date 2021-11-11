@@ -45,8 +45,8 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     [SerializeField] Transform m_ColorPickingDrawPoint;
     public Transform ColorPickingDrawPoint {get => m_ColorPickingDrawPoint;}
 
-    public ControllerHand ControlledBy {get => controlledBy;}
-    ControllerHand controlledBy = ControllerHand.None;
+    public ControllerHand ControlledBy {get => m_ControlledBy;}
+    ControllerHand m_ControlledBy = ControllerHand.None;
     [SerializeField] private string nameOfTriggerController;
     [SerializeField] GameObject m_PencilMesh;
     public Renderer stickRenderer;
@@ -77,18 +77,19 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
 
     public void OnSelectEntered(SelectEnterEventArgs args){
         CustomDirectInteractor customDirectInteractor = (CustomDirectInteractor)args.interactor;
-        controlledBy = customDirectInteractor.ControllerHand;
+        m_ControlledBy = customDirectInteractor.ControllerHand;
         customDirectInteractor.attachTransform.position = GetComponent<XRGrabInteractable>().attachTransform.position;
         customDirectInteractor.attachTransform.rotation = GetComponent<XRGrabInteractable>().attachTransform.rotation;
         m_BaseController = customDirectInteractor.gameObject.GetComponent<XRBaseController>(); 
-        inputActionController.RegisterTriggerControl(this, controlledBy);
+        inputActionController.RegisterTriggerControl(this, m_ControlledBy);
     }
     public void OnSelectExited(SelectExitEventArgs args){
         CustomDirectInteractor customDirectInteractor = (CustomDirectInteractor)args.interactor;
         customDirectInteractor.attachTransform.localPosition = Vector3.zero;
-        inputActionController.RemoveTriggerControl(this, controlledBy);
-        controlledBy = ControllerHand.None;
+        inputActionController.RemoveTriggerControl(this, m_ControlledBy);
+        m_ControlledBy = ControllerHand.None;
         m_BaseController = null;
+        Debug.Log("Deselected controller.. Held by : "+ m_ControlledBy);
     }
 
     public void ProcessTriggerInput(float val) // called from inputActionController
@@ -110,6 +111,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     public void ReleasePencil(Vector3 newWorldPosition){
         m_BaseController.GetComponent<CustomDirectInteractor>().ForceDeselect();
         transform.position = newWorldPosition;
+        Debug.Log("Forcing deselect!");
     }
 
     /// <summary>

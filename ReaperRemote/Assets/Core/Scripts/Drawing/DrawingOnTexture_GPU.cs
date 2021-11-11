@@ -317,7 +317,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     // ------------------------------- START - STOP STROKES --------------------------------- //
 #region Start Stop strokes
 
-    void StartStroke(Collider other){
+    void StartStroke(Collider other)
+    {
         m_PreviousStroke = new Vector2(-1f, -1f); // skip first frame, no stroke length!
         m_OtherObject = other.transform.Find("DrawPoint");
         m_DrawingPencilController = other.GetComponentInParent<DrawingStickController>();
@@ -325,79 +326,17 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         // TODO: if not holding pencil - break!
         // m_DrawingPencilController.
 
-        m_IsDrawing = true;
-        drawingColor = m_DrawingPencilController.DrawingColor;
-        m_DrawingPencilController.StartResistance(); 
-        m_StrokePositionTransform.position = m_OtherObject.position;
-        m_DepthPositionTransform.position = m_OtherObject.position;
-        m_StrokePositionTransform.localPosition = new Vector3(m_StrokePositionTransform.localPosition.x, 
-                                                            m_StrokePositionTransform.localPosition.y, 0f);
-        if(refreshRenderTextureMips == null) refreshRenderTextureMips = StartCoroutine(UpdateRendureTextureMips());
-        m_TargetPositionTransform.position = m_OtherObject.position;
-        m_TargetPositionTransform.localPosition = new Vector3(m_TargetPositionTransform.localPosition.x, 
-                                                            m_TargetPositionTransform.localPosition.y, 0f);
-        // ------------------------
-        // For compute shader - GPU
-        int kernel = m_DrawOnTexture_Compute.FindKernel("CSMain");
-        // Buffers 
-        // brush stroke shapes
-        m_CPU_BrushStrokeShapeSize0_Buffer = m_DrawingPencilController.Brush.BrushSizes[0];
-        m_CPU_BrushStrokeShapeSize1_Buffer = m_DrawingPencilController.Brush.BrushSizes[1];
-        m_CPU_BrushStrokeShapeSize2_Buffer = m_DrawingPencilController.Brush.BrushSizes[2];
-        m_CPU_BrushStrokeShapeSize3_Buffer = m_DrawingPencilController.Brush.BrushSizes[3];
-        m_CPU_BrushStrokeShapeSize4_Buffer = m_DrawingPencilController.Brush.BrushSizes[4];
-
-        m_CPU_BrushStrokeShapesWidths_Buffer = new uint[m_DrawingPencilController.Brush.NumberOfSizes];
-        m_CPU_BrushStrokeShapesOffset_Buffer = new int[m_DrawingPencilController.Brush.NumberOfSizes];
-
-        // TODO: Nice to have : set dynamic
-        m_CPU_BrushStrokeShapesOffset_Buffer[0] = -1; 
-        m_CPU_BrushStrokeShapesOffset_Buffer[1] = -2; 
-        m_CPU_BrushStrokeShapesOffset_Buffer[2] = -3; 
-        m_CPU_BrushStrokeShapesOffset_Buffer[3] = -4; 
-        m_CPU_BrushStrokeShapesOffset_Buffer[4] = -5; 
-        
-
-        m_CPU_BrushStrokeSizesArrayLengths_Buffer = new uint[m_DrawingPencilController.Brush.NumberOfSizes];
-        for (var i = 0; i < m_CPU_BrushStrokeSizesArrayLengths_Buffer.Length; i++)
-        {
-            m_CPU_BrushStrokeSizesArrayLengths_Buffer[i] = (uint)m_DrawingPencilController.Brush.BrushSizes[i].Length;
-            m_CPU_BrushStrokeShapesWidths_Buffer[i] = (uint)m_DrawingPencilController.Brush.WidthOfBrushSize[i];
-
+        if(m_DrawingPencilController.ControlledBy != Core.Controls.ControllerHand.None){
+            m_IsDrawing = true;
+        }else{
+            m_IsDrawing = false;
         }
 
-        GPU_BrushStrokeShapeSize0_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize0_Buffer.Length, sizeof(float) ); 
-        GPU_BrushStrokeShapeSize1_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize1_Buffer.Length, sizeof(float) ); 
-        GPU_BrushStrokeShapeSize2_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize2_Buffer.Length, sizeof(float) ); 
-        GPU_BrushStrokeShapeSize3_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize3_Buffer.Length, sizeof(float) ); 
-        GPU_BrushStrokeShapeSize4_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize4_Buffer.Length, sizeof(float) ); 
 
-        GPU_BrushStrokeSizesArrayLengths_Buffer = new ComputeBuffer(m_CPU_BrushStrokeSizesArrayLengths_Buffer.Length, sizeof(uint));
-        
-        GPU_BrushStrokeShapesWidths_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapesWidths_Buffer.Length, sizeof(uint));
-        GPU_BrushStrokeShapesOffset_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapesOffset_Buffer.Length, sizeof(int));
-
-        GPU_BrushStrokeShapeSize0_Buffer.SetData(m_CPU_BrushStrokeShapeSize0_Buffer);
-        GPU_BrushStrokeShapeSize1_Buffer.SetData(m_CPU_BrushStrokeShapeSize1_Buffer);
-        GPU_BrushStrokeShapeSize2_Buffer.SetData(m_CPU_BrushStrokeShapeSize2_Buffer);
-        GPU_BrushStrokeShapeSize3_Buffer.SetData(m_CPU_BrushStrokeShapeSize3_Buffer);
-        GPU_BrushStrokeShapeSize4_Buffer.SetData(m_CPU_BrushStrokeShapeSize4_Buffer);
-
-        GPU_BrushStrokeSizesArrayLengths_Buffer.SetData(m_CPU_BrushStrokeSizesArrayLengths_Buffer);
-
-        GPU_BrushStrokeShapesWidths_Buffer.SetData(m_CPU_BrushStrokeShapesWidths_Buffer);
-        GPU_BrushStrokeShapesOffset_Buffer.SetData(m_CPU_BrushStrokeShapesOffset_Buffer);
-        
-        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize0_Buffer", GPU_BrushStrokeShapeSize0_Buffer);
-        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize1_Buffer", GPU_BrushStrokeShapeSize1_Buffer);
-        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize2_Buffer", GPU_BrushStrokeShapeSize2_Buffer);
-        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize3_Buffer", GPU_BrushStrokeShapeSize3_Buffer);
-        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize4_Buffer", GPU_BrushStrokeShapeSize4_Buffer);
-
-        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeSizesArrayLengths_Buffer", GPU_BrushStrokeSizesArrayLengths_Buffer);
-
-        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesWidths_Buffer", GPU_BrushStrokeShapesWidths_Buffer);
-        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesOffset_Buffer", GPU_BrushStrokeShapesOffset_Buffer);
+        if (m_IsDrawing)
+        {
+            InitStrokeData();
+        }
 
         // TODO: research native array!
     }// End StartStroke()
@@ -437,6 +376,85 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
         // TODO: update active layer and final update of render texture
     }
+
+    // Helper function for StartStroke()
+    private void InitStrokeData()
+    {
+        drawingColor = m_DrawingPencilController.DrawingColor;
+        m_DrawingPencilController.StartResistance();
+        m_StrokePositionTransform.position = m_OtherObject.position;
+        m_DepthPositionTransform.position = m_OtherObject.position;
+        m_StrokePositionTransform.localPosition = new Vector3(m_StrokePositionTransform.localPosition.x,
+                                                            m_StrokePositionTransform.localPosition.y, 0f);
+        if (refreshRenderTextureMips == null) refreshRenderTextureMips = StartCoroutine(UpdateRendureTextureMips());
+        m_TargetPositionTransform.position = m_OtherObject.position;
+        m_TargetPositionTransform.localPosition = new Vector3(m_TargetPositionTransform.localPosition.x,
+                                                            m_TargetPositionTransform.localPosition.y, 0f);
+        // ------------------------
+        // For compute shader - GPU
+        int kernel = m_DrawOnTexture_Compute.FindKernel("CSMain");
+        // Buffers 
+        // brush stroke shapes
+        m_CPU_BrushStrokeShapeSize0_Buffer = m_DrawingPencilController.Brush.BrushSizes[0];
+        m_CPU_BrushStrokeShapeSize1_Buffer = m_DrawingPencilController.Brush.BrushSizes[1];
+        m_CPU_BrushStrokeShapeSize2_Buffer = m_DrawingPencilController.Brush.BrushSizes[2];
+        m_CPU_BrushStrokeShapeSize3_Buffer = m_DrawingPencilController.Brush.BrushSizes[3];
+        m_CPU_BrushStrokeShapeSize4_Buffer = m_DrawingPencilController.Brush.BrushSizes[4];
+
+        m_CPU_BrushStrokeShapesWidths_Buffer = new uint[m_DrawingPencilController.Brush.NumberOfSizes];
+        m_CPU_BrushStrokeShapesOffset_Buffer = new int[m_DrawingPencilController.Brush.NumberOfSizes];
+
+        // TODO: Nice to have : set dynamic
+        m_CPU_BrushStrokeShapesOffset_Buffer[0] = -1;
+        m_CPU_BrushStrokeShapesOffset_Buffer[1] = -2;
+        m_CPU_BrushStrokeShapesOffset_Buffer[2] = -3;
+        m_CPU_BrushStrokeShapesOffset_Buffer[3] = -4;
+        m_CPU_BrushStrokeShapesOffset_Buffer[4] = -5;
+
+
+        m_CPU_BrushStrokeSizesArrayLengths_Buffer = new uint[m_DrawingPencilController.Brush.NumberOfSizes];
+        for (var i = 0; i < m_CPU_BrushStrokeSizesArrayLengths_Buffer.Length; i++)
+        {
+            m_CPU_BrushStrokeSizesArrayLengths_Buffer[i] = (uint)m_DrawingPencilController.Brush.BrushSizes[i].Length;
+            m_CPU_BrushStrokeShapesWidths_Buffer[i] = (uint)m_DrawingPencilController.Brush.WidthOfBrushSize[i];
+
+        }
+
+        GPU_BrushStrokeShapeSize0_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize0_Buffer.Length, sizeof(float));
+        GPU_BrushStrokeShapeSize1_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize1_Buffer.Length, sizeof(float));
+        GPU_BrushStrokeShapeSize2_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize2_Buffer.Length, sizeof(float));
+        GPU_BrushStrokeShapeSize3_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize3_Buffer.Length, sizeof(float));
+        GPU_BrushStrokeShapeSize4_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize4_Buffer.Length, sizeof(float));
+
+        GPU_BrushStrokeSizesArrayLengths_Buffer = new ComputeBuffer(m_CPU_BrushStrokeSizesArrayLengths_Buffer.Length, sizeof(uint));
+
+        GPU_BrushStrokeShapesWidths_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapesWidths_Buffer.Length, sizeof(uint));
+        GPU_BrushStrokeShapesOffset_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapesOffset_Buffer.Length, sizeof(int));
+
+        GPU_BrushStrokeShapeSize0_Buffer.SetData(m_CPU_BrushStrokeShapeSize0_Buffer);
+        GPU_BrushStrokeShapeSize1_Buffer.SetData(m_CPU_BrushStrokeShapeSize1_Buffer);
+        GPU_BrushStrokeShapeSize2_Buffer.SetData(m_CPU_BrushStrokeShapeSize2_Buffer);
+        GPU_BrushStrokeShapeSize3_Buffer.SetData(m_CPU_BrushStrokeShapeSize3_Buffer);
+        GPU_BrushStrokeShapeSize4_Buffer.SetData(m_CPU_BrushStrokeShapeSize4_Buffer);
+
+        GPU_BrushStrokeSizesArrayLengths_Buffer.SetData(m_CPU_BrushStrokeSizesArrayLengths_Buffer);
+
+        GPU_BrushStrokeShapesWidths_Buffer.SetData(m_CPU_BrushStrokeShapesWidths_Buffer);
+        GPU_BrushStrokeShapesOffset_Buffer.SetData(m_CPU_BrushStrokeShapesOffset_Buffer);
+
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize0_Buffer", GPU_BrushStrokeShapeSize0_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize1_Buffer", GPU_BrushStrokeShapeSize1_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize2_Buffer", GPU_BrushStrokeShapeSize2_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize3_Buffer", GPU_BrushStrokeShapeSize3_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize4_Buffer", GPU_BrushStrokeShapeSize4_Buffer);
+
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeSizesArrayLengths_Buffer", GPU_BrushStrokeSizesArrayLengths_Buffer);
+
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesWidths_Buffer", GPU_BrushStrokeShapesWidths_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesOffset_Buffer", GPU_BrushStrokeShapesOffset_Buffer);
+    }
+
+    
 #endregion Start Stop strokes
 
 
