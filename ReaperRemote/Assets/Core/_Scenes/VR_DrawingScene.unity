@@ -2621,6 +2621,7 @@ Transform:
   - {fileID: 866149701}
   - {fileID: 574416983}
   - {fileID: 685464043}
+  - {fileID: 1570906932}
   m_Father: {fileID: 101423379}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2656,16 +2657,17 @@ MonoBehaviour:
   renderTexture_17_Renderer: {fileID: 926422101}
   renderTexture_18_Renderer: {fileID: 79092795}
   renderTexture_19_Renderer: {fileID: 1842802842}
-  m_RenderTextureWidth: 512
-  m_RenderTextureHeight: 512
-  drawSpeed: 0.8
-  renderTextureMipsRefreshRate: 0.08
-  strokePosition: {fileID: 657259255}
-  targetPosition: {fileID: 866149700}
-  depthPosition: {fileID: 1470501397}
+  m_RenderTextureWidth: 1024
+  m_RenderTextureHeight: 1024
+  m_drawSpeed: 1.2
+  m_RenderTextureMipsRefreshRate: 0.0508
+  m_StrokePosition: {fileID: 657259255}
+  m_TargetPosition: {fileID: 866149700}
+  m_DepthPosition: {fileID: 1470501397}
+  m_ReleasePosition: {fileID: 1570906932}
   drawingColor: {r: 0.5188679, g: 0.19335172, b: 0.19335172, a: 1}
   layerManager: {fileID: 574416984}
-  drawOnTexture_Compute: {fileID: 7200000, guid: aa2dd1ca1388bfd42899e963aa3eef47, type: 3}
+  m_DrawOnTexture_Compute: {fileID: 7200000, guid: aa2dd1ca1388bfd42899e963aa3eef47, type: 3}
 --- !u!1 &776696755
 GameObject:
   m_ObjectHideFlags: 0
@@ -5644,6 +5646,36 @@ MonoBehaviour:
   m_TeleportationProvider: {fileID: 0}
   m_MatchOrientation: 0
   m_TeleportTrigger: 0
+--- !u!1 &1570906931
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1570906932}
+  m_Layer: 12
+  m_Name: Release Position
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1570906932
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1570906931}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.255}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 749001978}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1573289140
 GameObject:
   m_ObjectHideFlags: 0

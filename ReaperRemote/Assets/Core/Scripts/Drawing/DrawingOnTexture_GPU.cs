@@ -37,17 +37,18 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     [SerializeField] Renderer renderTexture_19_Renderer;
     [SerializeField][Tooltip("Multiple of 2 -512 1024, 2048, 4096, ...")] int m_RenderTextureWidth = 1024; // 
     [SerializeField][Tooltip("Multiple of 2 -512 1024, 2048, 4096, ...")] int m_RenderTextureHeight = 1024; //
-    [SerializeField][Range(0.02f, 2f)][Tooltip("How fast stroke moves towards brush (slow value = delayed brush stroke)")] float drawSpeed = 0.02f;
-    [SerializeField][Range(0.02f, 1f)] float renderTextureMipsRefreshRate = 0.03f;
-    [SerializeField] GameObject strokePosition;
-    [SerializeField] GameObject targetPosition;
-    [SerializeField] GameObject depthPosition;
+    [SerializeField][Range(0.02f, 2f)][Tooltip("How fast stroke moves towards brush (slow value = delayed brush stroke)")] float m_drawSpeed = 0.02f;
+    [SerializeField][Range(0.02f, .2f)] float m_RenderTextureMipsRefreshRate = 0.03f;
+    [SerializeField] GameObject m_StrokePosition;
+    [SerializeField] GameObject m_TargetPosition;
+    [SerializeField] GameObject m_DepthPosition;
+    [SerializeField] Transform m_ReleasePosition;
     [SerializeField] Color drawingColor;
     [SerializeField] LayerManager_GPU layerManager;
-    [SerializeField] ComputeShader drawOnTexture_Compute;
-    Transform strokePositionTransform, targetPositionTransform, depthPositionTransform;
-    StrokePositionController strokePositionController;
-    DrawingStickController m_DrawingStickController;
+    [SerializeField] ComputeShader m_DrawOnTexture_Compute;
+    Transform m_StrokePositionTransform, m_TargetPositionTransform, m_DepthPositionTransform;
+    //StrokePositionController m_StrokePositionController;
+    DrawingStickController m_DrawingPencilController;
     Coroutine refreshRenderTextureMips;
     ChildTrigger childTrigger; // for XR interaction
     Collider childCollider; // XR interaction
@@ -172,19 +173,19 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         InitRenderTexture(renderTexture_18_Renderer, ref renderTexture_18,"_RenderTexture18");
         InitRenderTexture(renderTexture_19_Renderer, ref renderTexture_19,"_RenderTexture19");
 #endif
-        drawOnTexture_Compute.SetInt("_TextureWidth", m_RenderTextureWidth);
-        drawOnTexture_Compute.SetInt("_TextureHeight", m_RenderTextureHeight);
-        drawOnTexture_Compute.SetInt("_ImageWidth", m_ImageWidth);
-        drawOnTexture_Compute.SetInt("_ImageHeight", m_ImageHeight);
+        m_DrawOnTexture_Compute.SetInt("_TextureWidth", m_RenderTextureWidth);
+        m_DrawOnTexture_Compute.SetInt("_TextureHeight", m_RenderTextureHeight);
+        m_DrawOnTexture_Compute.SetInt("_ImageWidth", m_ImageWidth);
+        m_DrawOnTexture_Compute.SetInt("_ImageHeight", m_ImageHeight);
 
-        strokePositionTransform = strokePosition.transform;
-        targetPositionTransform = targetPosition.transform;
-        depthPositionTransform = depthPosition.transform;
+        m_StrokePositionTransform = m_StrokePosition.transform;
+        m_TargetPositionTransform = m_TargetPosition.transform;
+        m_DepthPositionTransform = m_DepthPosition.transform;
     }
     // Init methods for Start()
     void InitRenderTexture(Renderer renderer, ref RenderTexture renderTexture, string name){
         // setting up RenderTexture
-        int kernel = drawOnTexture_Compute.FindKernel("CSMain");
+        int kernel = m_DrawOnTexture_Compute.FindKernel("CSMain");
 
         renderTexture = new RenderTexture(m_RenderTextureWidth, m_RenderTextureHeight, 0, RenderTextureFormat.ARGB32);
         renderTexture.antiAliasing = 1;
@@ -200,7 +201,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         renderer.material.mainTexture = renderTexture;
         // https://docs.unity3d.com/ScriptReference/ComputeShader.SetTexture.html
         
-        drawOnTexture_Compute.SetTexture(kernel, name, renderTexture);
+        m_DrawOnTexture_Compute.SetTexture(kernel, name, renderTexture);
     }
     // TODO: release texture when they are not needed- free resources [also on loading another scene!]:
     // RenderTexture.Release()  Releases the RenderTexture.
@@ -216,7 +217,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     void Update(){ // TODO: Brush stops on canvas - the original position = haptics, calculate new position (reset z). -- Child gameobject offset 
         
     #region return break -- Not drawing!
-        if(m_IsDrawing == false) {
+        if(m_IsDrawing == false) { // TODO: add if not holding pencil!!
             return;
         }
     #endregion return break
@@ -232,7 +233,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         if(m_PreviousStroke.x < 0){ 
             Debug.Log("Skipping first frame in new brush stroke..."); 
             m_PreviousStroke = currentStroke;
-            m_LastActiveBrushSize = m_DrawingStickController.ActiveBrushSize;
+            m_LastActiveBrushSize = m_DrawingPencilController.ActiveBrushSize;
             return;
         }
     #endregion return break
@@ -241,7 +242,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         (Pixel[], uint[]) pointsOnLineTuple; // pixel positions, brush width [in pixels] per point
         pointsOnLineTuple = CalculatePointsOnLine(m_PreviousStroke, currentStroke,
                                     m_LastActiveBrushSize, 
-                                    m_DrawingStickController.ActiveBrushSize); // if lastStroke = -1 calculate only 1 point
+                                    m_DrawingPencilController.ActiveBrushSize); // if lastStroke = -1 calculate only 1 point
         m_CPU_BrushStrokePositionsOnLine_Buffer = pointsOnLineTuple.Item1;
         m_CPU_BrushStrokeSizesOnLine_Buffer = pointsOnLineTuple.Item2;
         if(m_CPU_BrushStrokePositionsOnLine_Buffer.Length != m_CPU_BrushStrokeSizesOnLine_Buffer.Length){
@@ -258,20 +259,20 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         // -----------------
         // For compute shader 
         Debug.Log($"Points on line {m_CPU_BrushStrokePositionsOnLine_Buffer.Length}:".Colorize(Color.magenta));
-        int kernel = drawOnTexture_Compute.FindKernel("CSMain");
+        int kernel = m_DrawOnTexture_Compute.FindKernel("CSMain");
         // SET VARIABLES
-        drawOnTexture_Compute.SetInt("_NumberOfBrushStrokesOnLine", m_CPU_BrushStrokePositionsOnLine_Buffer.Length);
+        m_DrawOnTexture_Compute.SetInt("_NumberOfBrushStrokesOnLine", m_CPU_BrushStrokePositionsOnLine_Buffer.Length);
         // Stride
         var structSize = sizeof(float)*4 + sizeof(uint)*2; // for all _Pixel 
         // SET BUFFERS
         // set pixel points on line
         GPU_BrushStrokePositionsOnLine_Buffer = new ComputeBuffer(m_CPU_BrushStrokePositionsOnLine_Buffer.Length, structSize);
         GPU_BrushStrokePositionsOnLine_Buffer.SetData(m_CPU_BrushStrokePositionsOnLine_Buffer);
-        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokePositionsOnLine_Buffer", GPU_BrushStrokePositionsOnLine_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokePositionsOnLine_Buffer", GPU_BrushStrokePositionsOnLine_Buffer);
         // set sizes of points on line
         GPU_BrushStrokeSizesOnLine_Buffer = new ComputeBuffer(m_CPU_BrushStrokeSizesOnLine_Buffer.Length, sizeof(uint));
         GPU_BrushStrokeSizesOnLine_Buffer.SetData(m_CPU_BrushStrokeSizesOnLine_Buffer);
-        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeSizesOnLine_Buffer", GPU_BrushStrokeSizesOnLine_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeSizesOnLine_Buffer", GPU_BrushStrokeSizesOnLine_Buffer);
 
         // Calculate number of kernel runs 
         int numberOfRuns = 0; // pointSizes - radius of each point
@@ -279,8 +280,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         {
             int brushStrokeSize = (int)m_CPU_BrushStrokeSizesOnLine_Buffer[i];
             Debug.Log("brush stroke size : " + brushStrokeSize);
-            numberOfRuns += (   m_DrawingStickController.Brush.WidthOfBrushSize[brushStrokeSize] * 
-                                m_DrawingStickController.Brush.WidthOfBrushSize[brushStrokeSize] );
+            numberOfRuns += (   m_DrawingPencilController.Brush.WidthOfBrushSize[brushStrokeSize] * 
+                                m_DrawingPencilController.Brush.WidthOfBrushSize[brushStrokeSize] );
             Debug.Log("number or runs : " + numberOfRuns);
         }
         Debug.Log("number of runs total : " + numberOfRuns);
@@ -288,11 +289,11 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         // set dummy data all done buffer
         m_CPU_JobDone_Buffer = new int[numberOfRuns];
         GPU_JobDone_Buffer = new ComputeBuffer(m_CPU_JobDone_Buffer.Length, sizeof(int));
-        drawOnTexture_Compute.SetBuffer(kernel, "_JobDone_Buffer", GPU_JobDone_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_JobDone_Buffer", GPU_JobDone_Buffer);
 
         // --------
         // DISPATCH!
-        drawOnTexture_Compute.Dispatch(kernel, numberOfRuns, 1, 1);
+        m_DrawOnTexture_Compute.Dispatch(kernel, numberOfRuns, 1, 1);
 
         // --------------------------------- GET DATA AND BUFFER RELEASE--------------------
         // GET DATA will block update thread, 
@@ -304,7 +305,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         GPU_BrushStrokeSizesOnLine_Buffer.Release();
 
         m_PreviousStroke = currentStroke;
-        m_LastActiveBrushSize = m_DrawingStickController.ActiveBrushSize;
+        m_LastActiveBrushSize = m_DrawingPencilController.ActiveBrushSize;
     }// end Update()
 #endregion Unity Methods
 
@@ -317,33 +318,37 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 #region Start Stop strokes
 
     void StartStroke(Collider other){
-        m_IsDrawing = true;
         m_PreviousStroke = new Vector2(-1f, -1f); // skip first frame, no stroke length!
         m_OtherObject = other.transform.Find("DrawPoint");
-        m_DrawingStickController = other.GetComponentInParent<DrawingStickController>();
-        drawingColor = m_DrawingStickController.DrawingColor;
-        m_DrawingStickController.StartResistance(); 
-        strokePositionTransform.position = m_OtherObject.position;
-        depthPositionTransform.position = m_OtherObject.position;
-        strokePositionTransform.localPosition = new Vector3(strokePositionTransform.localPosition.x, 
-                                                            strokePositionTransform.localPosition.y, 0f);
+        m_DrawingPencilController = other.GetComponentInParent<DrawingStickController>();
+
+        // TODO: if not holding pencil - break!
+        // m_DrawingPencilController.
+
+        m_IsDrawing = true;
+        drawingColor = m_DrawingPencilController.DrawingColor;
+        m_DrawingPencilController.StartResistance(); 
+        m_StrokePositionTransform.position = m_OtherObject.position;
+        m_DepthPositionTransform.position = m_OtherObject.position;
+        m_StrokePositionTransform.localPosition = new Vector3(m_StrokePositionTransform.localPosition.x, 
+                                                            m_StrokePositionTransform.localPosition.y, 0f);
         if(refreshRenderTextureMips == null) refreshRenderTextureMips = StartCoroutine(UpdateRendureTextureMips());
-        targetPositionTransform.position = m_OtherObject.position;
-        targetPositionTransform.localPosition = new Vector3(targetPositionTransform.localPosition.x, 
-                                                            targetPositionTransform.localPosition.y, 0f);
+        m_TargetPositionTransform.position = m_OtherObject.position;
+        m_TargetPositionTransform.localPosition = new Vector3(m_TargetPositionTransform.localPosition.x, 
+                                                            m_TargetPositionTransform.localPosition.y, 0f);
         // ------------------------
         // For compute shader - GPU
-        int kernel = drawOnTexture_Compute.FindKernel("CSMain");
+        int kernel = m_DrawOnTexture_Compute.FindKernel("CSMain");
         // Buffers 
         // brush stroke shapes
-        m_CPU_BrushStrokeShapeSize0_Buffer = m_DrawingStickController.Brush.BrushSizes[0];
-        m_CPU_BrushStrokeShapeSize1_Buffer = m_DrawingStickController.Brush.BrushSizes[1];
-        m_CPU_BrushStrokeShapeSize2_Buffer = m_DrawingStickController.Brush.BrushSizes[2];
-        m_CPU_BrushStrokeShapeSize3_Buffer = m_DrawingStickController.Brush.BrushSizes[3];
-        m_CPU_BrushStrokeShapeSize4_Buffer = m_DrawingStickController.Brush.BrushSizes[4];
+        m_CPU_BrushStrokeShapeSize0_Buffer = m_DrawingPencilController.Brush.BrushSizes[0];
+        m_CPU_BrushStrokeShapeSize1_Buffer = m_DrawingPencilController.Brush.BrushSizes[1];
+        m_CPU_BrushStrokeShapeSize2_Buffer = m_DrawingPencilController.Brush.BrushSizes[2];
+        m_CPU_BrushStrokeShapeSize3_Buffer = m_DrawingPencilController.Brush.BrushSizes[3];
+        m_CPU_BrushStrokeShapeSize4_Buffer = m_DrawingPencilController.Brush.BrushSizes[4];
 
-        m_CPU_BrushStrokeShapesWidths_Buffer = new uint[m_DrawingStickController.Brush.NumberOfSizes];
-        m_CPU_BrushStrokeShapesOffset_Buffer = new int[m_DrawingStickController.Brush.NumberOfSizes];
+        m_CPU_BrushStrokeShapesWidths_Buffer = new uint[m_DrawingPencilController.Brush.NumberOfSizes];
+        m_CPU_BrushStrokeShapesOffset_Buffer = new int[m_DrawingPencilController.Brush.NumberOfSizes];
 
         // TODO: Nice to have : set dynamic
         m_CPU_BrushStrokeShapesOffset_Buffer[0] = -1; 
@@ -353,11 +358,11 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         m_CPU_BrushStrokeShapesOffset_Buffer[4] = -5; 
         
 
-        m_CPU_BrushStrokeSizesArrayLengths_Buffer = new uint[m_DrawingStickController.Brush.NumberOfSizes];
+        m_CPU_BrushStrokeSizesArrayLengths_Buffer = new uint[m_DrawingPencilController.Brush.NumberOfSizes];
         for (var i = 0; i < m_CPU_BrushStrokeSizesArrayLengths_Buffer.Length; i++)
         {
-            m_CPU_BrushStrokeSizesArrayLengths_Buffer[i] = (uint)m_DrawingStickController.Brush.BrushSizes[i].Length;
-            m_CPU_BrushStrokeShapesWidths_Buffer[i] = (uint)m_DrawingStickController.Brush.WidthOfBrushSize[i];
+            m_CPU_BrushStrokeSizesArrayLengths_Buffer[i] = (uint)m_DrawingPencilController.Brush.BrushSizes[i].Length;
+            m_CPU_BrushStrokeShapesWidths_Buffer[i] = (uint)m_DrawingPencilController.Brush.WidthOfBrushSize[i];
 
         }
 
@@ -383,16 +388,16 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         GPU_BrushStrokeShapesWidths_Buffer.SetData(m_CPU_BrushStrokeShapesWidths_Buffer);
         GPU_BrushStrokeShapesOffset_Buffer.SetData(m_CPU_BrushStrokeShapesOffset_Buffer);
         
-        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize0_Buffer", GPU_BrushStrokeShapeSize0_Buffer);
-        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize1_Buffer", GPU_BrushStrokeShapeSize1_Buffer);
-        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize2_Buffer", GPU_BrushStrokeShapeSize2_Buffer);
-        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize3_Buffer", GPU_BrushStrokeShapeSize3_Buffer);
-        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize4_Buffer", GPU_BrushStrokeShapeSize4_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize0_Buffer", GPU_BrushStrokeShapeSize0_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize1_Buffer", GPU_BrushStrokeShapeSize1_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize2_Buffer", GPU_BrushStrokeShapeSize2_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize3_Buffer", GPU_BrushStrokeShapeSize3_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapeSize4_Buffer", GPU_BrushStrokeShapeSize4_Buffer);
 
-        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeSizesArrayLengths_Buffer", GPU_BrushStrokeSizesArrayLengths_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeSizesArrayLengths_Buffer", GPU_BrushStrokeSizesArrayLengths_Buffer);
 
-        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesWidths_Buffer", GPU_BrushStrokeShapesWidths_Buffer);
-        drawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesOffset_Buffer", GPU_BrushStrokeShapesOffset_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesWidths_Buffer", GPU_BrushStrokeShapesWidths_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesOffset_Buffer", GPU_BrushStrokeShapesOffset_Buffer);
 
         // TODO: research native array!
     }// End StartStroke()
@@ -402,12 +407,17 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         m_OtherObject = null;
         StopCoroutine(refreshRenderTextureMips);
         refreshRenderTextureMips = null;
-        m_DrawingStickController.StopResistance();
-        // TODO: reset mesh offset
-        // TODO: let go holding pencil
-        // TODO: push pencil back
-        m_DrawingStickController.OffsetMainMesh(Vector3.zero);
-        m_DrawingStickController = null;
+        m_DrawingPencilController.StopResistance();
+        m_DrawingPencilController.OffsetMainMesh(Vector3.zero);
+        // check if going through page - 
+        if(m_DepthPositionTransform.localPosition.z > 0f){
+            // TODO: calc correct! - 
+            m_ReleasePosition.localPosition = new Vector3(  m_TargetPosition.transform.localPosition.x, 
+                                                            m_TargetPosition.transform.localPosition.y,
+                                                            m_ReleasePosition.localPosition.z);
+            m_DrawingPencilController.ReleasePencil(m_ReleasePosition.position);
+        }
+        m_DrawingPencilController = null;
         StartCoroutine(UpdateTexturesOnce()); // need to wait
 
         GPU_BrushStrokeShapeSize0_Buffer.Release();
@@ -426,12 +436,6 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         // GPU_ActiveLayerBuffer.Release();
 
         // TODO: update active layer and final update of render texture
-
-        // Handle pencil : if through paper let go
-        // check if through paper
-        // let go of pencil and push back
-
-
     }
 #endregion Start Stop strokes
 
@@ -491,7 +495,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             case BiggestBrushSize.PreviousFrame:
                 deltaVector = pointThisFrame - pointPreviousFrame;
                 firstPixelPosition = CalculatePixelCoordinates(pointPreviousFrame);
-                firstNewPixel = new Pixel(firstPixelPosition, m_DrawingStickController.DrawingColor);
+                firstNewPixel = new Pixel(firstPixelPosition, m_DrawingPencilController.DrawingColor);
                 pixelCoordinates.Add(firstNewPixel);
                 sizeOfBrushPerPoint.Add((uint)previousFrameBrushSize);
                 Debug.Log($"Biggest brush size : previous frame or idem \n First pixel in array : {firstPixelPosition} \n Added coords to list..");
@@ -499,7 +503,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             case BiggestBrushSize.ThisFrame:
                 deltaVector = pointPreviousFrame - pointThisFrame;
                 firstPixelPosition = CalculatePixelCoordinates(pointThisFrame);
-                firstNewPixel = new Pixel(firstPixelPosition, m_DrawingStickController.DrawingColor);
+                firstNewPixel = new Pixel(firstPixelPosition, m_DrawingPencilController.DrawingColor);
                 pixelCoordinates.Add(firstNewPixel);
                 sizeOfBrushPerPoint.Add((uint)thisFrameBrushSize);
                 Debug.Log($"Biggest brush size : this frame \n First pixel in array : {firstPixelPosition} Added coords to list..");
@@ -513,12 +517,12 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
         // -- Preparing Iteration
         // Calculate radiuses. Brush size is in pixel width (diameter)
-        float radiusPreviousStroke = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingStickController.Brush.WidthOfBrushSize[previousFrameBrushSize]) /2f;
+        float radiusPreviousStroke = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingPencilController.Brush.WidthOfBrushSize[previousFrameBrushSize]) /2f;
         Debug.Log("radiusLastStroke : " + radiusPreviousStroke);
-        float radiusThisStroke = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingStickController.Brush.WidthOfBrushSize[thisFrameBrushSize]) /2f;
+        float radiusThisStroke = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingPencilController.Brush.WidthOfBrushSize[thisFrameBrushSize]) /2f;
         Debug.Log("RadiusThisStroke : " + radiusThisStroke);
         // Calculate stepSize based on smallest brush size radius
-        float stepSize = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingStickController.Brush.WidthOfBrushSize[0]) /2f; // stepSize is the radius of the smallest brush
+        float stepSize = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingPencilController.Brush.WidthOfBrushSize[0]) /2f; // stepSize is the radius of the smallest brush
         Debug.Log("stepsize : " + stepSize);
         // scaling normalized deltaVector by stepSize
         Vector2 normalizedDeltaVector = (deltaVector/distanceBetweenBrushHits);
@@ -602,7 +606,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             if( strokeCanFit ){
                 sizeOfBrushPerPoint.Add((uint)brushSizeAndRadius.Item1);
                 Vector2Int pixelPosition = CalculatePixelCoordinates(currentPos);
-                Pixel newPixel = new Pixel(pixelPosition, m_DrawingStickController.DrawingColor);
+                Pixel newPixel = new Pixel(pixelPosition, m_DrawingPencilController.DrawingColor);
                 pixelCoordinates.Add(newPixel);
                 // Update
                 currentPos1D += brushSizeAndRadius.Item2; // move pos to end of radius
@@ -620,14 +624,14 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         switch(biggestBrushSize){ // end iteration list with smallest brush size
             case BiggestBrushSize.ThisFrame:
                 lastPixelPosition = CalculatePixelCoordinates(pointPreviousFrame);
-                lastNewPixel = new Pixel(lastPixelPosition, m_DrawingStickController.DrawingColor);
+                lastNewPixel = new Pixel(lastPixelPosition, m_DrawingPencilController.DrawingColor);
                 pixelCoordinates.Add(lastNewPixel);
                 sizeOfBrushPerPoint.Add((uint)previousFrameBrushSize);
                 break;
             case BiggestBrushSize.Idem:
             case BiggestBrushSize.PreviousFrame:
                 lastPixelPosition = CalculatePixelCoordinates(pointThisFrame);
-                lastNewPixel = new Pixel(lastPixelPosition, m_DrawingStickController.DrawingColor);
+                lastNewPixel = new Pixel(lastPixelPosition, m_DrawingPencilController.DrawingColor);
                 pixelCoordinates.Add(lastNewPixel);
                 sizeOfBrushPerPoint.Add((uint)thisFrameBrushSize);
                 break;
@@ -647,7 +651,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         
         if(biggestBrushSize == BiggestBrushSize.Idem){ 
             // return smallestBrush, skip lerp.
-            float brushWidth = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingStickController.Brush.WidthOfBrushSize[smallestBrush]);
+            float brushWidth = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingPencilController.Brush.WidthOfBrushSize[smallestBrush]);
             float brushRadius = brushWidth/2f;
             return (smallestBrush, brushRadius);
         }else {
@@ -655,7 +659,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             // add % of difference to small brush - round to int
             float difference = biggestBrush - smallestBrush;
             int brushSizeIndex = smallestBrush + Mathf.RoundToInt(difference * percentageOfLine);
-            int brushSizePixelWidth = m_DrawingStickController.Brush.WidthOfBrushSize[brushSizeIndex];
+            int brushSizePixelWidth = m_DrawingPencilController.Brush.WidthOfBrushSize[brushSizeIndex];
             float brushWidth = ConvertPixelWidthToPercentageOfImageWidth(brushSizePixelWidth);
             float brushRadius = brushWidth/2f;
             return(brushSizeIndex, brushRadius);
@@ -676,29 +680,29 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     }
 
     void UpdateResistance(){
-        float resistance = Mathf.Clamp( (depthPositionTransform.localPosition.z + .5f), 0f, 1f );
+        float resistance = Mathf.Clamp( (m_DepthPositionTransform.localPosition.z + .5f), 0f, 1f );
         // if(resistance > .8f) Debug.Log("Resistance : ".Colorize(Color.white) + resistance);
-        m_DrawingStickController.HandleResistance(resistance);
+        m_DrawingPencilController.HandleResistance(resistance);
     }
 
     void UpdateStrokeAndTargetAndDepth(){
-        targetPositionTransform.position = m_OtherObject.position;
-        depthPositionTransform.position = m_OtherObject.position;
-        targetPositionTransform.localPosition = new Vector3(targetPositionTransform.localPosition.x, 
-                                                            targetPositionTransform.localPosition.y, 0f);
-        strokePositionTransform.localPosition = Vector2.MoveTowards(strokePositionTransform.localPosition, 
-                                                                    targetPositionTransform.localPosition, 
-                                                                    drawSpeed * Time.deltaTime);
+        m_TargetPositionTransform.position = m_OtherObject.position;
+        m_DepthPositionTransform.position = m_OtherObject.position;
+        m_TargetPositionTransform.localPosition = new Vector3(m_TargetPositionTransform.localPosition.x, 
+                                                            m_TargetPositionTransform.localPosition.y, 0f);
+        m_StrokePositionTransform.localPosition = Vector2.MoveTowards(m_StrokePositionTransform.localPosition, 
+                                                                    m_TargetPositionTransform.localPosition, 
+                                                                    m_drawSpeed * Time.deltaTime);
     }
 
     void UpdateDrawingStickOffset(){
-        Vector3 offset = targetPositionTransform.position - depthPositionTransform.position;
-        m_DrawingStickController.OffsetMainMesh(offset);
+        Vector3 offset = m_TargetPositionTransform.position - m_DepthPositionTransform.position;
+        m_DrawingPencilController.OffsetMainMesh(offset);
     }
 
     Vector2 CalculateCanvasCoordinatesRaw(){ // from scaled gameobject, y diretion stretched by 1.25
-        return new Vector2(Mathf.Clamp((strokePositionTransform.localPosition.x + .5f), 0, 1), 
-                           Mathf.Clamp((strokePositionTransform.localPosition.y + .5f), 0, 1));
+        return new Vector2(Mathf.Clamp((m_StrokePositionTransform.localPosition.x + .5f), 0, 1), 
+                           Mathf.Clamp((m_StrokePositionTransform.localPosition.y + .5f), 0, 1));
     }
 
     /// <summary>
@@ -739,7 +743,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             renderTexture_18.GenerateMips();
             renderTexture_19.GenerateMips();
 #endif
-            yield return new WaitForSeconds(renderTextureMipsRefreshRate);
+            yield return new WaitForSeconds(m_RenderTextureMipsRefreshRate);
         }
     }
 

@@ -101,23 +101,15 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     }
 
     // offset mesh during drawing a stroke - continously updated
-    public void OffsetMainMesh(Vector3 offset){ // TODO: see Jason video, extension methods
-        // m_PencilMesh.transform.localPosition.Set(m_PencilMesh.transform.localPosition.x, 
-        //                                         m_PencilMesh.transform.localPosition.y,
-        //                                         val); 
-
-        // offset relative to angle of drawing board!
+    public void OffsetMainMesh(Vector3 offset){
+        // offsets relative to angle of drawing board!
         m_PencilMesh.transform.localPosition = Vector3.zero;
         m_PencilMesh.transform.position += offset;
-
     }
 
-    public void ReleasePencil(){
-        // m_BaseController.;
-        CustomDirectInteractor customDirectInteractor = m_BaseController.GetComponent<CustomDirectInteractor>();
-        //customDirectInteractor.EndManualInteraction();
-        // https://github.com/Unity-Technologies/XR-Interaction-Toolkit-Examples/issues/29
-        
+    public void ReleasePencil(Vector3 newWorldPosition){
+        m_BaseController.GetComponent<CustomDirectInteractor>().ForceDeselect();
+        transform.position = newWorldPosition;
     }
 
     /// <summary>

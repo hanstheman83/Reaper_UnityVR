@@ -3,7 +3,7 @@
 // HLSL operations : https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-per-component-math
 
 // Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSMain
+#pragma kernel CSMain  
 
 // TODO: Fix gaps in line  
 
