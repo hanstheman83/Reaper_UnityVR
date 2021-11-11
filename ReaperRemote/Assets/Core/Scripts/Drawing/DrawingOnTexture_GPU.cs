@@ -328,6 +328,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
         if(m_DrawingPencilController.ControlledBy != Core.Controls.ControllerHand.None){
             m_IsDrawing = true;
+            m_DrawingPencilController.SetDrawingMode(true);
+
         }else{
             m_IsDrawing = false;
         }

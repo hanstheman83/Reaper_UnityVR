@@ -11,7 +11,7 @@ public class ColorSwatch : MonoBehaviour
                         set {m_Color = value; 
                             GetComponent<Renderer>().material.color = m_Color;
                             m_DrawingStickController.DrawingColor = m_Color;
-                            m_DrawingStickController.stickRenderer.material.color = m_Color;}
+                            m_DrawingStickController.StickRenderer.material.color = m_Color;}
                         }
     [SerializeField] ColorSwatches_UI m_ColorSwatches_UI;
 
@@ -24,7 +24,7 @@ public class ColorSwatch : MonoBehaviour
         // set brush color
         m_DrawingStickController = other.GetComponentInParent<DrawingStickController>();
         m_DrawingStickController.DrawingColor = m_Color;
-        m_DrawingStickController.stickRenderer.material.color = m_Color;
+        m_DrawingStickController.StickRenderer.material.color = m_Color;
         m_ColorSwatches_UI.SetActiveColorSwatch(this);
     }
 }

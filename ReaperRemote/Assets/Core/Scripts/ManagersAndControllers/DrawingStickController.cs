@@ -49,16 +49,20 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     ControllerHand m_ControlledBy = ControllerHand.None;
     [SerializeField] private string nameOfTriggerController;
     [SerializeField] GameObject m_PencilMesh;
-    public Renderer stickRenderer;
+
+    [SerializeField]Renderer m_StickRenderer;
+    public Renderer StickRenderer { get => m_StickRenderer; set => m_StickRenderer = value; }
     public string NameOfTriggerController {get => nameOfTriggerController;} // name accessible from list of all controllers implementing IContinousTrigger
 
     public DataHandler TriggerDataFlow { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
-    private InputActionController inputActionController;
+    private InputActionController m_InputActionController;
     private XRBaseController m_BaseController;
     private Coroutine haptics = null;
     public Color DrawingColor;
     public Brush Brush;
-    public int ActiveBrushSize = 0;
+    int m_ActiveBrushSize = 0;
+    public int ActiveBrushSize { get => m_ActiveBrushSize;}
+    bool m_DrawingModeActive = false;
 
     private enum ResistanceLevel{
         None, Lowest, Low, Medium, High, Highest 
@@ -66,12 +70,13 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     private ResistanceLevel resistanceLevel = ResistanceLevel.None;
     private float amplitude = 0f;
     private float delay = 1f;
+    UnityEngine.InputSystem.InputAction m_SelectAction;
 
 
     // Start is called before the first frame update
     void Start()
     {
-        inputActionController = FindObjectOfType<InputActionController>();
+        m_InputActionController = FindObjectOfType<InputActionController>();
         Brush = new Brush(5);
     }
 
@@ -81,12 +86,12 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         customDirectInteractor.attachTransform.position = GetComponent<XRGrabInteractable>().attachTransform.position;
         customDirectInteractor.attachTransform.rotation = GetComponent<XRGrabInteractable>().attachTransform.rotation;
         m_BaseController = customDirectInteractor.gameObject.GetComponent<XRBaseController>(); 
-        inputActionController.RegisterTriggerControl(this, m_ControlledBy);
+        m_InputActionController.RegisterTriggerControl(this, m_ControlledBy);
     }
     public void OnSelectExited(SelectExitEventArgs args){
         CustomDirectInteractor customDirectInteractor = (CustomDirectInteractor)args.interactor;
         customDirectInteractor.attachTransform.localPosition = Vector3.zero;
-        inputActionController.RemoveTriggerControl(this, m_ControlledBy);
+        m_InputActionController.RemoveTriggerControl(this, m_ControlledBy);
         m_ControlledBy = ControllerHand.None;
         m_BaseController = null;
         Debug.Log("Deselected controller.. Held by : "+ m_ControlledBy);
@@ -94,7 +99,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
 
     public void ProcessTriggerInput(float val) // called from inputActionController
     {
-        ActiveBrushSize = Mathf.Clamp( 
+        m_ActiveBrushSize = Mathf.Clamp( 
                                 (Mathf.RoundToInt( val * (Brush.NumberOfSizes - 1) )), 0, 
                                 (Brush.NumberOfSizes - 1)
                                 );
@@ -112,6 +117,17 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         m_BaseController.GetComponent<CustomDirectInteractor>().ForceDeselect();
         transform.position = newWorldPosition;
         Debug.Log("Forcing deselect!");
+        m_ActiveBrushSize = 0;
+    }
+
+    public void SetDrawingMode(bool mode){
+        m_DrawingModeActive = mode;
+        if(m_DrawingModeActive){
+            //m_SelectAction = m_BaseController.GetComponent<ActionBasedController>().selectAction.action;
+            //m_BaseController.GetComponent<ActionBasedController>().selectAction.action.Disable();
+        }else{
+            //m_BaseController.GetComponent<ActionBasedController>().selectAction = m_SelectAction;
+        }
     }
 
     /// <summary>
