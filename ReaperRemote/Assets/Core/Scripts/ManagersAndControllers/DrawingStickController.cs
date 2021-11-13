@@ -5,38 +5,7 @@ using Core.Controls;
 using UnityEngine.XR.Interaction.Toolkit;
 using Core;
 
-
-public struct Brush{
-    // list of all brush sizes - 1D float arrays [0 to 1, alpha]
-    // 
-    public List<float[]> BrushSizes;
-    public List<int> WidthOfBrushSize;
-    public int NumberOfSizes;
-
-    public Brush(int numberOfSizes){
-        BrushSizes = new List<float[]>();
-        WidthOfBrushSize = new List<int>();
-        this.NumberOfSizes = numberOfSizes;
-        //
-        GenerateList();
-    }
-
-    void GenerateList(){ // TODO: add softness algo!!
-        int brushWidth = 3;
-        for (var i = 0; i < NumberOfSizes; i++)
-        {
-            int sizeOfNewArray = brushWidth * brushWidth; 
-            float[] newBrushSizeArray = new float[sizeOfNewArray];
-            for (var j = 0; j < sizeOfNewArray; j++)
-            {
-                newBrushSizeArray[j] = 1f;
-            }
-            WidthOfBrushSize.Add(brushWidth);
-            BrushSizes.Add(newBrushSizeArray);
-            brushWidth += 2;
-        }
-    }
-}
+namespace Core.Drawing{
 
 
 [RequireComponent(typeof(XRGrabInteractable))]
@@ -114,7 +83,6 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         m_PencilMesh.transform.localPosition = Vector3.zero;
         m_PencilMesh.transform.position += offset;
     }
-
     public void ReleasePencil(Vector3 newWorldPosition){
         m_BaseController.GetComponent<CustomDirectInteractor>().ForceDeselect();
         transform.position = newWorldPosition;
@@ -122,16 +90,12 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         m_ActiveBrushSize = 0;
         m_DrawingModeActive = false;
     }
-
-    
-
     public void StartDrawingMode(){
         m_DrawingModeActive = true;
     }
     public void StopDrawingMode(){
         m_DrawingModeActive = false;
     }
-
     /// <summary>
     /// Start Haptic Feedback
     /// </summary>
@@ -139,7 +103,6 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         if(haptics == null) haptics = StartCoroutine(StartHaptics());
         else Debug.LogError("Haptics was already started!!");
     }
-
     public void StopResistance(){
         if(haptics == null) Debug.LogError("Can't stop haptics - already null!!");
         else {
@@ -147,7 +110,6 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
             haptics = null;
         }
     }
-
 
     // ------------------ Haptics -------------------
 
@@ -187,11 +149,9 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
                 resistanceLevel = ResistanceLevel.Highest;
                 amplitude = 1f;
                 delay = .04f;
-                // Debug.Log("Ristance level highest!".Colorize(Color.magenta));
             }
         }
     }
-
     IEnumerator StartHaptics()
     {
         while (true)
@@ -200,9 +160,41 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
             SendHaptics();
         }
     }
- 
     void SendHaptics()
     {   if(m_BaseController == null) Debug.Log("controller is null");
         m_BaseController?.SendHapticImpulse(amplitude, 0.03f);
     }
+}
+
+public struct Brush{
+    // list of all brush sizes - 1D float arrays [0 to 1, alpha]
+    public List<float[]> BrushSizes;
+    public List<int> WidthOfBrushSize;
+    public int NumberOfSizes;
+
+    public Brush(int numberOfSizes){
+        BrushSizes = new List<float[]>();
+        WidthOfBrushSize = new List<int>();
+        this.NumberOfSizes = numberOfSizes;
+        //
+        GenerateList();
+    }
+
+    void GenerateList(){ // TODO: add softness algo!!
+        int brushWidth = 3;
+        for (var i = 0; i < NumberOfSizes; i++)
+        {
+            int sizeOfNewArray = brushWidth * brushWidth; 
+            float[] newBrushSizeArray = new float[sizeOfNewArray];
+            for (var j = 0; j < sizeOfNewArray; j++)
+            {
+                newBrushSizeArray[j] = 1f;
+            }
+            WidthOfBrushSize.Add(brushWidth);
+            BrushSizes.Add(newBrushSizeArray);
+            brushWidth += 2;
+        }
+    }
+}
+
 }

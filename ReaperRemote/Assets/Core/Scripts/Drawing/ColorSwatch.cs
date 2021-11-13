@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Core.UI;
 
+namespace Core.Drawing {
+
 public class ColorSwatch : MonoBehaviour
 {
     [SerializeField] Color m_Color;
@@ -27,4 +29,5 @@ public class ColorSwatch : MonoBehaviour
         m_DrawingStickController.StickRenderer.material.color = m_Color;
         m_ColorSwatches_UI.SetActiveColorSwatch(this);
     }
+}
 }
