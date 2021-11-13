@@ -62,6 +62,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     public Brush Brush;
     int m_ActiveBrushSize = 0;
     public int ActiveBrushSize { get => m_ActiveBrushSize;}
+    public bool DrawingModeActive { get => m_DrawingModeActive;}
     bool m_DrawingModeActive = false;
 
     private enum ResistanceLevel{
@@ -95,6 +96,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         m_ControlledBy = ControllerHand.None;
         m_BaseController = null;
         Debug.Log("Deselected controller.. Held by : "+ m_ControlledBy);
+        m_DrawingModeActive = false;
     }
 
     public void ProcessTriggerInput(float val) // called from inputActionController
@@ -118,16 +120,14 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         transform.position = newWorldPosition;
         Debug.Log("Forcing deselect!");
         m_ActiveBrushSize = 0;
+        m_DrawingModeActive = false;
     }
 
-    public void SetDrawingMode(bool mode){
-        m_DrawingModeActive = mode;
-        if(m_DrawingModeActive){
-            //m_SelectAction = m_BaseController.GetComponent<ActionBasedController>().selectAction.action;
-            //m_BaseController.GetComponent<ActionBasedController>().selectAction.action.Disable();
-        }else{
-            //m_BaseController.GetComponent<ActionBasedController>().selectAction = m_SelectAction;
-        }
+    public void StartDrawingMode(){
+        m_DrawingModeActive = true;
+    }
+    public void StopDrawingMode(){
+        m_DrawingModeActive = false;
     }
 
     /// <summary>

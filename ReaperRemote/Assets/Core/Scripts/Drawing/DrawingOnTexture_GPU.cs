@@ -52,6 +52,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     Coroutine refreshRenderTextureMips;
     ChildTrigger childTrigger; // for XR interaction
     Collider childCollider; // XR interaction
+    Collider m_PencilCollider;
 
     // For ComputeShader CPU-GPU communication 
 
@@ -141,7 +142,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         childTrigger = transform.GetComponentInChildren<ChildTrigger>();
         childCollider = childTrigger.GetComponent<Collider>();
         childTrigger.childTriggeredEnterEvent += StartStroke;
-        childTrigger.childTriggeredExitEvent += StopStroke;
+        
     }
     
     void Start()
@@ -218,6 +219,10 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         
     #region return break -- Not drawing!
         if(m_IsDrawing == false) { // TODO: add if not holding pencil!!
+            return;
+        }else if(m_IsDrawing == true && !m_DrawingPencilController.DrawingModeActive){
+            // pencil was released during drawing
+            StopStroke(m_PencilCollider);
             return;
         }
     #endregion return break
@@ -319,29 +324,24 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
     void StartStroke(Collider other)
     {
+        childTrigger.childTriggeredExitEvent += StopStroke;
+        m_PencilCollider = other;
         m_PreviousStroke = new Vector2(-1f, -1f); // skip first frame, no stroke length!
         m_OtherObject = other.transform.Find("DrawPoint");
         m_DrawingPencilController = other.GetComponentInParent<DrawingStickController>();
-
-        // TODO: if not holding pencil - break!
-        // m_DrawingPencilController.
+        m_DrawingPencilController.StartDrawingMode();
 
         if(m_DrawingPencilController.ControlledBy != Core.Controls.ControllerHand.None){
             m_IsDrawing = true;
-            m_DrawingPencilController.SetDrawingMode(true);
 
         }else{
             m_IsDrawing = false;
         }
-
-
         if (m_IsDrawing)
         {
             InitStrokeData();
         }
-
-        // TODO: research native array!
-    }// End StartStroke()
+    }
 
     void StopStroke(Collider other){
         m_IsDrawing = false;
@@ -350,6 +350,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         refreshRenderTextureMips = null;
         m_DrawingPencilController.StopResistance();
         m_DrawingPencilController.OffsetMainMesh(Vector3.zero);
+        m_DrawingPencilController.StopDrawingMode();
         // check if going through page - 
         if(m_DepthPositionTransform.localPosition.z > 0f){
             // TODO: calc correct! - 
@@ -372,14 +373,10 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         GPU_BrushStrokeShapesWidths_Buffer.Release();
         GPU_BrushStrokeShapesOffset_Buffer.Release();
 
-        // GPU_ActiveLayerBuffer.GetData(m_CPU_ActiveLayerBuffer);
-        // m_CPU_ActiveLayerBuffer.CopyTo(layerManager.ActiveLayer.Pixels, 0);
-        // GPU_ActiveLayerBuffer.Release();
-
-        // TODO: update active layer and final update of render texture
+        childTrigger.childTriggeredExitEvent -= StopStroke;
     }
 
-    // Helper function for StartStroke()
+    // Helper function for Strokes
     private void InitStrokeData()
     {
         drawingColor = m_DrawingPencilController.DrawingColor;
@@ -466,24 +463,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             // ------------------------------------------------------------------ //
     // ---------------------- DRAWING METHODS -------------------------------------------- //
 
-    // _Pixel[] CalculatePointsOnLine_Pixels2D(Vector2[] pointsOnLine){
-    //     //
-    //     _Pixel[] pixelsArray = new _Pixel[pointsOnLine.Length];
-    //     for (var i = 0; i < pointsOnLine.Length; i++)
-    //     {
-    //         pixelsArray[i].position_x = (uint) Mathf.Round(pointsOnLine[i].x * m_ImageWidth); 
-    //         pixelsArray[i].position_y = (uint) Mathf.Round(pointsOnLine[i].y * m_ImageHeight); 
-    //         pixelsArray[i].color_r = drawingColor.r;
-    //         pixelsArray[i].color_g = drawingColor.g;
-    //         pixelsArray[i].color_b = drawingColor.b;
-    //         pixelsArray[i].color_a = drawingColor.a;
-    //     }
-    //     return pixelsArray;
-    // }
 
-    // TODO: gradient between points
-    // TODO: fix holes in line - add last stroke even when not space enough!
-    // TODO: remove redundant first added stroke (already added in prev frame)
     /// <summary>
     /// Calculated line can start from either point - dependent on what point (this frame or last) has largest brush size.
     /// </summary>
