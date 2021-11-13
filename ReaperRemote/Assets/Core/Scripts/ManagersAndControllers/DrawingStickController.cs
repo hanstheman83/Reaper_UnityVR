@@ -123,6 +123,8 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         m_DrawingModeActive = false;
     }
 
+    
+
     public void StartDrawingMode(){
         m_DrawingModeActive = true;
     }

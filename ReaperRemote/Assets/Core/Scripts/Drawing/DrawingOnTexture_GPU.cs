@@ -322,30 +322,27 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     // ------------------------------- START - STOP STROKES --------------------------------- //
 #region Start Stop strokes
 
-    void StartStroke(Collider other)
+    void StartStroke(Collider other) // collision - may not start a stroke!! 
     {
-        childTrigger.childTriggeredExitEvent += StopStroke;
         m_PencilCollider = other;
         m_PreviousStroke = new Vector2(-1f, -1f); // skip first frame, no stroke length!
         m_OtherObject = other.transform.Find("DrawPoint");
         m_DrawingPencilController = other.GetComponentInParent<DrawingStickController>();
-        m_DrawingPencilController.StartDrawingMode();
 
         if(m_DrawingPencilController.ControlledBy != Core.Controls.ControllerHand.None){
+            childTrigger.childTriggeredExitEvent += StopStroke;
             m_IsDrawing = true;
-
+            m_DrawingPencilController.StartDrawingMode();
+            InitStrokeData();
         }else{
             m_IsDrawing = false;
-        }
-        if (m_IsDrawing)
-        {
-            InitStrokeData();
         }
     }
 
     void StopStroke(Collider other){
         m_IsDrawing = false;
         m_OtherObject = null;
+        Debug.Log("Stopping co mips.");
         StopCoroutine(refreshRenderTextureMips);
         refreshRenderTextureMips = null;
         m_DrawingPencilController.StopResistance();
@@ -379,13 +376,17 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     // Helper function for Strokes
     private void InitStrokeData()
     {
+
         drawingColor = m_DrawingPencilController.DrawingColor;
         m_DrawingPencilController.StartResistance();
         m_StrokePositionTransform.position = m_OtherObject.position;
         m_DepthPositionTransform.position = m_OtherObject.position;
         m_StrokePositionTransform.localPosition = new Vector3(m_StrokePositionTransform.localPosition.x,
                                                             m_StrokePositionTransform.localPosition.y, 0f);
-        if (refreshRenderTextureMips == null) refreshRenderTextureMips = StartCoroutine(UpdateRendureTextureMips());
+        if (refreshRenderTextureMips == null) {
+            refreshRenderTextureMips = StartCoroutine(UpdateRendureTextureMips());
+            Debug.Log("starting coroutine mips refresh");
+        }
         m_TargetPositionTransform.position = m_OtherObject.position;
         m_TargetPositionTransform.localPosition = new Vector3(m_TargetPositionTransform.localPosition.x,
                                                             m_TargetPositionTransform.localPosition.y, 0f);
