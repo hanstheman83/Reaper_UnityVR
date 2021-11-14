@@ -338,7 +338,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                             m_ReleasePosition.localPosition.z);
     }
     /// <summary>
-    /// A Stroke is continous drawing-lines during pencil contact with the texture (if the user is holding the pencil)
+    /// A Stroke is continous drawing-lines during pencil contact with the texture (if the user is holding the pencil).
     /// </summary>
     void StartHandlingDrawingInput(Collider other){
         m_IsDrawing = true;
