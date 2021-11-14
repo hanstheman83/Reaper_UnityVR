@@ -59,8 +59,6 @@ public class InputActionController : MonoBehaviour
     private ControllerState m_ControllerState = ControllerState.NotDrawing;
 
 
-    
- 
     #region Unity Methods
     private void Awake() {
         continousLeftTriggers = new List<IContinousTrigger>();
@@ -72,8 +70,6 @@ public class InputActionController : MonoBehaviour
         XR_leftTriggerPress.action.performed += ProcessLeftTrigger;
         XR_rightTriggerPress.action.performed += ProcessRightTrigger;
         XR_leftJoystickPress.action.performed += ProcessLeftJoystickPress;
-
-
     }
 
     private void Start() {
@@ -100,7 +96,6 @@ public class InputActionController : MonoBehaviour
         {
             Debug.Log("Joy button is pressed");
         }
-
         // Debug toggle
         if(oldState != rightIsActive){
             if(rightIsActive){
@@ -110,14 +105,10 @@ public class InputActionController : MonoBehaviour
             }
         }
         oldState = rightIsActive;
-    }// end Update()
-
+    }
     #endregion Unity Methods
     
-
-    // ----------- 
     #region Control Setup
-
     void SetMainController(ControllerHand controllerHand){
         switch(controllerHand){
             case ControllerHand.Left:
@@ -126,10 +117,8 @@ public class InputActionController : MonoBehaviour
                 leftTeleportController.SetActive(true);
                 leftActionBasedControllerManager.enabled = true; // TODO add this to right controller if script starts disabled...
                 rightActionBasedControllerManager.enabled = false;
-
                 SetControllerUI_State(ControllerHand.Left, false);
                 SetControllerUI_State(ControllerHand.Right, true);
-                
                 rightTeleportController.SetActive(false);
                 customMoveProvider.ActivateControl(rightMove, ControllerHand.Right);
                 customSnapTurnProvider.ActivateControl(leftTurn, ControllerHand.Left);
@@ -142,10 +131,8 @@ public class InputActionController : MonoBehaviour
                 rightTeleportController.SetActive(true);
                 rightActionBasedControllerManager.enabled = true;
                 leftActionBasedControllerManager.enabled = false;
-
                 SetControllerUI_State(ControllerHand.Left, true);
                 SetControllerUI_State(ControllerHand.Right, false);
-
                 leftTeleportController.SetActive(false);
                 customMoveProvider.ActivateControl(leftMove, ControllerHand.Left);
                 customSnapTurnProvider.ActivateControl(rightTurn, ControllerHand.Right);
@@ -182,7 +169,6 @@ public class InputActionController : MonoBehaviour
             case ControllerHand.None:
                 Debug.LogError("Please Input a correct controller hand");
                 break;
-            
         }
     }
 
@@ -199,6 +185,7 @@ public class InputActionController : MonoBehaviour
                 break;
         }
     }
+
     public void RemoveTriggerControl(IContinousTrigger trigger, ControllerHand controllerHand){
         bool success;
         switch(controllerHand){
@@ -295,6 +282,7 @@ public class InputActionController : MonoBehaviour
         }
 
     }
+    
     public void SetControllerStateToNotDrawing(){
         m_ControllerState = ControllerState.NotDrawing;
         if(m_MainController == ControllerHand.Left){
@@ -303,7 +291,6 @@ public class InputActionController : MonoBehaviour
             SetControllerUI_State(ControllerHand.Left, true);
         }
     }
-
     #endregion Scene Callbacks
 
     #region UI callbacks

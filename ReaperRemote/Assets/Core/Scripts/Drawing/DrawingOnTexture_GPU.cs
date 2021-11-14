@@ -456,27 +456,16 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     /// </summary>
     /// <returns>Pixel Coordinates and brush widths in pixel sizes.</returns>
     (Pixel[], uint[]) CalculatePointsOnLine(Vector2 pointPreviousFrame, Vector2 pointThisFrame, int previousFrameBrushSize, int thisFrameBrushSize){ 
-        // Debug.Log("Point prev frame : " + pointPreviousFrame);
-        // Debug.Log("Point this frame : " + pointThisFrame);
-        
-        BiggestBrushSize biggestBrushSize = default;
-        if(previousFrameBrushSize == thisFrameBrushSize) { biggestBrushSize = BiggestBrushSize.Idem; }
-        else if(previousFrameBrushSize > thisFrameBrushSize) { biggestBrushSize = BiggestBrushSize.PreviousFrame; }
-        else if(previousFrameBrushSize < thisFrameBrushSize) { biggestBrushSize = BiggestBrushSize.ThisFrame; }
-
+        BiggestBrushSize biggestBrushSize = CalculateFrameWithBiggestBrushSize(previousFrameBrushSize, thisFrameBrushSize);
         float distanceBetweenBrushHits = Vector2.Distance(pointThisFrame, pointPreviousFrame); // magnitude of delta vector
-        // Debug.Log($"Distance between hits : {distanceBetweenBrushHits}");
         List<uint> sizeOfBrushPerPoint = new List<uint>(); // from biggest brush stroke to smallest
         List<Pixel> pixelCoordinates = new List<Pixel>(); // from biggest brush stroke to smallest
-
         // Adding first points to list, before starting the iteration. Calculate deltavector
         // flip vector direction if brush size is reversed! Iteration will also be reversed, iterate from big to small brush size
         // TODO: Nice to have : center the pixel - avoid rounding error. Subtract .5 of pixel width and length for correct position!
         Vector2 deltaVector = Vector2.zero;
         Vector2Int firstPixelPosition;
         Pixel firstNewPixel;
-        // Debug.Log("Brush size previous frame : " + previousFrameBrushSize);
-        // Debug.Log("Brush size this frame : " + thisFrameBrushSize);
         switch(biggestBrushSize){
             case BiggestBrushSize.Idem: // normal, iterate starting from lastFrameStroke to thisFrameStroke
             case BiggestBrushSize.PreviousFrame:
@@ -485,7 +474,6 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                 firstNewPixel = new Pixel(firstPixelPosition, m_DrawingPencilController.DrawingColor);
                 pixelCoordinates.Add(firstNewPixel);
                 sizeOfBrushPerPoint.Add((uint)previousFrameBrushSize);
-                // Debug.Log($"Biggest brush size : previous frame or idem \n First pixel in array : {firstPixelPosition} \n Added coords to list..");
                 break;
             case BiggestBrushSize.ThisFrame:
                 deltaVector = pointPreviousFrame - pointThisFrame;
@@ -493,29 +481,21 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                 firstNewPixel = new Pixel(firstPixelPosition, m_DrawingPencilController.DrawingColor);
                 pixelCoordinates.Add(firstNewPixel);
                 sizeOfBrushPerPoint.Add((uint)thisFrameBrushSize);
-                // Debug.Log($"Biggest brush size : this frame \n First pixel in array : {firstPixelPosition} Added coords to list..");
                 break;
             default:
-                // Debug.LogError("Error - no biggest brush size!!!");
                 break;
         }
         if(deltaVector.x == 0) { deltaVector.x = 0.000001f; }
         if(deltaVector.y == 0) { deltaVector.y = 0.000001f; }
-
         // -- Preparing Iteration
         // Calculate radiuses. Brush size is in pixel width (diameter)
         float radiusPreviousStroke = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingPencilController.Brush.WidthOfBrushSize[previousFrameBrushSize]) /2f;
-        // Debug.Log("radiusLastStroke : " + radiusPreviousStroke);
         float radiusThisStroke = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingPencilController.Brush.WidthOfBrushSize[thisFrameBrushSize]) /2f;
-        // Debug.Log("RadiusThisStroke : " + radiusThisStroke);
         // Calculate stepSize based on smallest brush size radius
         float stepSize = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingPencilController.Brush.WidthOfBrushSize[0]) /2f; // stepSize is the radius of the smallest brush
-        // Debug.Log("stepsize : " + stepSize);
         // scaling normalized deltaVector by stepSize
         Vector2 normalizedDeltaVector = (deltaVector/distanceBetweenBrushHits);
-        // Debug.Log("normalized delta vector : " + normalizedDeltaVector.ToString("F6"));
         Vector2 stepSizedDeltaVector =  normalizedDeltaVector * stepSize;
-        // Debug.Log("stepsized deltavector : " + stepSizedDeltaVector.ToString("F6")); 
         // calculate line on which to iterate - 
         Vector2 iterationLineStart = Vector2.zero; // delta vector added to this
         Vector2 iterationLineEnd = Vector2.zero;  
@@ -535,11 +515,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                 Debug.LogError("Error - no biggest brush size!!!");
                 break;
         }
-        // Debug.Log("Iteration line start : " + iterationLineStart);
-        // Debug.Log("Iteration line end : " + iterationLineEnd);
         float lengthOfIterationLine = Vector2.Distance(iterationLineEnd, iterationLineStart);
-        // Debug.Log("length of iteration line " + lengthOfIterationLine);
-
         bool shouldIterate = true; // stop iteration when overlaping last point + radius of that point's brush size. 
         float currentPos1D = 0f;
         Vector2 currentPos = iterationLineStart;
@@ -547,24 +523,15 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         float lastAddedBrushStrokePlusRadiusPos1D = 0; // add brush radius and see if will fit! 
 
         // Iteration
-        while(shouldIterate){
-            // calculate next step - (start of line is on circumference of first brushstroke)
+        while(shouldIterate){  // calculate next step - (start of line is on circumference of first brushstroke)
             currentPos += stepSizedDeltaVector;
             currentPos1D += stepSize;
-            // end ? :
             if(currentPos1D >= lengthOfIterationLine){
-                // Debug.Log("added steps : " + currentPos1D);
-                // Debug.Log("current position " + currentPos);
                 shouldIterate = false;
                 break;
             }
-       
-            // Calculate brush size
-            // % of line from start to end
-            float percentageOfLine = currentPos1D/lengthOfIterationLine;
-            //Debug.Log("Percentage or line : ".Colorize(Color.blue) + percentageOfLine);
-            (int, float) brushSizeAndRadius = (-1, -1f);
-
+            float percentageOfLine = currentPos1D/lengthOfIterationLine;  // Calculate brush size, % of line from start to end
+            (int, float) brushSizeAndRadius = (-1, -1f);  // dummy data, tuple needs ini-vars
             switch(biggestBrushSize){
                 case BiggestBrushSize.Idem:
                 case BiggestBrushSize.PreviousFrame:
@@ -578,19 +545,14 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                     break;
             }
             float currentBrushSizeRadius = brushSizeAndRadius.Item2;
-            //Debug.Log("Current brush size radius on line " + currentBrushSizeRadius);
-            //Debug.Log("current brush size on line : " +brushSizeAndRadius.Item1);
-            
-            bool strokeCanFit = false;
-            // check if should add to list, if stroke can fit 
+            bool strokeCanFit = false;  // check if should add to list, if stroke can fit 
             if( currentPos1D - lastAddedBrushStrokePlusRadiusPos1D > currentBrushSizeRadius &&
                 lengthOfIterationLine - currentPos1D > currentBrushSizeRadius)
             {
                 strokeCanFit = true;
-            }else{ //Debug.Log("Stroke can't fit!".Colorize(Color.magenta)); 
+            }else{ 
             }
-            // Add stroke and update 
-            if( strokeCanFit ){
+            if( strokeCanFit ){ // Add stroke and update 
                 sizeOfBrushPerPoint.Add((uint)brushSizeAndRadius.Item1);
                 Vector2Int pixelPosition = CalculatePixelCoordinates(currentPos);
                 Pixel newPixel = new Pixel(pixelPosition, m_DrawingPencilController.DrawingColor);
@@ -603,9 +565,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             }
         } // end While - iteration
 
-        // Adding the last points to the lists
-        //Debug.Log("Adding two last points to list");
-        Vector2Int lastPixelPosition;
+        Vector2Int lastPixelPosition;  // Adding the last points to the lists
         Pixel lastNewPixel;
         switch(biggestBrushSize){ // end iteration list with smallest brush size
             case BiggestBrushSize.ThisFrame:
@@ -622,10 +582,25 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                 sizeOfBrushPerPoint.Add((uint)thisFrameBrushSize);
                 break;
         }
-        // Debug.Log($"pixel coord array size {pixelCoordinates.Count}");
-        // Debug.Log($"brush sizes on iteration line - array size {sizeOfBrushPerPoint.Count}");
+
         return (pixelCoordinates.ToArray(), sizeOfBrushPerPoint.ToArray());
-    } // End CalculatePointsOnLine(...)
+    }  // End of crazy long algo I don't know how to clean :(
+
+    BiggestBrushSize CalculateFrameWithBiggestBrushSize(int previousFrameBrushSize, int thisFrameBrushSize){
+        if(previousFrameBrushSize == thisFrameBrushSize) { return BiggestBrushSize.Idem; }
+        else if(previousFrameBrushSize > thisFrameBrushSize) { return BiggestBrushSize.PreviousFrame; }
+        else if(previousFrameBrushSize < thisFrameBrushSize) { return BiggestBrushSize.ThisFrame; } 
+        else{ 
+            Debug.LogError("Faulty biggest brush size calculation");
+            return default; 
+            }
+    }
+
+
+
+
+
+
 
     /// <summary>
     /// From big brush size to small lerp.
