@@ -9,6 +9,7 @@ namespace Core.Drawing{
 
 public class DrawingOnTexture_GPU : MonoBehaviour
 {
+    [Header("Render Textures")]
     [SerializeField] Renderer renderTexture_00_Renderer;
     [SerializeField] Renderer renderTexture_01_Renderer;
     [SerializeField] Renderer renderTexture_02_Renderer;
@@ -29,17 +30,23 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     [SerializeField] Renderer renderTexture_17_Renderer;
     [SerializeField] Renderer renderTexture_18_Renderer;
     [SerializeField] Renderer renderTexture_19_Renderer;
+    [Header("Image Settings")]
     [SerializeField][Tooltip("Multiple of 2 -512 1024, 2048, 4096, ...")] int m_RenderTextureWidth = 1024;
     [SerializeField][Tooltip("Multiple of 2 -512 1024, 2048, 4096, ...")] int m_RenderTextureHeight = 1024;
-    [SerializeField][Range(0.02f, 2f)][Tooltip("How fast stroke moves towards brush (slow value = delayed brush stroke)")] float m_drawSpeed = 0.02f;
     [SerializeField][Range(0.02f, .2f)] float m_RenderTextureMipsRefreshRate = 0.03f;
+    [Header("Drawing Settings")]
+    [SerializeField][Range(0.02f, 2f)][Tooltip("How fast stroke moves towards brush (slow value = delayed brush stroke)")] float m_drawSpeed = 0.02f;
+    [Header("References")]
     [SerializeField] GameObject m_StrokePosition;
     [SerializeField] GameObject m_TargetPosition;
     [SerializeField] GameObject m_DepthPosition;
     [SerializeField] Transform m_ReleasePosition;
-    [SerializeField] Color drawingColor;
     [SerializeField] LayerManager_GPU layerManager;
     [SerializeField] ComputeShader m_DrawOnTexture_Compute;
+    [Header("Exposed Fields")]
+    [SerializeField] Color drawingColor;
+    
+    // Not visible in Editor
     Transform m_StrokePositionTransform, m_TargetPositionTransform, m_DepthPositionTransform;
     DrawingStickController m_DrawingPencilController = null;
     Coroutine refreshRenderTextureMips;
@@ -100,10 +107,11 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     Transform m_OtherObject;
     Vector2 m_PreviousStroke = new Vector2(-1f, -1f); // init
     int m_LastActiveBrushSize = 0;
+    (Pixel[], uint[]) pointsOnLineTuple; // pixel positions, brush width [in pixels] per point
     
 
 #region Unity Methods
-    private void Awake() {
+    void Awake() {
         childTrigger = transform.GetComponentInChildren<ChildTrigger>();
         childCollider = childTrigger.GetComponent<Collider>();
         childTrigger.childTriggeredEnterEvent += HandleTriggerEnter;
@@ -117,6 +125,35 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         InitComputeShaderInts();
         InitTransforms();
     }
+    // TODO: release texture when they are not needed- free resources [also on loading another scene!]:
+    // RenderTexture.Release()  Releases the RenderTexture.
+    // This function releases the hardware resources used by the render texture. The texture itself is not destroyed, and will be automatically created again when being used.
+    // As with other "native engine object" types, it is important to pay attention to the lifetime of any render textures and release them when you are finished using them, as they will not be garbage collected like normal managed types.
+    
+    private void OnDestroy() { // TODO: shouldn't it be -= the added methods ????
+        childTrigger.childTriggeredEnterEvent -= HandleTriggerEnter;
+        childTrigger.childTriggeredExitEvent -= HandleTriggerExit;
+    }
+
+    // Update is called once per frame
+    void Update(){
+        bool pencilReleasedDuringDrawing = m_IsDrawing == true && !m_DrawingPencilController.DrawingModeActive;
+        if(!m_IsDrawing) {
+            // do nothing
+        }else if(pencilReleasedDuringDrawing){
+            StopHandlingDrawingInput(); // TODO: push pencil back
+        }else{
+            UpdateStrokeAndTargetAndDepth();
+            UpdateDrawingStickOffset();
+            UpdateResistance();
+            HandleDrawing();
+        }
+    }
+#endregion Unity Methods
+
+
+
+    // -------- Helper methods for Start() ---------- //
     void InitImageSettings(){
         m_ImageWidth = m_RenderTextureWidth * 4;
         m_ImageHeight = m_RenderTextureHeight * 5;
@@ -171,52 +208,31 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         renderer.material.mainTexture = renderTexture;
         m_DrawOnTexture_Compute.SetTexture(kernel, name, renderTexture);
     }
-    // TODO: release texture when they are not needed- free resources [also on loading another scene!]:
-    // RenderTexture.Release()  Releases the RenderTexture.
-    // This function releases the hardware resources used by the render texture. The texture itself is not destroyed, and will be automatically created again when being used.
-    // As with other "native engine object" types, it is important to pay attention to the lifetime of any render textures and release them when you are finished using them, as they will not be garbage collected like normal managed types.
-    
-    private void OnDestroy() { // TODO: shouldn't it be -= the added methods ????
-        childTrigger.childTriggeredEnterEvent -= HandleTriggerEnter;
-        childTrigger.childTriggeredExitEvent -= HandleTriggerExit;
-    }
 
-    // Update is called once per frame
-    void Update(){
-        
-    #region return break -- Not drawing!
-        if(m_IsDrawing == false) {
-            return;
-        }else if(m_IsDrawing == true && !m_DrawingPencilController.DrawingModeActive){
-            // pencil was released during drawing
-            StopHandlingDrawingInput();
-            return;
-        }
-    #endregion return break
-
-
-        // TODO: if drawing mode -- HandleDrawing()
-
-
-
-        UpdateStrokeAndTargetAndDepth();
-        UpdateDrawingStickOffset();
-        UpdateResistance();
+    // -------- Helper methods for Update() ---------- //
+    bool HandleDrawing(){
         Vector2 currentStroke = CalculateCanvasCoordinatesRaw(); // scaled/stretched in y dimension
         // Conversion based on RenderTextures , 4x5 - thus scale y dimension from 1 to 1.25, basically unscalling stretch in canvas dimensions. 
         currentStroke = new Vector2(currentStroke.x, currentStroke.y * 1.25f );
-
-    #region return break -- first frame, can't calculate line
-        if(m_PreviousStroke.x < 0){ 
-            Debug.Log("Skipping first frame in new brush stroke..."); 
+        bool isFirstFrameInStroke = m_PreviousStroke.x < 0;
+        if(isFirstFrameInStroke){ 
+            //Debug.Log("Skipping first frame in new brush stroke..."); 
             m_PreviousStroke = currentStroke;
             m_LastActiveBrushSize = m_DrawingPencilController.ActiveBrushSize;
-            return;
+            return false;
         }
-    #endregion return break
+        bool hasPointsInLine = InitPointsInLineCPU_Buffers(currentStroke);
+        if(hasPointsInLine){
+            DispatchShader(currentStroke);
+        }
+        return true;
+    }
 
-        // iterating and lerping the line between the known (captured) brush strokes. 
-        (Pixel[], uint[]) pointsOnLineTuple; // pixel positions, brush width [in pixels] per point
+    /// <summary>
+    /// Initializes points for CPU Buffers.
+    /// </summary>
+    /// <returns>Bool : true if there are points in currently generated point arrays.</returns>
+    bool InitPointsInLineCPU_Buffers(Vector2 currentStroke){
         pointsOnLineTuple = CalculatePointsOnLine(m_PreviousStroke, currentStroke,
                                     m_LastActiveBrushSize, 
                                     m_DrawingPencilController.ActiveBrushSize); // if lastStroke = -1 calculate only 1 point
@@ -225,64 +241,64 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         if(m_CPU_BrushStrokePositionsOnLine_Buffer.Length != m_CPU_BrushStrokeSizesOnLine_Buffer.Length){
             Debug.LogError("The two arrays have uneven lengths?!");
         }
-        
-    #region return break -- no calculated strokes, nothing to draw!
         if(m_CPU_BrushStrokePositionsOnLine_Buffer.Length <= 0){ // should never happen!
             m_PreviousStroke = currentStroke;
-            return;
+            return false;
         }
-    #endregion return break
+        return true;
+    }
 
-        // -----------------
-        // For compute shader 
-        //Debug.Log($"Points on line {m_CPU_BrushStrokePositionsOnLine_Buffer.Length}:".Colorize(Color.magenta));
+    void DispatchShader(Vector2 currentStroke){
         int kernel = m_DrawOnTexture_Compute.FindKernel("CSMain");
         m_DrawOnTexture_Compute.SetInt("_NumberOfBrushStrokesOnLine", m_CPU_BrushStrokePositionsOnLine_Buffer.Length);
-        var structSize = sizeof(float)*4 + sizeof(uint)*2; // for all _Pixel 
-        // SET BUFFERS
-        // set pixel points on line
+        var structSize = sizeof(float)*4 + sizeof(uint)*2; 
         GPU_BrushStrokePositionsOnLine_Buffer = new ComputeBuffer(m_CPU_BrushStrokePositionsOnLine_Buffer.Length, structSize);
         GPU_BrushStrokePositionsOnLine_Buffer.SetData(m_CPU_BrushStrokePositionsOnLine_Buffer);
         m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokePositionsOnLine_Buffer", GPU_BrushStrokePositionsOnLine_Buffer);
-        // set sizes of points on line
         GPU_BrushStrokeSizesOnLine_Buffer = new ComputeBuffer(m_CPU_BrushStrokeSizesOnLine_Buffer.Length, sizeof(uint));
         GPU_BrushStrokeSizesOnLine_Buffer.SetData(m_CPU_BrushStrokeSizesOnLine_Buffer);
         m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeSizesOnLine_Buffer", GPU_BrushStrokeSizesOnLine_Buffer);
+        int numberOfRuns = CalculateNumberOfKernelRuns();
+        SetDummyData(kernel, numberOfRuns);
+        m_DrawOnTexture_Compute.Dispatch(kernel, numberOfRuns, 1, 1);
+        ReleaseBuffers();
+        CachingDrawingData(currentStroke);
+    }
 
-        // Calculate number of kernel runs 
-        int numberOfRuns = 0; // pointSizes - radius of each point
+    int CalculateNumberOfKernelRuns(){
+        int numberOfRuns = 0;
         for (var i = 0; i < m_CPU_BrushStrokePositionsOnLine_Buffer.Length; i++)
         {
             int brushStrokeSize = (int)m_CPU_BrushStrokeSizesOnLine_Buffer[i];
-            //Debug.Log("brush stroke size : " + brushStrokeSize);
             numberOfRuns += (   m_DrawingPencilController.Brush.WidthOfBrushSize[brushStrokeSize] * 
                                 m_DrawingPencilController.Brush.WidthOfBrushSize[brushStrokeSize] );
-            //Debug.Log("number or runs : " + numberOfRuns);
         }
-        //Debug.Log("number of runs total : " + numberOfRuns);
+        return numberOfRuns;
+    }
 
-        // set dummy data all done buffer
+    /// <summary>
+    /// Setting Dummy Data for the Compute Shader - to know when it is done.
+    /// </summary>
+    void SetDummyData(int kernel, int numberOfRuns){
         m_CPU_JobDone_Buffer = new int[numberOfRuns];
         GPU_JobDone_Buffer = new ComputeBuffer(m_CPU_JobDone_Buffer.Length, sizeof(int));
         m_DrawOnTexture_Compute.SetBuffer(kernel, "_JobDone_Buffer", GPU_JobDone_Buffer);
+    }
 
-        // --------
-        // DISPATCH!
-        m_DrawOnTexture_Compute.Dispatch(kernel, numberOfRuns, 1, 1);
-
-        // --------------------------------- GET DATA AND BUFFER RELEASE--------------------
-        // GET DATA will block update thread, 
-
-        // Dummy call - to stop update loop when kernel is done - to delay .Release() calls!
+    /// <summary>
+    /// Dummy call to Compute Shader <br/> Stops update loop until kernel is done - to delay .Release() calls.
+    /// </summary>
+    void ReleaseBuffers(){
         GPU_JobDone_Buffer.GetData(m_CPU_JobDone_Buffer);
         GPU_JobDone_Buffer.Release();
         GPU_BrushStrokePositionsOnLine_Buffer.Release();
         GPU_BrushStrokeSizesOnLine_Buffer.Release();
+    }
 
+    void CachingDrawingData(Vector2 currentStroke){
         m_PreviousStroke = currentStroke;
         m_LastActiveBrushSize = m_DrawingPencilController.ActiveBrushSize;
     }
-#endregion Unity Methods
 
 
             // -------------------------------------------------------------------- //
@@ -303,14 +319,14 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     void HandleTriggerExit(Collider other){
         bool pencilGoneThroughPaper = m_DepthPositionTransform.localPosition.z > 0f && !(m_DrawingPencilController is null);
         bool pencilNotInHand = m_DrawingPencilController is null;
-        Debug.Log("Drawing pencil controller not in hand : " + pencilNotInHand);
+        // Debug.Log("Drawing pencil controller not in hand : " + pencilNotInHand);
         if(pencilGoneThroughPaper){ // TODO: handle case : releasing pencil while drawing - null!
             m_ReleasePosition.localPosition = CalculateReleasePosition();
             m_DrawingPencilController.ReleasePencil(m_ReleasePosition.position);
             StopHandlingDrawingInput();
-            Debug.Log("Pencil gone through paper - has stopped handling drawing input!");
+            // Debug.Log("Pencil gone through paper - has stopped handling drawing input!");
         }else if(pencilNotInHand){ 
-            Debug.Log("Pencil not in hand!");
+            // Debug.Log("Pencil not in hand!");
             // do nothing
         }else{
             StopHandlingDrawingInput();
