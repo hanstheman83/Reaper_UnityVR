@@ -138,7 +138,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
     // Update is called once per frame
     void Update(){
-        HandleShaderDispatchState();
+        CatchShaderDispatch();
         bool pencilReleasedDuringDrawing = m_IsDrawing == true && !m_DrawingPencilController.DrawingModeActive;
         if(!m_IsDrawing) {
             // do nothing
@@ -223,7 +223,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             m_LastActiveBrushSize = m_DrawingPencilController.ActiveBrushSize;
             return false;
         }
-        bool hasPointsInLine = InitPointsInLineCPU_Buffers(currentStroke);
+        bool hasPointsInLine = InitPointsOnLineCPU_Buffers(currentStroke);
         if(hasPointsInLine){
             DispatchShader(currentStroke);
             CachingDrawingData(currentStroke);
@@ -235,7 +235,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     /// Initializes points for CPU Buffers.
     /// </summary>
     /// <returns>Bool : true if there are points in currently generated point arrays.</returns>
-    bool InitPointsInLineCPU_Buffers(Vector2 currentStroke){
+    bool InitPointsOnLineCPU_Buffers(Vector2 currentStroke){
         pointsOnLineTuple = CalculatePointsOnLine(m_PreviousStroke, currentStroke,
                                     m_LastActiveBrushSize, 
                                     m_DrawingPencilController.ActiveBrushSize); // if lastStroke = -1 calculate only 1 point
@@ -255,7 +255,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     /// Releases buffers when the Compute Shader is done if it was dispatched in previous frame. <br/>
     /// Effectively blocks the Update loop. 
     /// </summary>
-    void HandleShaderDispatchState(){
+    void CatchShaderDispatch(){
         if(m_ComputeShaderDispatched){
             ReleaseBuffers();
             m_ComputeShaderDispatched = false;
@@ -337,12 +337,14 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             m_ReleasePosition.localPosition = CalculateReleasePosition();
             m_DrawingPencilController.ReleasePencil(m_ReleasePosition.position);
             StopHandlingDrawingInput();
+            CatchShaderDispatch();
             // Debug.Log("Pencil gone through paper - has stopped handling drawing input!");
         }else if(pencilNotInHand){ 
             // Debug.Log("Pencil not in hand!");
             // do nothing
         }else{
             StopHandlingDrawingInput();
+            CatchShaderDispatch();
         }
     }
     Vector3 CalculateReleasePosition(){
