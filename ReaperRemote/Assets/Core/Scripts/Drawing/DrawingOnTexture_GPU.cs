@@ -104,6 +104,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 #endif
     private enum BiggestBrushSize {ThisFrame, PreviousFrame, Idem}
     bool m_IsDrawing = false;
+    bool m_ComputeShaderDispatched = false;
     Transform m_OtherObject;
     Vector2 m_PreviousStroke = new Vector2(-1f, -1f); // init
     int m_LastActiveBrushSize = 0;
@@ -137,6 +138,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
     // Update is called once per frame
     void Update(){
+        HandleShaderDispatchState();
         bool pencilReleasedDuringDrawing = m_IsDrawing == true && !m_DrawingPencilController.DrawingModeActive;
         if(!m_IsDrawing) {
             // do nothing
@@ -224,6 +226,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         bool hasPointsInLine = InitPointsInLineCPU_Buffers(currentStroke);
         if(hasPointsInLine){
             DispatchShader(currentStroke);
+            CachingDrawingData(currentStroke);
         }
         return true;
     }
@@ -248,6 +251,17 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Releases buffers when the Compute Shader is done if it was dispatched in previous frame. <br/>
+    /// Effectively blocks the Update loop. 
+    /// </summary>
+    void HandleShaderDispatchState(){
+        if(m_ComputeShaderDispatched){
+            ReleaseBuffers();
+            m_ComputeShaderDispatched = false;
+        }
+    }
+
     void DispatchShader(Vector2 currentStroke){
         int kernel = m_DrawOnTexture_Compute.FindKernel("CSMain");
         m_DrawOnTexture_Compute.SetInt("_NumberOfBrushStrokesOnLine", m_CPU_BrushStrokePositionsOnLine_Buffer.Length);
@@ -261,8 +275,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         int numberOfRuns = CalculateNumberOfKernelRuns();
         SetDummyData(kernel, numberOfRuns);
         m_DrawOnTexture_Compute.Dispatch(kernel, numberOfRuns, 1, 1);
-        ReleaseBuffers();
-        CachingDrawingData(currentStroke);
+        m_ComputeShaderDispatched = true;
     }
 
     int CalculateNumberOfKernelRuns(){
@@ -302,8 +315,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
 
             // -------------------------------------------------------------------- //
-    // ------------------------------- START - STOP STROKES --------------------------------- //
-#region Start Stop Handling drawing
+    // ------------------------------- Handling Drawing --------------------------------- //
+#region Handling drawing
     void HandleTriggerEnter(Collider other) // collision - may not start a stroke!! 
     {
         m_PencilCollider = other;
@@ -442,7 +455,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesWidths_Buffer", GPU_BrushStrokeShapesWidths_Buffer);
         m_DrawOnTexture_Compute.SetBuffer(kernel, "_BrushStrokeShapesOffset_Buffer", GPU_BrushStrokeShapesOffset_Buffer);
     }
-#endregion Start Stop Handling drawing
+#endregion Handling drawing
 
 
 

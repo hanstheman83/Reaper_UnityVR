@@ -2,17 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Algoritmus : MonoBehaviour
-{
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+namespace Core.Drawing.Algorithms{
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+public static class Algoritmus
+{
+    
+}
+
 }
