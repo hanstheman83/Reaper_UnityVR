@@ -91,12 +91,22 @@ public class InputActionController : MonoBehaviour
     }
 
     void Update() {
+        // TODO: get raw input from main buttons
+        // subscribe to btn down, interface IPrimaryButtonDown etc.. 
+
+        // TODO: refactor into inputhandling methods
+
         bool triggerValue;
         if (leftXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out triggerValue) && triggerValue)
         {
             Debug.Log("Joy button is pressed");
         }
-        // Debug toggle
+
+
+
+
+        // Debug toggle TODO: make into Jason inspector button call!
+        // https://youtu.be/9udeBeQiZSc?t=334
         if(oldState != rightIsActive){
             if(rightIsActive){
                 SetMainController(ControllerHand.Right);

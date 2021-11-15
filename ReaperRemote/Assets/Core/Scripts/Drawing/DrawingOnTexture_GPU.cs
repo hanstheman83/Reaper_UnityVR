@@ -9,6 +9,22 @@ namespace Core.Drawing{
 
 public class DrawingOnTexture_GPU : MonoBehaviour
 {
+    
+    [Header("Image Settings")]
+    [SerializeField][Tooltip("Multiple of 2 -512 1024, 2048, 4096, ...")] int m_RenderTextureWidth = 1024;
+    [SerializeField][Tooltip("Multiple of 2 -512 1024, 2048, 4096, ...")] int m_RenderTextureHeight = 1024;
+    [SerializeField][Range(0.02f, .2f)] float m_RenderTextureMipsRefreshRate = 0.03f;
+    [Header("Drawing Settings")]
+    [SerializeField][Range(0.02f, 2f)][Tooltip("How fast stroke moves towards brush (slow value = delayed brush stroke)")] float m_drawSpeed = 0.02f;
+    [Header("References")]
+    [SerializeField] GameObject m_StrokePosition;
+    [SerializeField] GameObject m_TargetPosition;
+    [SerializeField] GameObject m_DepthPosition;
+    [SerializeField] Transform m_ReleasePosition;
+    [SerializeField] LayerManager_GPU layerManager;
+    [SerializeField] ComputeShader m_DrawOnTexture_Compute;
+    [Header("Exposed Fields")]
+    [SerializeField] Color drawingColor;
     [Header("Render Textures")]
     [SerializeField] Renderer renderTexture_00_Renderer;
     [SerializeField] Renderer renderTexture_01_Renderer;
@@ -30,21 +46,6 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     [SerializeField] Renderer renderTexture_17_Renderer;
     [SerializeField] Renderer renderTexture_18_Renderer;
     [SerializeField] Renderer renderTexture_19_Renderer;
-    [Header("Image Settings")]
-    [SerializeField][Tooltip("Multiple of 2 -512 1024, 2048, 4096, ...")] int m_RenderTextureWidth = 1024;
-    [SerializeField][Tooltip("Multiple of 2 -512 1024, 2048, 4096, ...")] int m_RenderTextureHeight = 1024;
-    [SerializeField][Range(0.02f, .2f)] float m_RenderTextureMipsRefreshRate = 0.03f;
-    [Header("Drawing Settings")]
-    [SerializeField][Range(0.02f, 2f)][Tooltip("How fast stroke moves towards brush (slow value = delayed brush stroke)")] float m_drawSpeed = 0.02f;
-    [Header("References")]
-    [SerializeField] GameObject m_StrokePosition;
-    [SerializeField] GameObject m_TargetPosition;
-    [SerializeField] GameObject m_DepthPosition;
-    [SerializeField] Transform m_ReleasePosition;
-    [SerializeField] LayerManager_GPU layerManager;
-    [SerializeField] ComputeShader m_DrawOnTexture_Compute;
-    [Header("Exposed Fields")]
-    [SerializeField] Color drawingColor;
     
     // Not visible in Editor
     Transform m_StrokePositionTransform, m_TargetPositionTransform, m_DepthPositionTransform;
@@ -123,6 +124,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     {
         InitImageSettings();
         InitAllRenderTextures();
+        // TODO: 1. init native array for buffer - read async and copy to undo list per stroke
+        // a/b x/y - on non pencil controller
         InitComputeShaderInts();
         InitTransforms();
     }
