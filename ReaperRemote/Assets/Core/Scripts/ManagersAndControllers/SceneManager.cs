@@ -4,9 +4,14 @@ using UnityEngine;
 
 namespace Core
 {
-    
+/// <summary>
+/// Holds Global Scene States
+/// </summary>
 public class SceneManager : MonoBehaviour
 {
+    
+
+
     // Start is called before the first frame update
     void Start()
     {

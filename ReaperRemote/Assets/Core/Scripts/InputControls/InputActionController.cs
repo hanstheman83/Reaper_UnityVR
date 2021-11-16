@@ -97,10 +97,18 @@ public class InputActionController : MonoBehaviour
         // TODO: refactor into inputhandling methods
 
         bool triggerValue;
+        bool primaryButtonValue;
         if (leftXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out triggerValue) && triggerValue)
         {
             Debug.Log("Joy button is pressed");
         }
+
+        if(leftXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primaryButton, out primaryButtonValue)){
+            Debug.Log("button value " + primaryButtonValue);
+        }
+
+        
+
 
 
 
