@@ -36,6 +36,7 @@ public class AlignmentController : MonoBehaviour, IJoystickPress
     void Start()
     {
         leftReferenceBoardController = GameObject.FindGameObjectWithTag("Left Hand").GetComponent<ReferenceBoardController>();
+        // TODO: change to singleton!
         inputActionController = FindObjectOfType<InputActionController>();
         // TODO: dynamic setup in UI
         inputActionController.RegisterJoystickPress(this, controlledBy);

@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace Core.Controls{
-public interface IPrimaryButtonDown
+
+public interface ISecondaryButtonDown
 {
     public ControllerHand ControlledBy { get; }
 
-    public void ProcessPrimaryButtonDown();
+    public void ProcessSecondaryButtonDown();
 }
 
 }

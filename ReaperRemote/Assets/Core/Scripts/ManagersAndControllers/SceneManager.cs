@@ -1,27 +1,31 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Core.Controls;
+using System;
 
-namespace Core
+namespace Core.SceneManagement
 {
 /// <summary>
-/// Holds Global Scene States
+/// Controls Global Scene States. <br/> Singleton Pattern. 
 /// </summary>
 public class SceneManager : MonoBehaviour
 {
-    
+    public static SceneManager instance 
+                    { get 
+                        {   if(m_SceneManager is null){
+                                m_SceneManager = new SceneManager();
+                            } 
+                            return m_SceneManager;
+                        }
+                    }
+    static SceneManager m_SceneManager; 
+    public static Action<ControllerHand> HandHoldingPencilChanged;
 
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+    public void ChangeHandHoldingPencil(ControllerHand controllerHand){
+        SceneStates.PencilHand = controllerHand;
+        HandHoldingPencilChanged?.Invoke(controllerHand);
     }
 }
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Core.Controls;
 using UnityEngine.XR.Interaction.Toolkit;
-using Core;
+using Core.SceneManagement;
 
 namespace Core.Drawing{
 
@@ -40,12 +40,13 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     private ResistanceLevel resistanceLevel = ResistanceLevel.None;
     private float amplitude = 0f;
     private float delay = 1f;
-    UnityEngine.InputSystem.InputAction m_SelectAction;
+    SceneManager sceneManager;    
 
 
     // Start is called before the first frame update
     void Start()
     {
+        sceneManager = SceneManager.instance;
         m_InputActionController = FindObjectOfType<InputActionController>();
         Brush = new Brush(5);
     }
@@ -53,6 +54,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     public void OnSelectEntered(SelectEnterEventArgs args){
         CustomDirectInteractor customDirectInteractor = (CustomDirectInteractor)args.interactor;
         m_ControlledBy = customDirectInteractor.ControllerHand;
+        sceneManager.ChangeHandHoldingPencil(m_ControlledBy);
         customDirectInteractor.attachTransform.position = GetComponent<XRGrabInteractable>().attachTransform.position;
         customDirectInteractor.attachTransform.rotation = GetComponent<XRGrabInteractable>().attachTransform.rotation;
         m_BaseController = customDirectInteractor.gameObject.GetComponent<XRBaseController>(); 
@@ -63,6 +65,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         customDirectInteractor.attachTransform.localPosition = Vector3.zero;
         m_InputActionController.RemoveTriggerControl(this, m_ControlledBy);
         m_ControlledBy = ControllerHand.None;
+        sceneManager.ChangeHandHoldingPencil(m_ControlledBy);
         m_BaseController = null;
         Debug.Log("Deselected controller.. Held by : "+ m_ControlledBy);
         m_DrawingModeActive = false;
