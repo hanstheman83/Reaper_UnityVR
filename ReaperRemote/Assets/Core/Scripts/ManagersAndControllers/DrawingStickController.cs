@@ -58,18 +58,20 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         customDirectInteractor.attachTransform.position = GetComponent<XRGrabInteractable>().attachTransform.position;
         customDirectInteractor.attachTransform.rotation = GetComponent<XRGrabInteractable>().attachTransform.rotation;
         m_BaseController = customDirectInteractor.gameObject.GetComponent<XRBaseController>(); 
-        m_InputActionController.RegisterTriggerControl(this, m_ControlledBy);
+        m_InputActionController.RegisterContinousTrigger(this, m_ControlledBy);
     }
     public void OnSelectExited(SelectExitEventArgs args){
         CustomDirectInteractor customDirectInteractor = (CustomDirectInteractor)args.interactor;
         customDirectInteractor.attachTransform.localPosition = Vector3.zero;
-        m_InputActionController.RemoveTriggerControl(this, m_ControlledBy);
+        m_InputActionController.UnregisterContinousTrigger(this, m_ControlledBy);
         m_ControlledBy = ControllerHand.None;
         sceneManager.ChangeHandHoldingPencil(m_ControlledBy);
         m_BaseController = null;
         Debug.Log("Deselected controller.. Held by : "+ m_ControlledBy);
         m_DrawingModeActive = false;
     }
+
+    
 
     public void ProcessTriggerInput(float val) // called from inputActionController
     {

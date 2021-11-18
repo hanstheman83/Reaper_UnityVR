@@ -20,12 +20,12 @@ public class SceneManager : MonoBehaviour
                         }
                     }
     static SceneManager m_SceneManager; 
-    public static Action<ControllerHand> HandHoldingPencilChanged;
-
+    public delegate void HandHoldingPencilChanged(ControllerHand controllerHand);
+    public static event HandHoldingPencilChanged handHoldingPencilChanged;
 
     public void ChangeHandHoldingPencil(ControllerHand controllerHand){
         SceneStates.PencilHand = controllerHand;
-        HandHoldingPencilChanged?.Invoke(controllerHand);
+        handHoldingPencilChanged?.Invoke(controllerHand);
     }
 }
 

@@ -55,7 +55,7 @@ public class StickController : MonoBehaviour, IContinousTrigger, IHitVelocity
         CustomDirectInteractor customDirectInteractor = (CustomDirectInteractor)args.interactor;
         controlledBy = customDirectInteractor.ControllerHand;  
         Debug.Log($"OnSelected. Controlled by : {controlledBy}".Colorize(Color.magenta));      
-        inputActionController.RegisterTriggerControl(this, controlledBy);
+        inputActionController.RegisterContinousTrigger(this, controlledBy);
 
     }
     public void OnDeselected(SelectExitEventArgs args){
@@ -64,7 +64,7 @@ public class StickController : MonoBehaviour, IContinousTrigger, IHitVelocity
             Debug.LogError("Name mismatch!");
         }
         // can the other controller steal the stick, prevent stealing from changing interaction layer ? 
-        inputActionController.RemoveTriggerControl(this, controlledBy);
+        inputActionController.UnregisterContinousTrigger(this, controlledBy);
         controlledBy = ControllerHand.None;
         rendererOfStickHead.material = materialFlat;
         Debug.Log($"OnDeselected. Controlled by : {controlledBy}".Colorize(Color.magenta));      
