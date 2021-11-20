@@ -68,28 +68,19 @@ public class InputActionController : MonoBehaviour
     private void Awake() {
         InitializeButtonSubscriberLists();
         InitializeMovementProviders();
-        RegisterMethodsToActions(); // TODO: find better name!
+        RegisterMethodsToActions();
     }
-
-    
-    
-
     private void Start() {
         InitializeLeftHandController();
         InitializeRightHandController();
     }
-
     void Update() {
         HandleXRInput();
         Debug_ToggleMainController();
     }
-
-    
-
-
     #endregion Unity Methods
 
-    
+    #region Initializers
     void InitializeButtonSubscriberLists(){
         continousLeftTriggerRegistrants = new List<IContinousTrigger>();
         continousRightTriggerRegistrants = new List<IContinousTrigger>();
@@ -139,8 +130,9 @@ public class InputActionController : MonoBehaviour
             Debug.Log("Found more than one right hand!");
         }
     }
-    
-// Helper methods for Update()
+    #endregion Initializers
+
+    #region XR Input    
     void HandleXRInput(){
         bool triggerValue;
         if (leftXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out triggerValue) && triggerValue)
@@ -164,6 +156,7 @@ public class InputActionController : MonoBehaviour
     void HandlePrimaryButtonDownRight(){
         rightXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primaryButton, out bool primaryButtonDownRight);
         if(primaryButtonDownRight){
+            Debug.Log("Primary btn right down");
             SendPrimaryButtonDownRightToRegistrants();
         }
     }
@@ -172,9 +165,11 @@ public class InputActionController : MonoBehaviour
             registrant.ProcessPrimaryButtonDown();
         }
     }
+    #endregion XR Input    
 
+
+    // Debug toggle TODO: make into Jason inspector button call!
     void Debug_ToggleMainController(){
-        // Debug toggle TODO: make into Jason inspector button call!
         // https://youtu.be/9udeBeQiZSc?t=334
         if(oldState != rightIsActive){
             if(rightIsActive){

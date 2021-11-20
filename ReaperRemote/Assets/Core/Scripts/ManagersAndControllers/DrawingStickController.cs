@@ -46,11 +46,12 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     // Start is called before the first frame update
     void Start()
     {
-        sceneManager = SceneManager.instance;
+        sceneManager = SceneManager.Instance;
         m_InputActionController = FindObjectOfType<InputActionController>();
         Brush = new Brush(5);
     }
 
+    #region XR Callbacks
     public void OnSelectEntered(SelectEnterEventArgs args){
         CustomDirectInteractor customDirectInteractor = (CustomDirectInteractor)args.interactor;
         m_ControlledBy = customDirectInteractor.ControllerHand;
@@ -70,8 +71,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         Debug.Log("Deselected controller.. Held by : "+ m_ControlledBy);
         m_DrawingModeActive = false;
     }
-
-    
+    #endregion XR Callbacks
 
     public void ProcessTriggerInput(float val) // called from inputActionController
     {
