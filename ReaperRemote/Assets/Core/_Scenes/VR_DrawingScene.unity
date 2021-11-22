@@ -2650,8 +2650,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6656dbe8c8fc024d905d825a0117d6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_RenderTextureWidth: 1024
-  m_RenderTextureHeight: 1024
+  m_RenderTextureWidth: 512
+  m_RenderTextureHeight: 512
   m_RenderTextureMipsRefreshRate: 0.0508
   m_drawSpeed: 1.2
   m_StrokePosition: {fileID: 657259255}
