@@ -17,7 +17,7 @@ put the flat part of the controller to a real world flat surface and use this bu
 the VR drawing canvas with a flat surface(stable drawing board or table). The Quest1 controllers are not alligned in the same way so won't work well.
 
 Known issues : 
-You can see a bit of pixel artifacts at the seems [16 render textures tiled].
+You can see a bit of pixel artifacts at the seems [20 render textures tiled].
 In the Unity Editor only 4 render textures are active - due to DirectX11 limitaions.
 Don't activate the main UI with the primary button on left controller - it is not used. 
 
