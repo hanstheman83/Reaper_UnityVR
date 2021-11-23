@@ -62,6 +62,11 @@ public class InputActionController : MonoBehaviour
     private ControllerHand m_MainController = ControllerHand.Right;
     private enum ControllerState { Drawing, NotDrawing }
     private ControllerState m_ControllerState = ControllerState.NotDrawing;
+    bool primaryButtonLeftPressedPrevFrame = false;
+    bool primaryButtonRightPressedPrevFrame = false;
+    bool secondaryButtonLeftPressedPrevFrame = false;
+    bool secondaryButtonRightPressedPrevFrame = false;
+    
 
 
     #region Unity Methods
@@ -134,36 +139,54 @@ public class InputActionController : MonoBehaviour
 
     #region XR Input    
     void HandleXRInput(){
-        bool triggerValue;
-        if (leftXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out triggerValue) && triggerValue)
-        {
-            Debug.Log("Joy button is pressed");
-        }
-        HandlePrimaryButtonDownLeft();
-        HandlePrimaryButtonDownRight();
+        // bool triggerValue;
+        // if (leftXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out triggerValue) && triggerValue)
+        // {
+        //     Debug.Log("Joy button is pressed");
+        // }
+        HandlePrimaryButtonLeft();
+        HandlePrimaryButtonRight();
     }
-    void HandlePrimaryButtonDownLeft(){
-        leftXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primaryButton, out bool primaryButtonDownLeft);
-        if(primaryButtonDownLeft){
-            SendPrimaryButtonDownLeftToRegistrants();
+    void HandlePrimaryButtonLeft(){
+        // determine btn down, up, and send continous value
+        leftXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primaryButton, out bool primaryButtonLeftPressed);
+        bool primaryButtonLeftDown = !primaryButtonLeftPressedPrevFrame && primaryButtonLeftPressed;
+        bool primaryButtonLeftUp = primaryButtonLeftPressedPrevFrame && !primaryButtonLeftPressed;
+        if(primaryButtonLeftDown){
+            SendPrimaryButtonLeftDownToRegistrants();
+            primaryButtonLeftPressedPrevFrame = true;
+        }else if(primaryButtonLeftUp){
+            //SendPrimaryButtonLeftUpToRegistrants
+            primaryButtonLeftPressedPrevFrame = false;
         }
     }
-    void SendPrimaryButtonDownLeftToRegistrants(){
+    void HandlePrimaryButtonRight(){
+        rightXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primaryButton, out bool primaryButtonDownRight);
+        if(primaryButtonDownRight){
+            SendPrimaryButtonRightDownToRegistrants();
+        }
+    }
+    void HandleSecondaryButtonDownRight(){
+        rightXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.secondaryButton, out bool secondaryButtonDownRight);
+        if(secondaryButtonDownRight){
+            SendPrimaryButtonRightDownToRegistrants();
+        }
+    }
+    void SendPrimaryButtonLeftDownToRegistrants(){
         foreach(IPrimaryButtonDown registrant in primaryButtonDownLeftRegistrants){
             registrant.ProcessPrimaryButtonDown();
         }
     }
-    void HandlePrimaryButtonDownRight(){
-        rightXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primaryButton, out bool primaryButtonDownRight);
-        if(primaryButtonDownRight){
-            Debug.Log("Primary btn right down");
-            SendPrimaryButtonDownRightToRegistrants();
-        }
-    }
-    void SendPrimaryButtonDownRightToRegistrants(){
+    void SendPrimaryButtonRightDownToRegistrants(){
         foreach(IPrimaryButtonDown registrant in primaryButtonDownRightRegistrants){
             registrant.ProcessPrimaryButtonDown();
         }
+    }
+    void SendSecondaryButtonLeftDownToRegistrants(){
+        
+    }
+    void SendSecondaryButtonRightDownToRegistrants(){
+        
     }
     #endregion XR Input    
 
