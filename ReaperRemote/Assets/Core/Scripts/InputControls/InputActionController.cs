@@ -52,13 +52,23 @@ public class InputActionController : MonoBehaviour
     [SerializeField] private InputActionReference XR_rightJoystickPress;
     // UI pie menu for joy press + move axis
 
-    private List<IContinousTrigger> continousLeftTriggerRegistrants;
-    private List<IContinousTrigger> continousRightTriggerRegistrants;
+    private List<IContinousTrigger> m_LeftTriggerContinousRegistrants;
+    private List<IContinousTrigger> m_RightTriggerContinousRegistrants;
+    private List<IPrimaryButtonDown> m_PrimaryButtonRightDownRegistrants;
+    private List<IPrimaryButtonDown> m_PrimaryButtonLeftDownRegistrants;
+    private List<IPrimaryButtonUp> m_PrimaryButtonLeftUpRegistrants;
+    private List<IPrimaryButtonUp> m_PrimaryButtonRightUpRegistrants;
+    private List<IPrimaryButtonContinous> m_PrimaryButtonLeftContinousRegistrants;
+    private List<IPrimaryButtonContinous> m_PrimaryButtonRightContinousRegistrants;
+    private List<ISecondaryButtonDown> m_SecondaryButtonLeftDownRegistrants;
+    private List<ISecondaryButtonDown> m_SecondaryButtonRightDownRegistrants;
+    private List<ISecondaryButtonUp> m_SecondaryButtonLeftUpRegistrants;
+    private List<ISecondaryButtonUp> m_SecondaryButtonRightUpRegistrants;
+    private List<ISecondaryButtonContinous> m_SecondaryButtonLeftContinousRegistrants;
+    private List<ISecondaryButtonContinous> m_SecondaryButtonRightContinousRegistrants;
+
     private List<IJoystickPress> joystickPressLeftRegistrants;
     private List<IJoystickPress> joystickPressRightRegistrants;
-    private List<IPrimaryButtonDown> primaryButtonDownRightRegistrants;
-    private List<IPrimaryButtonDown> primaryButtonDownLeftRegistrants;
-
     private ControllerHand m_MainController = ControllerHand.Right;
     private enum ControllerState { Drawing, NotDrawing }
     private ControllerState m_ControllerState = ControllerState.NotDrawing;
@@ -71,7 +81,7 @@ public class InputActionController : MonoBehaviour
 
     #region Unity Methods
     private void Awake() {
-        InitializeButtonSubscriberLists();
+        InitializeButtonRegistrantLists();
         InitializeMovementProviders();
         RegisterMethodsToActions();
     }
@@ -86,20 +96,30 @@ public class InputActionController : MonoBehaviour
     #endregion Unity Methods
 
     #region Initializers
-    void InitializeButtonSubscriberLists(){
-        continousLeftTriggerRegistrants = new List<IContinousTrigger>();
-        continousRightTriggerRegistrants = new List<IContinousTrigger>();
+    void InitializeButtonRegistrantLists(){
+        m_LeftTriggerContinousRegistrants = new List<IContinousTrigger>();
+        m_RightTriggerContinousRegistrants = new List<IContinousTrigger>();
         joystickPressLeftRegistrants = new List<IJoystickPress>();
         joystickPressRightRegistrants = new List<IJoystickPress>();
-        primaryButtonDownRightRegistrants = new List<IPrimaryButtonDown>();
-        primaryButtonDownLeftRegistrants = new List<IPrimaryButtonDown>();
+        m_PrimaryButtonLeftDownRegistrants = new List<IPrimaryButtonDown>();
+        m_PrimaryButtonRightDownRegistrants = new List<IPrimaryButtonDown>();
+        m_PrimaryButtonLeftUpRegistrants = new List<IPrimaryButtonUp>();
+        m_PrimaryButtonRightUpRegistrants = new List<IPrimaryButtonUp>();
+        m_PrimaryButtonLeftContinousRegistrants = new List<IPrimaryButtonContinous>();
+        m_PrimaryButtonRightContinousRegistrants = new List<IPrimaryButtonContinous>();
+        m_SecondaryButtonLeftDownRegistrants = new List<ISecondaryButtonDown>();
+        m_SecondaryButtonRightDownRegistrants = new List<ISecondaryButtonDown>();
+        m_SecondaryButtonLeftUpRegistrants = new List<ISecondaryButtonUp>();
+        m_SecondaryButtonRightUpRegistrants = new List<ISecondaryButtonUp>();
+        m_SecondaryButtonLeftContinousRegistrants = new List<ISecondaryButtonContinous>();
+        m_SecondaryButtonRightContinousRegistrants = new List<ISecondaryButtonContinous>();
     }
     void InitializeMovementProviders(){
         customMoveProvider = FindObjectOfType<CustomMoveProvider>();
         customSnapTurnProvider = FindObjectOfType<CustomSnapTurnProvider>();
     }
     void RegisterMethodsToActions(){
-        XR_leftTriggerPress.action.performed += SendLeftContinousTriggerToRegistrants;
+        XR_leftTriggerPress.action.performed += SendLeftContinousTrigger;
         XR_rightTriggerPress.action.performed += SendRightContinousTriggerToRegistrants;
         XR_leftJoystickPress.action.performed += SendLeftJoystickPressToRegistrants;
     }
@@ -141,6 +161,11 @@ public class InputActionController : MonoBehaviour
     void HandleXRInput(){
         HandlePrimaryButtonLeft();
         HandlePrimaryButtonRight();
+        HandleSecondaryButtonLeft();
+        HandleSecondaryButtonRight();
+
+    }
+    void HandleJoystickButtonLeft(){
         // bool triggerValue;
         // if (leftXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out triggerValue) && triggerValue)
         // {
@@ -164,7 +189,7 @@ public class InputActionController : MonoBehaviour
         bool primaryButtonRightDown = !m_PrimaryButtonRightPressedPrevFrame && primaryButtonRightPressed;
         bool primaryButtonRightUp = m_PrimaryButtonRightPressedPrevFrame && !primaryButtonRightPressed;
         SendPrimaryButtonRightContinous(primaryButtonRightPressed);
-        if(primaryButtonRightDown){
+        if(primaryButtonRightDown){ 
             SendPrimaryButtonRightDown();
         }else if(primaryButtonRightUp){
             SendPrimaryButtonRightUp();
@@ -175,13 +200,25 @@ public class InputActionController : MonoBehaviour
         bool secondaryButtonLeftPressed = GetSecondaryButtonLeft();
         bool secondaryButtonLeftDown = !m_SecondaryButtonLeftPressedPrevFrame && secondaryButtonLeftPressed;
         bool secondaryButtonLeftUp = m_SecondaryButtonLeftPressedPrevFrame && !secondaryButtonLeftPressed;
-        
+        SendSecondaryButtonLeftContinous(secondaryButtonLeftPressed);
+        if(secondaryButtonLeftDown){
+            SendSecondaryButtonLeftDown();
+        }else if(secondaryButtonLeftUp){
+            SendSecondaryButtonLeftUp();
+        }
         m_SecondaryButtonLeftPressedPrevFrame = secondaryButtonLeftPressed;
     }
     void HandleSecondaryButtonRight(){
         bool secondaryButtonRightPressed = GetSecondaryButtonRight();
+        bool secondaryButtonRightDown = !m_SecondaryButtonRightPressedPrevFrame && secondaryButtonRightPressed;
+        bool secondaryButtonRightUp = m_SecondaryButtonRightPressedPrevFrame && !secondaryButtonRightPressed;
+        SendSecondaryButtonRightContinous(secondaryButtonRightPressed);
+        if(secondaryButtonRightDown){
+            SendSecondaryButtonRightDown();
+        }else if(secondaryButtonRightUp){
+            SendSecondaryButtonRightUp();
+        }
         m_SecondaryButtonRightPressedPrevFrame = secondaryButtonRightPressed;
-        
     }
     #endregion XR Input    
 
@@ -258,10 +295,10 @@ public class InputActionController : MonoBehaviour
     public void RegisterContinousTrigger(IContinousTrigger registrant, ControllerHand controllerHand){
         switch(controllerHand){
             case ControllerHand.Left:
-                continousLeftTriggerRegistrants.Add(registrant);
+                m_LeftTriggerContinousRegistrants.Add(registrant);
                 break;
             case ControllerHand.Right:
-                continousRightTriggerRegistrants.Add(registrant);
+                m_RightTriggerContinousRegistrants.Add(registrant);
                 break;
             case ControllerHand.None:
                 M.SpecifyControllerHand();
@@ -273,12 +310,12 @@ public class InputActionController : MonoBehaviour
         bool successfullyRemoved;
         switch(controllerHand){
             case ControllerHand.Left:
-                successfullyRemoved = continousLeftTriggerRegistrants.Remove(registrant);
+                successfullyRemoved = m_LeftTriggerContinousRegistrants.Remove(registrant);
                 if(successfullyRemoved is false) {M.NoItemRemoved();}
                 else {M.ItemRemoved();}
                 break;
             case ControllerHand.Right:
-                successfullyRemoved = continousRightTriggerRegistrants.Remove(registrant);
+                successfullyRemoved = m_RightTriggerContinousRegistrants.Remove(registrant);
                 if(successfullyRemoved is false) {M.NoItemRemoved();}
                 else {M.ItemRemoved();}
                 break;
@@ -290,10 +327,75 @@ public class InputActionController : MonoBehaviour
     public void RegisterPrimaryButtonDown(IPrimaryButtonDown registrant, ControllerHand controllerHand){
         switch(controllerHand){
             case ControllerHand.Left:
-                primaryButtonDownLeftRegistrants.Add(registrant);
+                m_PrimaryButtonLeftDownRegistrants.Add(registrant);
                 break;
             case ControllerHand.Right:
-                primaryButtonDownRightRegistrants.Add(registrant);
+                m_PrimaryButtonRightDownRegistrants.Add(registrant);
+                break;
+            case ControllerHand.None:
+                M.SpecifyControllerHand();
+                break;
+        }
+    }
+    public void RegisterPrimaryButtonUp(IPrimaryButtonUp registrant, ControllerHand controllerHand){
+        switch(controllerHand){
+            case ControllerHand.Left:
+                m_PrimaryButtonLeftUpRegistrants.Add(registrant);
+                break;
+            case ControllerHand.Right:
+                m_PrimaryButtonRightUpRegistrants.Add(registrant);
+                break;
+            case ControllerHand.None:
+                M.SpecifyControllerHand();
+                break;
+        }
+    }
+    public void RegisterPrimaryButtonContinous(IPrimaryButtonContinous registrant, ControllerHand controllerHand){
+        switch(controllerHand){
+            case ControllerHand.Left:
+                m_PrimaryButtonLeftContinousRegistrants.Add(registrant);
+                break;
+            case ControllerHand.Right:
+                m_PrimaryButtonRightContinousRegistrants.Add(registrant);
+                break;
+            case ControllerHand.None:
+                M.SpecifyControllerHand();
+                break;
+        }
+    }
+    public void RegisterSecondaryButtonDown(ISecondaryButtonDown registrant, ControllerHand controllerHand){
+        switch(controllerHand){
+            case ControllerHand.Left:
+                m_SecondaryButtonLeftDownRegistrants.Add(registrant);
+                break;
+            case ControllerHand.Right:
+                m_SecondaryButtonRightDownRegistrants.Add(registrant);
+                break;
+            case ControllerHand.None:
+                M.SpecifyControllerHand();
+                break;
+        }
+    }
+    public void RegisterSecondaryButtonUp(ISecondaryButtonUp registrant, ControllerHand controllerHand){
+        switch(controllerHand){
+            case ControllerHand.Left:
+                m_SecondaryButtonLeftUpRegistrants.Add(registrant);
+                break;
+            case ControllerHand.Right:
+                m_SecondaryButtonRightUpRegistrants.Add(registrant);
+                break;
+            case ControllerHand.None:
+                M.SpecifyControllerHand();
+                break;
+        }
+    }
+    public void RegisterSecondaryButtonContinous(ISecondaryButtonContinous registrant, ControllerHand controllerHand){
+        switch(controllerHand){
+            case ControllerHand.Left:
+                m_SecondaryButtonLeftContinousRegistrants.Add(registrant);
+                break;
+            case ControllerHand.Right:
+                m_SecondaryButtonRightContinousRegistrants.Add(registrant);
                 break;
             case ControllerHand.None:
                 M.SpecifyControllerHand();
@@ -304,12 +406,102 @@ public class InputActionController : MonoBehaviour
         bool successfullyRemoved;
         switch(controllerHand){
             case ControllerHand.Left:
-                successfullyRemoved = primaryButtonDownLeftRegistrants.Remove(registrant);
+                successfullyRemoved = m_PrimaryButtonLeftDownRegistrants.Remove(registrant);
                 if(successfullyRemoved is false) {M.NoItemRemoved();}
                 else {M.ItemRemoved();}
                 break;
             case ControllerHand.Right:
-                successfullyRemoved = primaryButtonDownRightRegistrants.Remove(registrant);
+                successfullyRemoved = m_PrimaryButtonRightDownRegistrants.Remove(registrant);
+                if(successfullyRemoved is false) {M.NoItemRemoved();}
+                else {M.ItemRemoved();}
+                break;
+            case ControllerHand.None:
+                M.SpecifyControllerHand();
+                break;
+        }
+    }
+    public void UnregisterPrimaryButtonUp(IPrimaryButtonUp registrant, ControllerHand controllerHand){
+        bool successfullyRemoved;
+        switch(controllerHand){
+            case ControllerHand.Left:
+                successfullyRemoved = m_PrimaryButtonLeftUpRegistrants.Remove(registrant);
+                if(successfullyRemoved is false) {M.NoItemRemoved();}
+                else {M.ItemRemoved();}
+                break;
+            case ControllerHand.Right:
+                successfullyRemoved = m_PrimaryButtonRightUpRegistrants.Remove(registrant);
+                if(successfullyRemoved is false) {M.NoItemRemoved();}
+                else {M.ItemRemoved();}
+                break;
+            case ControllerHand.None:
+                M.SpecifyControllerHand();
+                break;
+        }
+    }
+    public void UnregisterPrimaryButtonContinous(IPrimaryButtonContinous registrant, ControllerHand controllerHand){
+        bool successfullyRemoved;
+        switch(controllerHand){
+            case ControllerHand.Left:
+                successfullyRemoved = m_PrimaryButtonLeftContinousRegistrants.Remove(registrant);
+                if(successfullyRemoved is false) {M.NoItemRemoved();}
+                else {M.ItemRemoved();}
+                break;
+            case ControllerHand.Right:
+                successfullyRemoved = m_PrimaryButtonRightContinousRegistrants.Remove(registrant);
+                if(successfullyRemoved is false) {M.NoItemRemoved();}
+                else {M.ItemRemoved();}
+                break;
+            case ControllerHand.None:
+                M.SpecifyControllerHand();
+                break;
+        }
+    }
+    public void UnregisterSecondaryButtonDown(ISecondaryButtonDown registrant, ControllerHand controllerHand){
+        bool successfullyRemoved;
+        switch(controllerHand){
+            case ControllerHand.Left:
+                successfullyRemoved = m_SecondaryButtonLeftDownRegistrants.Remove(registrant);
+                if(successfullyRemoved is false) {M.NoItemRemoved();}
+                else {M.ItemRemoved();}
+                break;
+            case ControllerHand.Right:
+                successfullyRemoved = m_SecondaryButtonRightDownRegistrants.Remove(registrant);
+                if(successfullyRemoved is false) {M.NoItemRemoved();}
+                else {M.ItemRemoved();}
+                break;
+            case ControllerHand.None:
+                M.SpecifyControllerHand();
+                break;
+        }
+    }
+    public void UnregisterSecondaryButtonUp(ISecondaryButtonUp registrant, ControllerHand controllerHand){
+        bool successfullyRemoved;
+        switch(controllerHand){
+            case ControllerHand.Left:
+                successfullyRemoved = m_SecondaryButtonLeftUpRegistrants.Remove(registrant);
+                if(successfullyRemoved is false) {M.NoItemRemoved();}
+                else {M.ItemRemoved();}
+                break;
+            case ControllerHand.Right:
+                successfullyRemoved = m_SecondaryButtonRightUpRegistrants.Remove(registrant);
+                if(successfullyRemoved is false) {M.NoItemRemoved();}
+                else {M.ItemRemoved();}
+                break;
+            case ControllerHand.None:
+                M.SpecifyControllerHand();
+                break;
+        }
+    }
+    public void UnregisterSecondaryButtonContinous(ISecondaryButtonContinous registrant, ControllerHand controllerHand){
+        bool successfullyRemoved;
+        switch(controllerHand){
+            case ControllerHand.Left:
+                successfullyRemoved = m_SecondaryButtonLeftContinousRegistrants.Remove(registrant);
+                if(successfullyRemoved is false) {M.NoItemRemoved();}
+                else {M.ItemRemoved();}
+                break;
+            case ControllerHand.Right:
+                successfullyRemoved = m_SecondaryButtonRightContinousRegistrants.Remove(registrant);
                 if(successfullyRemoved is false) {M.NoItemRemoved();}
                 else {M.ItemRemoved();}
                 break;
@@ -352,53 +544,73 @@ public class InputActionController : MonoBehaviour
     #endregion Control Setup
 
     #region Control Processing
-    void SendPrimaryButtonLeftContinous(bool value){
-        //TODO:     
-    }
     void SendPrimaryButtonLeftDown(){
-        foreach(IPrimaryButtonDown registrant in primaryButtonDownLeftRegistrants){
+        foreach(IPrimaryButtonDown registrant in m_PrimaryButtonLeftDownRegistrants){
             registrant.ProcessPrimaryButtonDown();
         }
     }
     void SendPrimaryButtonLeftUp(){
-
+        foreach(IPrimaryButtonUp registrant in m_PrimaryButtonLeftUpRegistrants){
+            registrant.ProcessPrimaryButtonUp();
+        }
+    }
+    void SendPrimaryButtonLeftContinous(bool value){
+        foreach(IPrimaryButtonContinous registrant in m_PrimaryButtonLeftContinousRegistrants){
+            registrant.ProcessPrimaryButtonContinous(value);
+        }
     }
     void SendPrimaryButtonRightDown(){
-        foreach(IPrimaryButtonDown registrant in primaryButtonDownRightRegistrants){
+        foreach(IPrimaryButtonDown registrant in m_PrimaryButtonRightDownRegistrants){
             registrant.ProcessPrimaryButtonDown();
         }
     }
     void SendPrimaryButtonRightUp(){
-
+        foreach(IPrimaryButtonUp registrant in m_PrimaryButtonRightUpRegistrants){
+            registrant.ProcessPrimaryButtonUp();
+        }
     }
     void SendPrimaryButtonRightContinous(bool value){
-
+        foreach(IPrimaryButtonContinous registrant in m_PrimaryButtonRightContinousRegistrants){
+            registrant.ProcessPrimaryButtonContinous(value);
+        }
     }
     void SendSecondaryButtonLeftDown(){
-        
+        foreach(ISecondaryButtonDown registrant in m_SecondaryButtonLeftDownRegistrants){
+            registrant.ProcessSecondaryButtonDown();
+        }
     }
     void SendSecondaryButtonLeftUp(){
-
+        foreach(ISecondaryButtonUp registrant in m_SecondaryButtonLeftUpRegistrants){
+            registrant.ProcessSecondaryButtonUp();
+        }
     }
     void SendSecondaryButtonLeftContinous(bool value){
-
+        foreach(ISecondaryButtonContinous registrant in m_SecondaryButtonLeftContinousRegistrants){
+            registrant.ProcessSecondaryButtonContinous(value);
+        }
     }
     void SendSecondaryButtonRightDown(){
-        
+        foreach(ISecondaryButtonDown registrant in m_SecondaryButtonRightDownRegistrants){
+            registrant.ProcessSecondaryButtonDown();
+        }
     }
     void SendSecondaryButtonRightUp(){
-
+        foreach(ISecondaryButtonUp registrant in m_SecondaryButtonRightUpRegistrants){
+            registrant.ProcessSecondaryButtonUp();
+        }
     }
-    void SendSecondaryButtonRightContinous(){
-
+    void SendSecondaryButtonRightContinous(bool value){
+        foreach(ISecondaryButtonContinous registrant in m_SecondaryButtonRightContinousRegistrants){
+            registrant.ProcessSecondaryButtonContinous(value);
+        }
     }
-    private void SendLeftContinousTriggerToRegistrants(InputAction.CallbackContext obj){
-        foreach(IContinousTrigger registrant in continousLeftTriggerRegistrants){
+    private void SendLeftContinousTrigger(InputAction.CallbackContext obj){
+        foreach(IContinousTrigger registrant in m_LeftTriggerContinousRegistrants){
             registrant.ProcessTriggerInput(obj.ReadValue<float>());
         }
     }
     private void SendRightContinousTriggerToRegistrants(InputAction.CallbackContext obj){
-        foreach(IContinousTrigger registrant in continousRightTriggerRegistrants){
+        foreach(IContinousTrigger registrant in m_RightTriggerContinousRegistrants){
             registrant.ProcessTriggerInput(obj.ReadValue<float>());
         }
     }

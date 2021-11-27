@@ -1,11 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.InputSystem;
-using System;
-
 namespace Core.Controls{
-
 public interface IContinousTrigger
 {
     public string NameOfTriggerController {get;}

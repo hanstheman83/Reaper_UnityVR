@@ -6,8 +6,8 @@ namespace Core.Controls{
 public interface IPrimaryButtonDown
 {
     public ControllerHand ControlledBy { get; }
-
     public void ProcessPrimaryButtonDown();
 }
+
 
 }
