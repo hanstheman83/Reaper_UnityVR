@@ -40,14 +40,14 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     private ResistanceLevel resistanceLevel = ResistanceLevel.None;
     private float amplitude = 0f;
     private float delay = 1f;
-    SceneManager sceneManager;    
+    SceneManager m_SceneManager;    
 
 
     // Start is called before the first frame update
     void Start()
     {
-        sceneManager = SceneManager.Instance;
-        m_InputActionController = FindObjectOfType<InputActionController>();
+        m_SceneManager = SceneManager.Instance;
+        m_InputActionController = InputActionController.Instance;
         Brush = new Brush(5);
     }
 
@@ -55,7 +55,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     public void OnSelectEntered(SelectEnterEventArgs args){
         CustomDirectInteractor customDirectInteractor = (CustomDirectInteractor)args.interactor;
         m_ControlledBy = customDirectInteractor.ControllerHand;
-        sceneManager.ChangeHandHoldingPencil(m_ControlledBy);
+        m_SceneManager.ChangeHandHoldingPencil(m_ControlledBy);
         customDirectInteractor.attachTransform.position = GetComponent<XRGrabInteractable>().attachTransform.position;
         customDirectInteractor.attachTransform.rotation = GetComponent<XRGrabInteractable>().attachTransform.rotation;
         m_BaseController = customDirectInteractor.gameObject.GetComponent<XRBaseController>(); 
@@ -66,23 +66,26 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         customDirectInteractor.attachTransform.localPosition = Vector3.zero;
         m_InputActionController.UnregisterContinousTrigger(this, m_ControlledBy);
         m_ControlledBy = ControllerHand.None;
-        sceneManager.ChangeHandHoldingPencil(m_ControlledBy);
+        m_SceneManager.ChangeHandHoldingPencil(m_ControlledBy);
         m_BaseController = null;
         Debug.Log("Deselected controller.. Held by : "+ m_ControlledBy);
         m_DrawingModeActive = false;
     }
     #endregion XR Callbacks
 
-    public void ProcessTriggerInput(float val) // called from inputActionController
+    #region Button Callbacks
+    public void ProcessTriggerInput(float val)
     {
         m_ActiveBrushSize = Mathf.Clamp( 
                                 (Mathf.RoundToInt( val * (Brush.NumberOfSizes - 1) )), 0, 
                                 (Brush.NumberOfSizes - 1)
                                 );
-        //Debug.Log("new brush size : " + ActiveBrushSize);
     }
+    #endregion Button Callbacks
 
-    // offset mesh during drawing a stroke - continously updated
+    /// <summary>
+    /// Offset mesh during drawing a stroke - continously updated.
+    /// </summary>
     public void OffsetMainMesh(Vector3 offset){
         // offsets relative to angle of drawing board!
         m_PencilMesh.transform.localPosition = Vector3.zero;
@@ -171,6 +174,8 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     }
 }
 
+// ---------------------------------- 
+// ---------------------------------- 
 public struct Brush{
     // list of all brush sizes - 1D float arrays [0 to 1, alpha]
     public List<float[]> BrushSizes;

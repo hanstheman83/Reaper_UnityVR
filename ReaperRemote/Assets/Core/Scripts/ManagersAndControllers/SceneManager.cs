@@ -20,12 +20,16 @@ public class SceneManager : MonoBehaviour
     public static event HandHoldingPencilChanged handHoldingPencilChanged;
 
     void Awake(){
-        if (m_SceneManager != null && m_SceneManager != this) 
-        { 
+        InitializeAsSingleton();
+    }
+    void InitializeAsSingleton(){
+        bool instanceExists = m_SceneManager != null && m_SceneManager != this;
+        if (instanceExists){ 
+            Debug.LogError("SceneManager already exists - only 1 per scene!");
             Destroy(this.gameObject);
-            return;
+        }else{
+            m_SceneManager = this;
         }
-        m_SceneManager = this;
     }
 
     public void ChangeHandHoldingPencil(ControllerHand controllerHand){

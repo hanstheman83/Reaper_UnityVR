@@ -12,8 +12,14 @@ namespace Core.Controls{
 /// </summary>
 public class InputActionController : MonoBehaviour
 {
+    // Singleton
+    private static InputActionController m_InputActionController;
+    public static InputActionController Instance { get => m_InputActionController; }
+    
+    // Debug
     public bool rightIsActive = true;
     private bool oldState = false;
+    
 
     [SerializeField] private ActionBasedControllerManager leftActionBasedControllerManager;
     [SerializeField] private ActionBasedControllerManager rightActionBasedControllerManager;
@@ -81,6 +87,7 @@ public class InputActionController : MonoBehaviour
 
     #region Unity Methods
     private void Awake() {
+        InitializeAsSingleton();
         InitializeButtonRegistrantLists();
         InitializeMovementProviders();
         RegisterMethodsToActions();
@@ -96,6 +103,15 @@ public class InputActionController : MonoBehaviour
     #endregion Unity Methods
 
     #region Initializers
+    void InitializeAsSingleton(){
+        bool instanceExists = m_InputActionController != null && m_InputActionController != this;
+        if(instanceExists){
+            Debug.LogError("Only 1 InputActionController per scene!");
+            Destroy(this.gameObject);
+        }else{
+            m_InputActionController = this;
+        }
+    }
     void InitializeButtonRegistrantLists(){
         m_LeftTriggerContinousRegistrants = new List<IContinousTrigger>();
         m_RightTriggerContinousRegistrants = new List<IContinousTrigger>();
@@ -235,8 +251,8 @@ public class InputActionController : MonoBehaviour
         }
         oldState = rightIsActive;
     }
-    #region Control Setup
 
+    #region Control Setup
     void SetMainControllerToRightController(){
         m_MainController = ControllerHand.Right;
         Debug.Log("right controller is main controller"); // this is default
@@ -264,6 +280,18 @@ public class InputActionController : MonoBehaviour
         customSnapTurnProvider.ActivateControl(leftTurn, ControllerHand.Left);
         customMoveProvider.DeactivateControl(ControllerHand.Left);
         customSnapTurnProvider.DeactivateControl(ControllerHand.Right);
+    }
+    void DisableTeleportLeftController(){
+        
+    }
+    void DisableTeleportRightController(){
+        
+    }
+    void EnableTeleportLeftController(){
+        
+    }
+    public void EnableTeleportRightController(){
+
     }
 
     void SetControllerUI_State(ControllerHand controllerHand, bool state){ // Unity World UI
@@ -640,31 +668,36 @@ public class InputActionController : MonoBehaviour
         rightXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.secondaryButton, out secondaryButtonRightPressed);
         return secondaryButtonRightPressed;
     }
-
-
-
-
-
-
     #endregion Control Processing
 
     #region Scene Callbacks
-    // TODO: cleanup - are they needed ???
-    public void SetControllerStateToDrawing(){
+    public void SetControllerStateToDrawing(){ // TODO: set these callbacks from code ?! - now they are called from the XR on the Pencil!!
         m_ControllerState = ControllerState.Drawing;
-        if(m_MainController == ControllerHand.Left){
-            SetControllerUI_State(ControllerHand.Right, false);
-        }else if(m_MainController == ControllerHand.Right){
-            SetControllerUI_State(ControllerHand.Left, false);
+        switch(m_MainController){
+            case ControllerHand.Left:
+                SetControllerUI_State(ControllerHand.Right, false);
+                break;  
+            case ControllerHand.Right:
+                SetControllerUI_State(ControllerHand.Left, false); // TODO: split into two methods.
+                DisableTeleportRightController();
+                break;
+            case ControllerHand.None:
+                M.SpecifyControllerHand();
+                break;
         }
-
     }
     public void SetControllerStateToNotDrawing(){
         m_ControllerState = ControllerState.NotDrawing;
-        if(m_MainController == ControllerHand.Left){
-            SetControllerUI_State(ControllerHand.Right, true);
-        }else if(m_MainController == ControllerHand.Right){
-            SetControllerUI_State(ControllerHand.Left, true);
+        switch(m_MainController){
+            case ControllerHand.Left:
+                SetControllerUI_State(ControllerHand.Right, true);
+                break;  
+            case ControllerHand.Right:
+                SetControllerUI_State(ControllerHand.Left, true);
+                break;
+            case ControllerHand.None:
+                M.SpecifyControllerHand();
+                break;
         }
     }
     #endregion Scene Callbacks

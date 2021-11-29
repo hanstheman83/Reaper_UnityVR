@@ -35,9 +35,9 @@ public class AlignmentController : MonoBehaviour, IJoystickPress
     // Start is called before the first frame update
     void Start()
     {
+        // TODO: better architecture!
         leftReferenceBoardController = GameObject.FindGameObjectWithTag("Left Hand").GetComponent<ReferenceBoardController>();
-        // TODO: change to singleton!
-        inputActionController = FindObjectOfType<InputActionController>();
+        inputActionController = InputActionController.Instance;
         // TODO: dynamic setup in UI
         inputActionController.RegisterJoystickPress(this, controlledBy);
     }

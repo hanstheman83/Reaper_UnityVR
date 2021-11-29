@@ -8949,9 +8949,13 @@ PrefabInstance:
     m_TransformParent: {fileID: 127213667}
     m_Modifications:
     - target: {fileID: 8601501637094058124, guid: 0fa4e4481986b95459ec8fd7ce789b5d, type: 3}
-      propertyPath: m_ModelPrefab
+      propertyPath: m_Model
       value: 
       objectReference: {fileID: 838968392}
+    - target: {fileID: 8601501637094058124, guid: 0fa4e4481986b95459ec8fd7ce789b5d, type: 3}
+      propertyPath: m_ModelPrefab
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 8601501637094058125, guid: 0fa4e4481986b95459ec8fd7ce789b5d, type: 3}
       propertyPath: m_InteractionManager
       value: 
