@@ -10,6 +10,7 @@ namespace Core.Controls{
 /// <br/>Since this class builds on Unity's new Input system and still in production XR toolkit eventually it will be replaced <br/>
 /// (as soon as Unity creates something more useful than their current mess).
 /// </summary>
+[RequireComponent(typeof(RawInput))]
 public class InputActionController : MonoBehaviour
 {
     // Singleton
@@ -19,8 +20,9 @@ public class InputActionController : MonoBehaviour
     // Debug
     public bool rightIsActive = true;
     private bool oldState = false;
-    
 
+    RawInput m_RawInput;
+    
     [SerializeField] private ActionBasedControllerManager leftActionBasedControllerManager;
     [SerializeField] private ActionBasedControllerManager rightActionBasedControllerManager;
     [SerializeField] private UI_InteractionController leftUI_InteractionController;
@@ -36,13 +38,6 @@ public class InputActionController : MonoBehaviour
 
     // dictionary of xr control to action
     // problem : some controls use multiple controls ?
-
-    // Directly accessed XR devices
-    // IN EDITOR : TOUCH CONTROLLERS MUST BE ACTIVE BEFORE STARTING PLAYMODE!!!
-    // otherwise they will never be initialized!
-    UnityEngine.XR.InputDevice leftXRController;
-    UnityEngine.XR.InputDevice rightXRController;
-    
 
     // InputActionProperties for XR components
     [SerializeField] private InputActionProperty leftMove;
@@ -78,23 +73,16 @@ public class InputActionController : MonoBehaviour
     private ControllerHand m_MainController = ControllerHand.Right;
     private enum ControllerState { Drawing, NotDrawing }
     private ControllerState m_ControllerState = ControllerState.NotDrawing;
-    bool m_PrimaryButtonLeftPressedPrevFrame = false;
-    bool m_PrimaryButtonRightPressedPrevFrame = false;
-    bool m_SecondaryButtonLeftPressedPrevFrame = false;
-    bool m_SecondaryButtonRightPressedPrevFrame = false;
-    
-
-
+   
     #region Unity Methods
     private void Awake() {
         InitializeAsSingleton();
         InitializeButtonRegistrantLists();
         InitializeMovementProviders();
         RegisterMethodsToActions();
+        m_RawInput = GetComponent<RawInput>();
     }
     private void Start() {
-        InitializeLeftHandController();
-        InitializeRightHandController();
     }
     void Update() {
         HandleXRInput();
@@ -139,38 +127,7 @@ public class InputActionController : MonoBehaviour
         XR_rightTriggerPress.action.performed += SendRightContinousTriggerToRegistrants;
         XR_leftJoystickPress.action.performed += SendLeftJoystickPressToRegistrants;
     }
-    void InitializeLeftHandController(){
-        var leftHandDevices = new List<UnityEngine.XR.InputDevice>();
-        UnityEngine.XR.InputDevices.GetDevicesAtXRNode(UnityEngine.XR.XRNode.LeftHand, leftHandDevices);
-        if(leftHandDevices.Count == 0){
-            Debug.LogError("Left XRController not initialized on start!");
-        }
-        else if(leftHandDevices.Count == 1)
-        {
-            leftXRController = leftHandDevices[0];
-            Debug.Log(string.Format("Device name '{0}' with role '{1}'", leftXRController.name, leftXRController.characteristics));
-        }
-        else if(leftHandDevices.Count > 1)
-        {
-            Debug.Log("Found more than one left hand!");
-        }
-    }
-    void InitializeRightHandController(){
-        var rightHandDevices = new List<UnityEngine.XR.InputDevice>();
-        UnityEngine.XR.InputDevices.GetDevicesAtXRNode(UnityEngine.XR.XRNode.RightHand, rightHandDevices);
-        if(rightHandDevices.Count == 0){
-            Debug.LogError("Right XRController not initialized on start!");
-        }
-        else if(rightHandDevices.Count == 1)
-        {
-            rightXRController = rightHandDevices[0];
-            Debug.Log(string.Format("Device name '{0}' with role '{1}'", rightXRController.name, rightXRController.characteristics));
-        }
-        else if(rightHandDevices.Count > 1)
-        {
-            Debug.Log("Found more than one right hand!");
-        }
-    }
+    
     #endregion Initializers
 
     #region XR Input    
@@ -179,7 +136,6 @@ public class InputActionController : MonoBehaviour
         HandlePrimaryButtonRight();
         HandleSecondaryButtonLeft();
         HandleSecondaryButtonRight();
-
     }
     void HandleJoystickButtonLeft(){
         // bool triggerValue;
@@ -189,52 +145,44 @@ public class InputActionController : MonoBehaviour
         // }
     }
     void HandlePrimaryButtonLeft(){
-        bool primaryButtonLeftPressed = GetPrimaryButtonLeft(); 
-        bool primaryButtonLeftDown = !m_PrimaryButtonLeftPressedPrevFrame && primaryButtonLeftPressed;
-        bool primaryButtonLeftUp = m_PrimaryButtonLeftPressedPrevFrame && !primaryButtonLeftPressed;        
-        SendPrimaryButtonLeftContinous(primaryButtonLeftPressed);
-        if(primaryButtonLeftDown){
+        SendPrimaryButtonLeftContinous(m_RawInput.PrimaryButtonLeft);
+        if(m_RawInput.PrimaryButtonLeftDown){
+            Debug.Log("Primary btn left down");
             SendPrimaryButtonLeftDown();
-        }else if(primaryButtonLeftUp){
+        }else if(m_RawInput.PrimaryButtonLeftUp){
+            Debug.Log("Primary btn left up");
             SendPrimaryButtonLeftUp();
         }
-        m_PrimaryButtonLeftPressedPrevFrame = primaryButtonLeftPressed;
     }
     void HandlePrimaryButtonRight(){
-        bool primaryButtonRightPressed = GetPrimaryButtonRight();
-        bool primaryButtonRightDown = !m_PrimaryButtonRightPressedPrevFrame && primaryButtonRightPressed;
-        bool primaryButtonRightUp = m_PrimaryButtonRightPressedPrevFrame && !primaryButtonRightPressed;
-        SendPrimaryButtonRightContinous(primaryButtonRightPressed);
-        if(primaryButtonRightDown){ 
+        SendPrimaryButtonRightContinous(m_RawInput.PrimaryButtonRight);
+        if(m_RawInput.PrimaryButtonRightDown){
             SendPrimaryButtonRightDown();
-        }else if(primaryButtonRightUp){
+            Debug.Log("Primary btn right down");
+        }else if(m_RawInput.PrimaryButtonRightUp){
+            Debug.Log("Primary btn right up");
             SendPrimaryButtonRightUp();
         }
-        m_PrimaryButtonRightPressedPrevFrame = primaryButtonRightPressed;
     }
     void HandleSecondaryButtonLeft(){
-        bool secondaryButtonLeftPressed = GetSecondaryButtonLeft();
-        bool secondaryButtonLeftDown = !m_SecondaryButtonLeftPressedPrevFrame && secondaryButtonLeftPressed;
-        bool secondaryButtonLeftUp = m_SecondaryButtonLeftPressedPrevFrame && !secondaryButtonLeftPressed;
-        SendSecondaryButtonLeftContinous(secondaryButtonLeftPressed);
-        if(secondaryButtonLeftDown){
+        SendSecondaryButtonLeftContinous(m_RawInput.SecondaryButtonLeft);
+        if(m_RawInput.SecondaryButtonLeftDown){
+            Debug.Log("Secondary btn left down");
             SendSecondaryButtonLeftDown();
-        }else if(secondaryButtonLeftUp){
+        }else if(m_RawInput.SecondaryButtonLeftUp){
+            Debug.Log("Secondary btn left up");
             SendSecondaryButtonLeftUp();
         }
-        m_SecondaryButtonLeftPressedPrevFrame = secondaryButtonLeftPressed;
     }
     void HandleSecondaryButtonRight(){
-        bool secondaryButtonRightPressed = GetSecondaryButtonRight();
-        bool secondaryButtonRightDown = !m_SecondaryButtonRightPressedPrevFrame && secondaryButtonRightPressed;
-        bool secondaryButtonRightUp = m_SecondaryButtonRightPressedPrevFrame && !secondaryButtonRightPressed;
-        SendSecondaryButtonRightContinous(secondaryButtonRightPressed);
-        if(secondaryButtonRightDown){
+        SendSecondaryButtonRightContinous(m_RawInput.SecondaryButtonRight);
+        if(m_RawInput.SecondaryButtonRightDown){
             SendSecondaryButtonRightDown();
-        }else if(secondaryButtonRightUp){
+            Debug.Log("Secondary btn right down");
+        }else if(m_RawInput.SecondaryButtonRightUp){
+            Debug.Log("Secondary btn right up");
             SendSecondaryButtonRightUp();
         }
-        m_SecondaryButtonRightPressedPrevFrame = secondaryButtonRightPressed;
     }
     #endregion XR Input    
 
@@ -251,6 +199,9 @@ public class InputActionController : MonoBehaviour
         }
         oldState = rightIsActive;
     }
+
+
+
 
     #region Control Setup
     void SetMainControllerToRightController(){
@@ -648,26 +599,7 @@ public class InputActionController : MonoBehaviour
             registrant.ProcessJoystickPress(result);
         }
     }
-    bool GetPrimaryButtonLeft(){ // TODO: move to own class
-        bool primaryButtonLeftPressed;
-        leftXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primaryButton, out primaryButtonLeftPressed);
-        return primaryButtonLeftPressed;
-    }
-    bool GetPrimaryButtonRight(){ // TODO: move to own class
-        bool primaryButtonRightPressed;
-        rightXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primaryButton, out primaryButtonRightPressed);
-        return primaryButtonRightPressed;
-    }
-    bool GetSecondaryButtonLeft(){
-        bool secondaryButtonLeftPressed;
-        leftXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.secondaryButton, out secondaryButtonLeftPressed);
-        return secondaryButtonLeftPressed;
-    }
-    bool GetSecondaryButtonRight(){
-        bool secondaryButtonRightPressed;
-        rightXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.secondaryButton, out secondaryButtonRightPressed);
-        return secondaryButtonRightPressed;
-    }
+    
     #endregion Control Processing
 
     #region Scene Callbacks
