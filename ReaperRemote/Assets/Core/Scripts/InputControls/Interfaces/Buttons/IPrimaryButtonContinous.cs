@@ -1,5 +1,5 @@
-namespace Core.Controls{
-
+namespace Core.Controls
+{
 public interface IPrimaryButtonContinous
 {
 

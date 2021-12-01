@@ -599,11 +599,10 @@ public class InputActionController : MonoBehaviour
             registrant.ProcessJoystickPress(result);
         }
     }
-    
     #endregion Control Processing
 
     #region Scene Callbacks
-    public void SetControllerStateToDrawing(){ // TODO: set these callbacks from code ?! - now they are called from the XR on the Pencil!!
+    public void SetControllerStateToDrawing(){ // TODO: set these callbacks from code ?! - now they are called from the XR component on the Pencil!!
         m_ControllerState = ControllerState.Drawing;
         switch(m_MainController){
             case ControllerHand.Left:
