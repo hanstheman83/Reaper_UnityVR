@@ -8,7 +8,7 @@ public interface IJoystickPress
 {
     public ControllerHand ControlledBy {get;}
 
-    public void ProcessJoystickPress(float val);
+    public void ProcessJoystickPress(bool val);
 }
 
 }

@@ -24,7 +24,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     public string NameOfTriggerController {get => nameOfTriggerController;} // name accessible from list of all controllers implementing IContinousTrigger
 
     public DataHandler TriggerDataFlow { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
-    private InputActionController m_InputActionController;
+    private ButtonsProcessor m_ButtonsProcessor;
     private XRBaseController m_BaseController;
     private Coroutine haptics = null;
     public Color DrawingColor;
@@ -47,7 +47,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     void Start()
     {
         m_SceneManager = SceneManager.Instance;
-        m_InputActionController = InputActionController.Instance;
+        m_ButtonsProcessor = FindObjectOfType<ButtonsProcessor>();
         Brush = new Brush(5);
     }
 
@@ -59,12 +59,12 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
         customDirectInteractor.attachTransform.position = GetComponent<XRGrabInteractable>().attachTransform.position;
         customDirectInteractor.attachTransform.rotation = GetComponent<XRGrabInteractable>().attachTransform.rotation;
         m_BaseController = customDirectInteractor.gameObject.GetComponent<XRBaseController>(); 
-        m_InputActionController.RegisterContinousTrigger(this, m_ControlledBy);
+        m_ButtonsProcessor.RegisterContinousTrigger(this, m_ControlledBy);
     }
     public void OnSelectExited(SelectExitEventArgs args){
         CustomDirectInteractor customDirectInteractor = (CustomDirectInteractor)args.interactor;
         customDirectInteractor.attachTransform.localPosition = Vector3.zero;
-        m_InputActionController.UnregisterContinousTrigger(this, m_ControlledBy);
+        m_ButtonsProcessor.UnregisterContinousTrigger(this, m_ControlledBy);
         m_ControlledBy = ControllerHand.None;
         m_SceneManager.ChangeHandHoldingPencil(m_ControlledBy);
         m_BaseController = null;

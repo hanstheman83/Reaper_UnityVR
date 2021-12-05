@@ -6,6 +6,9 @@ using UnityEngine.InputSystem;
 using UnityEngine.Events;
 using System;
 
+/// <summary>
+/// Controls the XR UI controller state for a XR Hand.
+/// </summary>
 public class UI_InteractionController : MonoBehaviour
 {
     [SerializeField] GameObject UIController;

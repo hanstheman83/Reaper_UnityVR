@@ -4,11 +4,11 @@ using UnityEngine;
 namespace Core.Controls
 {
 /// <summary>
-/// Directly accessed XR devices
+/// Directly accessed XR devices - Left and Right hand Controllers. 
 /// <br/>IN EDITOR : TOUCH CONTROLLERS MUST BE ACTIVE BEFORE STARTING PLAYMODE!!!
 /// <br/>Otherwise they will never be initialized!
 /// </summary>
-public class RawInput : MonoBehaviour
+public class RawButtonInput : MonoBehaviour
 {
     UnityEngine.XR.InputDevice leftXRController;
     UnityEngine.XR.InputDevice rightXRController;
@@ -110,6 +110,8 @@ public class RawInput : MonoBehaviour
         m_SecondaryButtonRightUp = m_SecondaryButtonRightCached && !m_SecondaryButtonRight;        
         m_SecondaryButtonRightCached = m_SecondaryButtonRight;
     }
+
+    // TODO: get trigger continous and joystick press
 }
 
 

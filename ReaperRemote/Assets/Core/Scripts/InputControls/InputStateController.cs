@@ -6,15 +6,24 @@ namespace Core.Controls
 /// Helper Class for InputActionController. <br/>
 /// Handles Scene and UI callbacks.
 /// </summary>
-[RequireComponent(typeof(ButtonsProcessing))]
+[RequireComponent(typeof(ButtonsProcessor))]
 [RequireComponent(typeof(InputActionController))]
+[RequireComponent(typeof(XR_ComponentsController))]
 public class InputStateController : MonoBehaviour, IMovementControlStates
 {
-    InputActionController m_InputActionController;
+    private InputActionController m_InputActionController;
+    private ButtonsProcessor m_ButtonsProcessor;
+    private XR_ComponentsController m_XR_ComponentsController;
+    private ControllerHand m_MainController = ControllerHand.Right;
+    private enum ControllerState { Drawing, NotDrawing }
+    private ControllerState m_ControllerState = ControllerState.NotDrawing;
 
     private void Awake() {
         m_InputActionController = GetComponent<InputActionController>();
+        m_ButtonsProcessor = GetComponent<ButtonsProcessor>();
+        m_XR_ComponentsController = GetComponent<XR_ComponentsController>();
     }
+
     public void DeactivateLeftControllerButtons()
     {
         throw new System.NotImplementedException();
