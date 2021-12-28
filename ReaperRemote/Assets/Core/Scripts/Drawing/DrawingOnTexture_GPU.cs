@@ -465,10 +465,6 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
 
 #region Drawing Methods
-            // ------------------------------------------------------------------ //
-    // ---------------------- DRAWING METHODS -------------------------------------------- //
-
-
     /// <summary>
     /// Calculated line can start from either point - dependent on what point (this frame or last) has largest brush size.
     /// </summary>
@@ -613,13 +609,6 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             return default; 
             }
     }
-
-
-
-
-
-
-
     /// <summary>
     /// From big brush size to small lerp.
     /// </summary>

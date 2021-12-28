@@ -7073,7 +7073,6 @@ GameObject:
   - component: {fileID: 1939891088}
   - component: {fileID: 1939891087}
   - component: {fileID: 1939891086}
-  - component: {fileID: 1939891085}
   - component: {fileID: 1939891089}
   - component: {fileID: 1939891090}
   m_Layer: 9
@@ -7083,18 +7082,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1939891085
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1939891084}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df11597f54bfea44e88b2a8e2654c876, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1939891086
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8671,6 +8658,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d44582be063c5d49a9d531efe12e7ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rightUI_Controller: {fileID: 1419602148}
+  leftUI_Controller: {fileID: 1647850898}
+  rightTeleportController: {fileID: 1370850457}
+  leftTeleportController: {fileID: 1287764150}
+  leftUI_InteractionController: {fileID: 2061610441}
+  rightUI_InteractionController: {fileID: 806645728}
+--- !u!114 &5978172689797940386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5978172689797940382}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bbbce6189650a845ac07ef82894a927, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &6409181432592313322
