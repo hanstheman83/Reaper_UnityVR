@@ -105,7 +105,7 @@ int2 CalculatePixelPosition(_Pixel brushCenterPosition, uint brushWidth, uint in
 }
 
 
-[numthreads(1,1,1)] // if increasing this reduce workload in .Dispatch()
+[numthreads(1,1,1)] // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sv-groupthreadid
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     // id.x : summation of all brush strokes [different size of a brush strokes]

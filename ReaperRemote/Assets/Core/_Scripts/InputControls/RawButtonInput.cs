@@ -40,6 +40,10 @@ public class RawButtonInput : MonoBehaviour
     public bool SecondaryButtonLeftUp { get => m_SecondaryButtonLeftUp; }
     bool m_SecondaryButtonRightUp = false;
     public bool SecondaryButtonRightUp { get => m_SecondaryButtonRightUp; }
+    float m_TriggerLeftContinous = 0f;
+    public float TriggerLeftContinous { get => m_TriggerLeftContinous; }
+    float m_TriggerRightContinous = 0f;
+    public float TriggerRightContinous { get => m_TriggerRightContinous; }
 
     private void Start() {
         InitializeLeftHandController();
@@ -49,6 +53,8 @@ public class RawButtonInput : MonoBehaviour
         ProcessButtons();
     }
     void ProcessButtons(){
+        ProcessTriggerLeft();
+        ProcessTriggerRight();
         ProcessPrimaryButtonLeft();
         ProcessPrimaryButtonRight();
         ProcessSecondaryButtonLeft();
@@ -85,6 +91,12 @@ public class RawButtonInput : MonoBehaviour
         {
             Debug.Log("Found more than one right hand!");
         }
+    }
+    void ProcessTriggerLeft(){
+        leftXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.trigger, out m_TriggerLeftContinous);
+    }
+    void ProcessTriggerRight(){
+        rightXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.trigger, out m_TriggerRightContinous);
     }
     void ProcessPrimaryButtonLeft(){
         leftXRController.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primaryButton, out m_PrimaryButtonLeft);

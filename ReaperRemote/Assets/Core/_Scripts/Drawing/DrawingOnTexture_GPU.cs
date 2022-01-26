@@ -286,8 +286,8 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         for (var i = 0; i < m_CPU_BrushStrokePositionsOnLine_Buffer.Length; i++)
         {
             int brushStrokeSize = (int)m_CPU_BrushStrokeSizesOnLine_Buffer[i];
-            numberOfRuns += (   m_DrawingPencilController.Brush.WidthOfBrushSize[brushStrokeSize] * 
-                                m_DrawingPencilController.Brush.WidthOfBrushSize[brushStrokeSize] );
+            numberOfRuns += (   m_DrawingPencilController.m_Brush.WidthOfBrushSize[brushStrokeSize] * 
+                                m_DrawingPencilController.m_Brush.WidthOfBrushSize[brushStrokeSize] );
         }
         return numberOfRuns;
     }
@@ -413,24 +413,24 @@ public class DrawingOnTexture_GPU : MonoBehaviour
                                                             m_TargetPositionTransform.localPosition.y, 0f);
         // For compute shader - GPU
         int kernel = m_DrawOnTexture_Compute.FindKernel("CSMain");
-        m_CPU_BrushStrokeShapeSize0_Buffer = m_DrawingPencilController.Brush.BrushSizes[0];
-        m_CPU_BrushStrokeShapeSize1_Buffer = m_DrawingPencilController.Brush.BrushSizes[1];
-        m_CPU_BrushStrokeShapeSize2_Buffer = m_DrawingPencilController.Brush.BrushSizes[2];
-        m_CPU_BrushStrokeShapeSize3_Buffer = m_DrawingPencilController.Brush.BrushSizes[3];
-        m_CPU_BrushStrokeShapeSize4_Buffer = m_DrawingPencilController.Brush.BrushSizes[4];
-        m_CPU_BrushStrokeShapesWidths_Buffer = new uint[m_DrawingPencilController.Brush.NumberOfSizes];
-        m_CPU_BrushStrokeShapesOffset_Buffer = new int[m_DrawingPencilController.Brush.NumberOfSizes];
+        m_CPU_BrushStrokeShapeSize0_Buffer = m_DrawingPencilController.m_Brush.BrushSizes[0];
+        m_CPU_BrushStrokeShapeSize1_Buffer = m_DrawingPencilController.m_Brush.BrushSizes[1];
+        m_CPU_BrushStrokeShapeSize2_Buffer = m_DrawingPencilController.m_Brush.BrushSizes[2];
+        m_CPU_BrushStrokeShapeSize3_Buffer = m_DrawingPencilController.m_Brush.BrushSizes[3];
+        m_CPU_BrushStrokeShapeSize4_Buffer = m_DrawingPencilController.m_Brush.BrushSizes[4];
+        m_CPU_BrushStrokeShapesWidths_Buffer = new uint[m_DrawingPencilController.m_Brush.NumberOfSizes];
+        m_CPU_BrushStrokeShapesOffset_Buffer = new int[m_DrawingPencilController.m_Brush.NumberOfSizes];
         m_CPU_BrushStrokeShapesOffset_Buffer[0] = -1;
         m_CPU_BrushStrokeShapesOffset_Buffer[1] = -2;
         m_CPU_BrushStrokeShapesOffset_Buffer[2] = -3;
         m_CPU_BrushStrokeShapesOffset_Buffer[3] = -4;
         m_CPU_BrushStrokeShapesOffset_Buffer[4] = -5;
-        m_CPU_BrushStrokeSizesArrayLengths_Buffer = new uint[m_DrawingPencilController.Brush.NumberOfSizes];
+        m_CPU_BrushStrokeSizesArrayLengths_Buffer = new uint[m_DrawingPencilController.m_Brush.NumberOfSizes];
 
         for (var i = 0; i < m_CPU_BrushStrokeSizesArrayLengths_Buffer.Length; i++)
         {
-            m_CPU_BrushStrokeSizesArrayLengths_Buffer[i] = (uint)m_DrawingPencilController.Brush.BrushSizes[i].Length;
-            m_CPU_BrushStrokeShapesWidths_Buffer[i] = (uint)m_DrawingPencilController.Brush.WidthOfBrushSize[i];
+            m_CPU_BrushStrokeSizesArrayLengths_Buffer[i] = (uint)m_DrawingPencilController.m_Brush.BrushSizes[i].Length;
+            m_CPU_BrushStrokeShapesWidths_Buffer[i] = (uint)m_DrawingPencilController.m_Brush.WidthOfBrushSize[i];
         }
 
         GPU_BrushStrokeShapeSize0_Buffer = new ComputeBuffer(m_CPU_BrushStrokeShapeSize0_Buffer.Length, sizeof(float));
@@ -465,10 +465,6 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
 
 #region Drawing Methods
-            // ------------------------------------------------------------------ //
-    // ---------------------- DRAWING METHODS -------------------------------------------- //
-
-
     /// <summary>
     /// Calculated line can start from either point - dependent on what point (this frame or last) has largest brush size.
     /// </summary>
@@ -507,10 +503,10 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         if(deltaVector.y == 0) { deltaVector.y = 0.000001f; }
         // -- Preparing Iteration
         // Calculate radiuses. Brush size is in pixel width (diameter)
-        float radiusPreviousStroke = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingPencilController.Brush.WidthOfBrushSize[previousFrameBrushSize]) /2f;
-        float radiusThisStroke = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingPencilController.Brush.WidthOfBrushSize[thisFrameBrushSize]) /2f;
+        float radiusPreviousStroke = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingPencilController.m_Brush.WidthOfBrushSize[previousFrameBrushSize]) /2f;
+        float radiusThisStroke = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingPencilController.m_Brush.WidthOfBrushSize[thisFrameBrushSize]) /2f;
         // Calculate stepSize based on smallest brush size radius
-        float stepSize = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingPencilController.Brush.WidthOfBrushSize[0]) /2f; // stepSize is the radius of the smallest brush
+        float stepSize = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingPencilController.m_Brush.WidthOfBrushSize[0]) /2f; // stepSize is the radius of the smallest brush
         // scaling normalized deltaVector by stepSize
         Vector2 normalizedDeltaVector = (deltaVector/distanceBetweenBrushHits);
         Vector2 stepSizedDeltaVector =  normalizedDeltaVector * stepSize;
@@ -613,13 +609,6 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             return default; 
             }
     }
-
-
-
-
-
-
-
     /// <summary>
     /// From big brush size to small lerp.
     /// </summary>
@@ -630,7 +619,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         
         if(biggestBrushSize == BiggestBrushSize.Idem){ 
             // return smallestBrush, skip lerp.
-            float brushWidth = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingPencilController.Brush.WidthOfBrushSize[smallestBrush]);
+            float brushWidth = ConvertPixelWidthToPercentageOfImageWidth(m_DrawingPencilController.m_Brush.WidthOfBrushSize[smallestBrush]);
             float brushRadius = brushWidth/2f;
             return (smallestBrush, brushRadius);
         }else {
@@ -638,7 +627,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             // add % of difference to small brush - round to int
             float difference = biggestBrush - smallestBrush;
             int brushSizeIndex = smallestBrush + Mathf.RoundToInt(difference * percentageOfLine);
-            int brushSizePixelWidth = m_DrawingPencilController.Brush.WidthOfBrushSize[brushSizeIndex];
+            int brushSizePixelWidth = m_DrawingPencilController.m_Brush.WidthOfBrushSize[brushSizeIndex];
             float brushWidth = ConvertPixelWidthToPercentageOfImageWidth(brushSizePixelWidth);
             float brushRadius = brushWidth/2f;
             return(brushSizeIndex, brushRadius);

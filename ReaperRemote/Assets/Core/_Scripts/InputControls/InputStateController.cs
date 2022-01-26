@@ -17,6 +17,7 @@ public class InputStateController : MonoBehaviour, IMovementControlStates
     private ControllerHand m_MainController = ControllerHand.Right;
     private enum ControllerState { Drawing, NotDrawing }
     private ControllerState m_ControllerState = ControllerState.NotDrawing;
+    // dictionary of controller states - linking to a controllerState object
 
     private void Awake() {
         m_InputActionController = GetComponent<InputActionController>();

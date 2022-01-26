@@ -28,7 +28,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     private XRBaseController m_BaseController;
     private Coroutine haptics = null;
     public Color DrawingColor;
-    public Brush Brush;
+    public Brush m_Brush;
     int m_ActiveBrushSize = 0;
     public int ActiveBrushSize { get => m_ActiveBrushSize;}
     public bool DrawingModeActive { get => m_DrawingModeActive;}
@@ -48,7 +48,7 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     {
         m_SceneManager = SceneManager.Instance;
         m_ButtonsProcessor = FindObjectOfType<ButtonsProcessor>();
-        Brush = new Brush(5);
+        m_Brush = new Brush(5);
     }
 
     #region XR Callbacks
@@ -76,10 +76,12 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     #region Button Callbacks
     public void ProcessTriggerInput(float val)
     {
+        Debug.Log("Processing trigger input");
         m_ActiveBrushSize = Mathf.Clamp( 
-                                (Mathf.RoundToInt( val * (Brush.NumberOfSizes - 1) )), 0, 
-                                (Brush.NumberOfSizes - 1)
+                                (Mathf.RoundToInt( val * (m_Brush.NumberOfSizes - 1) )), 0, 
+                                (m_Brush.NumberOfSizes - 1)
                                 );
+        Debug.Log("active brush size : "+ m_ActiveBrushSize);
     }
     #endregion Button Callbacks
 

@@ -14,13 +14,12 @@ public class XR_ComponentsController : MonoBehaviour
     [SerializeField] private UI_InteractionController rightUI_InteractionController;
     
     // all XR custom components
-    private CustomMoveProvider customMoveProvider;
-    private CustomSnapTurnProvider customSnapTurnProvider;
+    [SerializeField] private CustomMoveProvider customMoveProvider;
+    [SerializeField] private CustomSnapTurnProvider customSnapTurnProvider;
 
-
+#region Unity Methods
     private void Awake() {
         InitializeMovementProviders();
-        
     }
 
     // Start is called before the first frame update
@@ -32,12 +31,11 @@ public class XR_ComponentsController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
     }
+#endregion Unity Methods
 
     void InitializeMovementProviders(){
-        customMoveProvider = FindObjectOfType<CustomMoveProvider>();
-        customSnapTurnProvider = FindObjectOfType<CustomSnapTurnProvider>();
+        
     }
 
 

@@ -13,13 +13,13 @@ public class CustomSnapTurnProvider : ActionBasedSnapTurnProvider, IXR_CustomCon
         throw new System.NotImplementedException();
     }
 
-    public void ActivateControl(InputActionProperty moveAction, ControllerHand controllerHand){ 
+    public void ActivateControl(InputActionProperty turnAction, ControllerHand controllerHand){ 
         switch(controllerHand){
             case ControllerHand.Left:
-                leftHandSnapTurnAction = moveAction;
+                leftHandSnapTurnAction = turnAction;
                 break;
             case ControllerHand.Right:
-                rightHandSnapTurnAction = moveAction;
+                rightHandSnapTurnAction = turnAction;
                 break;
         }
     }

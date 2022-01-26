@@ -70,6 +70,8 @@ public class ButtonsProcessor : MonoBehaviour
     }
 
     void HandleButtonInput(){
+        HandleTriggerButtonLeft();
+        HandleTriggerButtonRight();
         HandlePrimaryButtonLeft();
         HandlePrimaryButtonRight();
         HandleSecondaryButtonLeft();
@@ -87,6 +89,12 @@ public class ButtonsProcessor : MonoBehaviour
     }
 
     #region Button Handlers
+    void HandleTriggerButtonLeft(){
+        SendTriggerLeftContinous(m_RawButtonInput.TriggerLeftContinous);
+    }
+    void HandleTriggerButtonRight(){
+        SendTriggerRightContinous(m_RawButtonInput.TriggerRightContinous);
+    }
     void HandlePrimaryButtonLeft(){
         SendPrimaryButtonLeftContinous(m_RawButtonInput.PrimaryButtonLeft);
         if(m_RawButtonInput.PrimaryButtonLeftDown){
@@ -127,6 +135,7 @@ public class ButtonsProcessor : MonoBehaviour
             SendSecondaryButtonRightUp();
         }
     }
+    
 
     #endregion Button Handlers
 
