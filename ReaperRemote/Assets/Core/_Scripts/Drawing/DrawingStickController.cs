@@ -76,12 +76,12 @@ public class DrawingStickController : MonoBehaviour, IContinousTrigger
     #region Button Callbacks
     public void ProcessTriggerInput(float val)
     {
-        Debug.Log("Processing trigger input");
+        //Debug.Log("Processing trigger input");
         m_ActiveBrushSize = Mathf.Clamp( 
                                 (Mathf.RoundToInt( val * (m_Brush.NumberOfSizes - 1) )), 0, 
                                 (m_Brush.NumberOfSizes - 1)
                                 );
-        Debug.Log("active brush size : "+ m_ActiveBrushSize);
+        //Debug.Log("active brush size : "+ m_ActiveBrushSize);
     }
     #endregion Button Callbacks
 

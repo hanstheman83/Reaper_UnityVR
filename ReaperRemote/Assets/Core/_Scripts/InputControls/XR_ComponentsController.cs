@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Core.Controls{
 
+
 public class XR_ComponentsController : MonoBehaviour
 {
     [SerializeField] private GameObject rightUI_Controller;

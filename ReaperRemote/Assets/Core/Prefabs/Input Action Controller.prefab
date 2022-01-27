@@ -9,7 +9,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5978172690127664222}
-  - component: {fileID: 5978172690127664223}
+  - component: {fileID: 5978172689797940383}
+  - component: {fileID: 5978172689797940384}
+  - component: {fileID: 5978172689797940385}
+  - component: {fileID: 5978172689797940386}
   m_Layer: 0
   m_Name: Input Action Controller
   m_TagString: Untagged
@@ -31,7 +34,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5978172690127664223
+--- !u!114 &5978172689797940383
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -40,29 +43,50 @@ MonoBehaviour:
   m_GameObject: {fileID: 5978172690127664221}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b92b776cafb1ae843bbde39d1a54e9fb, type: 3}
+  m_Script: {fileID: 11500000, guid: 0fd2f946be25d404f87e563491ad4bde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDisabled: 0
-  leftMove:
-    m_UseReference: 1
-    m_Action:
-      m_Name: Left Move
-      m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: bf0078c8-274b-4a28-9470-cc705cd1f4f1
-      m_Processors: 
-      m_Interactions: 
-      m_SingletonActionBindings: []
-    m_Reference: {fileID: 6972639530819350904, guid: c348712bda248c246b8c49b3db54643f, type: 3}
-  rightTurn:
-    m_UseReference: 1
-    m_Action:
-      m_Name: Right Turn
-      m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: b2b21389-d9c1-42cd-bb86-1bc37bb142fa
-      m_Processors: 
-      m_Interactions: 
-      m_SingletonActionBindings: []
-    m_Reference: {fileID: -6493913391331992944, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+--- !u!114 &5978172689797940384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5978172690127664221}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8381f16fd00b2b4aac3df7d90f61c18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5978172689797940385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5978172690127664221}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d44582be063c5d49a9d531efe12e7ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rightUI_Controller: {fileID: 0}
+  leftUI_Controller: {fileID: 0}
+  rightTeleportController: {fileID: 0}
+  leftTeleportController: {fileID: 0}
+  leftUI_InteractionController: {fileID: 0}
+  rightUI_InteractionController: {fileID: 0}
+  customMoveProvider: {fileID: 0}
+  customSnapTurnProvider: {fileID: 0}
+--- !u!114 &5978172689797940386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5978172690127664221}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bbbce6189650a845ac07ef82894a927, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

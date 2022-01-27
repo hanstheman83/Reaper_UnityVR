@@ -4,14 +4,13 @@ namespace Core.Controls
 {
 /// <summary>
 /// Helper Class for InputActionController. <br/>
-/// Handles Scene and UI callbacks.
+/// Handles Scene and UI callbacks. <br/>
+/// Since ActionBasedControllerManager turns off teleport and snap turn while holding object that is not needed! 
 /// </summary>
 [RequireComponent(typeof(ButtonsProcessor))]
-[RequireComponent(typeof(InputActionController))]
 [RequireComponent(typeof(XR_ComponentsController))]
 public class InputStateController : MonoBehaviour, IMovementControlStates
 {
-    private InputActionController m_InputActionController;
     private ButtonsProcessor m_ButtonsProcessor;
     private XR_ComponentsController m_XR_ComponentsController;
     private ControllerHand m_MainController = ControllerHand.Right;
@@ -20,7 +19,6 @@ public class InputStateController : MonoBehaviour, IMovementControlStates
     // dictionary of controller states - linking to a controllerState object
 
     private void Awake() {
-        m_InputActionController = GetComponent<InputActionController>();
         m_ButtonsProcessor = GetComponent<ButtonsProcessor>();
         m_XR_ComponentsController = GetComponent<XR_ComponentsController>();
     }
