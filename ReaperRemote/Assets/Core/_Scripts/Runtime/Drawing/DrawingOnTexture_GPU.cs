@@ -104,6 +104,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     private RenderTexture renderTexture_19;
 #endif
     private enum BiggestBrushSize {ThisFrame, PreviousFrame, Idem}
+    public bool IsDrawing { get => m_IsDrawing; }
     bool m_IsDrawing = false;
     bool m_ComputeShaderDispatched = false;
     Transform m_OtherObject;

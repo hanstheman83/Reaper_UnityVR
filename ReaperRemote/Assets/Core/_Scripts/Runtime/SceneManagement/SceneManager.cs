@@ -17,9 +17,9 @@ public class SceneManager : MonoBehaviour
         get { return m_SceneManager; }
     }
     public delegate void HandHoldingPencilChanged(ControllerHand controllerHand);
-    public static event HandHoldingPencilChanged handHoldingPencilChanged;
+    public event HandHoldingPencilChanged handHoldingPencilChanged;
     public delegate void MainControllerHandChanged(ControllerHand controllerHand);
-    public static event MainControllerHandChanged mainControllerHandChanged;
+    public event MainControllerHandChanged mainControllerHandChanged;
 
     void Awake(){
         InitializeAsSingleton();

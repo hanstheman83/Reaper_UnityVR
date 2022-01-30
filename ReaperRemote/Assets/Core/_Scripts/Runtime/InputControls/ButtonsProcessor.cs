@@ -98,10 +98,10 @@ public class ButtonsProcessor : MonoBehaviour
     void HandlePrimaryButtonLeft(){
         SendPrimaryButtonLeftContinous(m_RawButtonInput.PrimaryButtonLeft);
         if(m_RawButtonInput.PrimaryButtonLeftDown){
-            Debug.Log("Primary btn left down");
+            // Debug.Log("Primary btn left down");
             SendPrimaryButtonLeftDown();
         }else if(m_RawButtonInput.PrimaryButtonLeftUp){
-            Debug.Log("Primary btn left up");
+            // Debug.Log("Primary btn left up");
             SendPrimaryButtonLeftUp();
         }
     }
@@ -109,19 +109,19 @@ public class ButtonsProcessor : MonoBehaviour
         SendPrimaryButtonRightContinous(m_RawButtonInput.PrimaryButtonRight);
         if(m_RawButtonInput.PrimaryButtonRightDown){
             SendPrimaryButtonRightDown();
-            Debug.Log("Primary btn right down");
+            // Debug.Log("Primary btn right down");
         }else if(m_RawButtonInput.PrimaryButtonRightUp){
-            Debug.Log("Primary btn right up");
+            // Debug.Log("Primary btn right up");
             SendPrimaryButtonRightUp();
         }
     }
     void HandleSecondaryButtonLeft(){
         SendSecondaryButtonLeftContinous(m_RawButtonInput.SecondaryButtonLeft);
         if(m_RawButtonInput.SecondaryButtonLeftDown){
-            Debug.Log("Secondary btn left down");
+            // Debug.Log("Secondary btn left down");
             SendSecondaryButtonLeftDown();
         }else if(m_RawButtonInput.SecondaryButtonLeftUp){
-            Debug.Log("Secondary btn left up");
+            // Debug.Log("Secondary btn left up");
             SendSecondaryButtonLeftUp();
         }
     }
@@ -129,9 +129,9 @@ public class ButtonsProcessor : MonoBehaviour
         SendSecondaryButtonRightContinous(m_RawButtonInput.SecondaryButtonRight);
         if(m_RawButtonInput.SecondaryButtonRightDown){
             SendSecondaryButtonRightDown();
-            Debug.Log("Secondary btn right down");
+            // Debug.Log("Secondary btn right down");
         }else if(m_RawButtonInput.SecondaryButtonRightUp){
-            Debug.Log("Secondary btn right up");
+            // Debug.Log("Secondary btn right up");
             SendSecondaryButtonRightUp();
         }
     }
@@ -453,8 +453,6 @@ public class ButtonsProcessor : MonoBehaviour
             registrant.ProcessSecondaryButtonContinous(value);
         }
     }
-
-    // TODO: get from raw input instead... 
     private void SendTriggerLeftContinous(float value){
         foreach(IContinousTrigger registrant in m_TriggerLeftContinousRegistrants){
             registrant.ProcessTriggerInput(value);
