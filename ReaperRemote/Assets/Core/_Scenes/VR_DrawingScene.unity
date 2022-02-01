@@ -2654,6 +2654,7 @@ MonoBehaviour:
   renderTexture_17_Renderer: {fileID: 926422101}
   renderTexture_18_Renderer: {fileID: 79092795}
   renderTexture_19_Renderer: {fileID: 1842802842}
+  undo: {fileID: 1547235705}
 --- !u!1 &776696755
 GameObject:
   m_ObjectHideFlags: 0
@@ -5673,6 +5674,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1547235703}
   - component: {fileID: 1547235704}
+  - component: {fileID: 1547235705}
   m_Layer: 0
   m_Name: Undo Redo
   m_TagString: Untagged
@@ -5706,7 +5708,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57967bee762b2624f9cb1915ad7343a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  drawingOnTexture_GPU: {fileID: 749001979}
+  undo: {fileID: 0}
+--- !u!114 &1547235705
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1547235702}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b2061c26bdbd604bba6891f2ecb0616, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1570906931
 GameObject:
   m_ObjectHideFlags: 0

@@ -9,24 +9,26 @@ namespace Core.Controls{
 /// <summary>
 /// Called from Drawing Stick - setting right controller btns
 /// </summary>
-public class UndoRedo : MonoBehaviour, IPrimaryButtonDown, ISecondaryButtonDown
+public class UndoRedoButtons : MonoBehaviour, IPrimaryButtonDown, ISecondaryButtonDown
 {
+    [SerializeField]Undo undo;
     SceneManager sceneManager;
     private ButtonsProcessor m_ButtonsProcessor;
-
-    [SerializeField] DrawingOnTexture_GPU drawingOnTexture_GPU;
-
     private ControllerHand m_ControlledBy = ControllerHand.None; 
     public ControllerHand ControlledBy { get => m_ControlledBy; } // This script controlled by Opposite hand of the hand holding the pencil/drawing stick!!
 
     public void ProcessPrimaryButtonDown()
     {
         Debug.Log("Primary down on " + m_ControlledBy);
+        // Undo
+        // drawing will store undos and redos
+        // call drawing - change back to earlier state 
     }
 
     public void ProcessSecondaryButtonDown()
     {
         Debug.Log("Secondary down on " + m_ControlledBy);
+        // Redo
     }
 
     // Start is called before the first frame update

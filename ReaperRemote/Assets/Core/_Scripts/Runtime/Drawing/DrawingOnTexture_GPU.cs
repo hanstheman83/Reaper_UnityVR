@@ -103,6 +103,30 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     private RenderTexture renderTexture_18;
     private RenderTexture renderTexture_19;
 #endif
+    // RW textures 
+    private Color[] texture_00;
+    private Color[] texture_01;
+    private Color[] texture_02;
+    private Color[] texture_03;
+    private Color[] texture_04;
+    private Color[] texture_05;
+    private Color[] texture_06;
+    private Color[] texture_07;
+    private Color[] texture_08;
+    private Color[] texture_09;
+    private Color[] texture_10;
+    private Color[] texture_11;
+    private Color[] texture_12;
+    private Color[] texture_13;
+    private Color[] texture_14;
+    private Color[] texture_15;
+    private Color[] texture_16;
+    private Color[] texture_17;
+    private Color[] texture_18;
+    private Color[] texture_19;
+    //
+
+
     private enum BiggestBrushSize {ThisFrame, PreviousFrame, Idem}
     public bool IsDrawing { get => m_IsDrawing; }
     bool m_IsDrawing = false;
@@ -175,6 +199,28 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         m_DrawOnTexture_Compute.SetInt("_TextureHeight", m_RenderTextureHeight);
         m_DrawOnTexture_Compute.SetInt("_ImageWidth", m_ImageWidth);
         m_DrawOnTexture_Compute.SetInt("_ImageHeight", m_ImageHeight);
+    }
+    void InitTextures(){ // Color32 - RGBA, 0 to 255; To convert to Color : Color32.Color
+        texture_00 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_01 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_02 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_03 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_04 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_05 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_06 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_07 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_08 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_09 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_10 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_11 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_12 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_13 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_14 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_15 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_16 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_17 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_18 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_19 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
     }
     void InitAllRenderTextures(){
         InitRenderTexture(renderTexture_00_Renderer, ref renderTexture_00,"_RenderTexture00");
