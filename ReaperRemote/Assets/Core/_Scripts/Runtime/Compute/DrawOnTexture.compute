@@ -4,6 +4,7 @@
 
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain  
+#pragma kernel LoadImage
 
 // TODO: Fix gaps in line  
 
@@ -28,6 +29,29 @@ int _ImageHeight;
 // per update call
 uint _NumberOfBrushStrokesOnLine; // length of _BrushStrokeSizesOnLine_Buffer
 RWStructuredBuffer<int> _JobDone_Buffer; // dummy data to check Kernel job done - full when all id.x are called!
+// Store Image Data in 1D arrays of colors
+RWStructuredBuffer<float4> _Texture00; 
+RWStructuredBuffer<float4> _Texture01; 
+RWStructuredBuffer<float4> _Texture02; 
+RWStructuredBuffer<float4> _Texture03;
+#if !SHADER_API_D3D11
+RWStructuredBuffer<float4> _Texture04; 
+RWStructuredBuffer<float4> _Texture05; 
+RWStructuredBuffer<float4> _Texture06; 
+RWStructuredBuffer<float4> _Texture07; 
+RWStructuredBuffer<float4> _Texture08; 
+RWStructuredBuffer<float4> _Texture09; 
+RWStructuredBuffer<float4> _Texture10; 
+RWStructuredBuffer<float4> _Texture11; 
+RWStructuredBuffer<float4> _Texture12; 
+RWStructuredBuffer<float4> _Texture13; 
+RWStructuredBuffer<float4> _Texture14; 
+RWStructuredBuffer<float4> _Texture15; 
+RWStructuredBuffer<float4> _Texture16; 
+RWStructuredBuffer<float4> _Texture17; 
+RWStructuredBuffer<float4> _Texture18; 
+RWStructuredBuffer<float4> _Texture19; 
+#endif
 // array of 2D vectors, positions and color in pixels
 StructuredBuffer<_Pixel> _BrushStrokePositionsOnLine_Buffer; 
 // Array of points on line - brush sizes [numbers/indices] 
@@ -104,6 +128,12 @@ int2 CalculatePixelPosition(_Pixel brushCenterPosition, uint brushWidth, uint in
     return pos;
 }
 
+uint2 Calculate2D_Position(uint n, uint textureWidth){
+    uint2 pos2D;
+    pos2D.y = n/textureWidth;
+    pos2D.x = n - (textureWidth * pos2D.y);
+    return pos2D;
+}
 
 [numthreads(1,1,1)] // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sv-groupthreadid
 void CSMain (uint3 id : SV_DispatchThreadID)
@@ -246,7 +276,46 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     _JobDone_Buffer[id.x] = 1; 
 }
 
+[numthreads(1,1,1)] // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sv-groupthreadid
+void LoadImage (uint3 id : SV_DispatchThreadID){
+    uint length1DArray = (_TextureWidth * _TextureHeight);
 
+    // from _Texture00 ... 
+    if(id.x < length1DArray){
+        uint pos1D = id.x;
+        uint2 pos2D = Calculate2D_Position(pos1D, _TextureWidth);
+        _RenderTexture00[pos2D] = _Texture00[pos1D];
+    }
+    else if(id.x < length1DArray * 2 ){
+        uint pos1D = id.x - length1DArray;
+        uint2 pos2D = Calculate2D_Position(pos1D, _TextureWidth);
+        _RenderTexture01[pos2D] = _Texture01[pos1D];
+    }else if(id.x < length1DArray * 3 ){
+        uint pos1D = id.x - (length1DArray * 2);
+        uint2 pos2D = Calculate2D_Position(pos1D, _TextureWidth);
+        _RenderTexture02[pos2D] = _Texture02[pos1D];
+    }else if(id.x < length1DArray * 4 ){
+        uint pos1D = id.x - (length1DArray * 3);
+        uint2 pos2D = Calculate2D_Position(pos1D, _TextureWidth);
+        _RenderTexture03[pos2D] = _Texture03[pos1D];
+    }
+#if !SHADER_API_D3D11
+    else if(id.x < length1DArray * 5 ){
+        uint pos1D = id.x - (length1DArray * 4);
+        uint2 pos2D = Calculate2D_Position(pos1D, _TextureWidth);
+        _RenderTexture04[pos2D] = _Texture04[pos1D];
+    }else if(id.x < length1DArray * 6 ){
+        uint pos1D = id.x - (length1DArray * 5);
+        uint2 pos2D = Calculate2D_Position(pos1D, _TextureWidth);
+        _RenderTexture05[pos2D] = _Texture05[pos1D];
+    }else if(id.x < length1DArray * 7 ){
+        uint pos1D = id.x - (length1DArray * 6);
+        uint2 pos2D = Calculate2D_Position(pos1D, _TextureWidth);
+        _RenderTexture06[pos2D] = _Texture06[pos1D];
+    }
+#endif
+
+}
 
 
 
