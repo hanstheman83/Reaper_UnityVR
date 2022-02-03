@@ -73,10 +73,10 @@ StructuredBuffer<float> _BrushStrokeShapeSize4_Buffer;
 
 // https://logins.github.io/graphics/2020/10/31/D3D12ComputeShaders.html
 // Quest 2 build works fine - Editor does not!
-RWTexture2D<float4> _RenderTexture00; // The Output render texture
-RWTexture2D<float4> _RenderTexture01; // The Output render texture
-RWTexture2D<float4> _RenderTexture02; // The Output render texture
-RWTexture2D<float4> _RenderTexture03; // The Output render texture
+shared RWTexture2D<float4> _RenderTexture00; // The Output render texture
+shared RWTexture2D<float4> _RenderTexture01; // The Output render texture
+shared RWTexture2D<float4> _RenderTexture02; // The Output render texture
+shared RWTexture2D<float4> _RenderTexture03; // The Output render texture
 #if !SHADER_API_D3D11
 RWTexture2D<float4> _RenderTexture04; // The Output render texture
 RWTexture2D<float4> _RenderTexture05; // The Output render texture
@@ -276,7 +276,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     _JobDone_Buffer[id.x] = 1; 
 }
 
-[numthreads(1,1,1)] // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sv-groupthreadid
+[numthreads(20,1,1)] // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sv-groupthreadid
 void LoadImage (uint3 id : SV_DispatchThreadID){
     uint length1DArray = (_TextureWidth * _TextureHeight);
 

@@ -211,10 +211,13 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     }
     void InitTextureBuffers(){ // Color32 - RGBA, 0 to 255; To convert to Color : Color32.Color
         m_CPU_Texture00_Buffer = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        LoadColorInTextureBuffer(m_CPU_Texture00_Buffer, Color.blue);
+        LoadColorInTextureBuffer(ref m_CPU_Texture00_Buffer, Color.blue);
         m_CPU_Texture01_Buffer = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        LoadColorInTextureBuffer(ref m_CPU_Texture01_Buffer, Color.yellow);
         m_CPU_Texture02_Buffer = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        LoadColorInTextureBuffer(ref m_CPU_Texture02_Buffer, Color.green);
         m_CPU_Texture03_Buffer = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        LoadColorInTextureBuffer(ref m_CPU_Texture03_Buffer, Color.white);
 #if !UNITY_EDITOR
         texture_04 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
         texture_05 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
@@ -236,7 +239,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
 
     }
 
-    void LoadColorInTextureBuffer(Color[] textureBuffer, Color color){
+    void LoadColorInTextureBuffer(ref Color[] textureBuffer, Color color){
         for (var i = 0; i < textureBuffer.Length; i++)
         {
             textureBuffer[i] = color;
@@ -268,6 +271,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     }
     void InitRenderTexture(Renderer renderer, ref RenderTexture renderTexture, string name){
         int kernel = m_DrawOnTexture_Compute.FindKernel("CSMain");
+        int kernel2 = m_DrawOnTexture_Compute.FindKernel("LoadImage");
         renderTexture = new RenderTexture(m_RenderTextureWidth, m_RenderTextureHeight, 0, RenderTextureFormat.ARGB32);
         renderTexture.antiAliasing = 1;
         renderTexture.anisoLevel = 0;
@@ -278,6 +282,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         renderTexture.filterMode = FilterMode.Trilinear;
         renderTexture.Create();
         renderer.material.mainTexture = renderTexture;
+        m_DrawOnTexture_Compute.SetTexture(kernel2, name, renderTexture);
         m_DrawOnTexture_Compute.SetTexture(kernel, name, renderTexture);
     }
 
@@ -287,16 +292,24 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         GPU_Texture00_Buffer = new ComputeBuffer(m_CPU_Texture00_Buffer.Length, sizeof(float)*4);
         m_DrawOnTexture_Compute.SetBuffer(kernel, "_Texture00", GPU_Texture00_Buffer);
         GPU_Texture01_Buffer = new ComputeBuffer(m_CPU_Texture01_Buffer.Length, sizeof(float)*4);
-        m_DrawOnTexture_Compute.SetBuffer(kernel, "_Texture00", GPU_Texture00_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_Texture01", GPU_Texture01_Buffer);
         GPU_Texture02_Buffer = new ComputeBuffer(m_CPU_Texture02_Buffer.Length, sizeof(float)*4);
-        m_DrawOnTexture_Compute.SetBuffer(kernel, "_Texture00", GPU_Texture00_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_Texture02", GPU_Texture02_Buffer);
         GPU_Texture03_Buffer = new ComputeBuffer(m_CPU_Texture03_Buffer.Length, sizeof(float)*4);
-        m_DrawOnTexture_Compute.SetBuffer(kernel, "_Texture00", GPU_Texture00_Buffer);
+        m_DrawOnTexture_Compute.SetBuffer(kernel, "_Texture03", GPU_Texture03_Buffer);
     }
 
     void LoadImageFromTextureBuffers(){
         int kernel = m_DrawOnTexture_Compute.FindKernel("LoadImage");
-        m_DrawOnTexture_Compute.Dispatch(kernel, m_CPU_Texture00_Buffer.Length * 4, 1, 1);
+        m_DrawOnTexture_Compute.Dispatch(kernel, m_CPU_Texture00_Buffer.Length / 20, 1, 1);
+        GPU_Texture00_Buffer.GetData(m_CPU_Texture00_Buffer);
+        GPU_Texture00_Buffer.GetData(m_CPU_Texture01_Buffer);
+        GPU_Texture00_Buffer.GetData(m_CPU_Texture02_Buffer);
+        GPU_Texture00_Buffer.GetData(m_CPU_Texture03_Buffer);
+        GPU_Texture00_Buffer.Release();
+        GPU_Texture01_Buffer.Release();
+        GPU_Texture02_Buffer.Release();
+        GPU_Texture03_Buffer.Release();
     }
 
     // -------- Helper methods for Update() ---------- //
