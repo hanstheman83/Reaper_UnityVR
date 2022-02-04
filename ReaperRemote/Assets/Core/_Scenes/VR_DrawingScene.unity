@@ -2654,7 +2654,10 @@ MonoBehaviour:
   renderTexture_17_Renderer: {fileID: 926422101}
   renderTexture_18_Renderer: {fileID: 79092795}
   renderTexture_19_Renderer: {fileID: 1842802842}
-  undo: {fileID: 1547235705}
+  renderTexture_00: {fileID: 0}
+  renderTexture_01: {fileID: 0}
+  renderTexture_02: {fileID: 0}
+  renderTexture_03: {fileID: 0}
 --- !u!1 &776696755
 GameObject:
   m_ObjectHideFlags: 0
@@ -2853,6 +2856,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 802830213}
+  - component: {fileID: 802830214}
   m_Layer: 0
   m_Name: Texture_00
   m_TagString: Untagged
@@ -2875,6 +2879,21 @@ Transform:
   m_Father: {fileID: 724595258}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &802830214
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 802830212}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b56c084535ef046408f0a584139a2dbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_DrawingOnTexture: {fileID: 749001979}
+  m_ButtonController: {fileID: 0}
+  m_TextureHandling_Compute: {fileID: 7200000, guid: e82b76c92f74f164e87aba082ae4c94f, type: 3}
 --- !u!1 &803597867
 GameObject:
   m_ObjectHideFlags: 0
@@ -5709,6 +5728,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   undo: {fileID: 0}
+  UndoEvent:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 802830214}
+        m_TargetAssemblyTypeName: Core.Drawing.TextureHandler, Assembly-CSharp
+        m_MethodName: Undo
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1547235705
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7090,7 +7124,6 @@ GameObject:
   - component: {fileID: 1939891087}
   - component: {fileID: 1939891086}
   - component: {fileID: 1939891089}
-  - component: {fileID: 1939891090}
   m_Layer: 9
   m_Name: Drawing Board_GPU
   m_TagString: Untagged
@@ -7272,19 +7305,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a168ff47231df6b40a02b52c85f65f8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1939891090
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1939891084}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a9f8224fc9e794942ac0e603ecfbdaad, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_DrawingOnTexture: {fileID: 749001979}
 --- !u!1 &1955358150
 GameObject:
   m_ObjectHideFlags: 0

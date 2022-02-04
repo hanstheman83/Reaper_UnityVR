@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Core;  
 using Core.Interactions;
+using Unity.Mathematics;
 
 namespace Core.Drawing{
 
@@ -81,50 +82,50 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     private float[] m_CPU_BrushStrokeShapeSize4_Buffer;
     private uint[] m_CPU_BrushStrokeSizesArrayLengths_Buffer;
     // ---- RENDER TEXTURES, shared with GPU compute buffer
-    private RenderTexture renderTexture_00;
-    private RenderTexture renderTexture_01;
-    private RenderTexture renderTexture_02;
-    private RenderTexture renderTexture_03;
+    [HideInInspector] public RenderTexture renderTexture_00;
+    [HideInInspector] public RenderTexture renderTexture_01;
+    [HideInInspector] public RenderTexture renderTexture_02;
+    [HideInInspector] public RenderTexture renderTexture_03;
 #if !UNITY_EDITOR // DirectX11 doesn't support many textures in a compute shader!
-    private RenderTexture renderTexture_04;
-    private RenderTexture renderTexture_05;
-    private RenderTexture renderTexture_06;
-    private RenderTexture renderTexture_07;
-    private RenderTexture renderTexture_08;
-    private RenderTexture renderTexture_09;
-    private RenderTexture renderTexture_10;
-    private RenderTexture renderTexture_11;
-    private RenderTexture renderTexture_12;
-    private RenderTexture renderTexture_13;
-    private RenderTexture renderTexture_14;
-    private RenderTexture renderTexture_15;
-    private RenderTexture renderTexture_16;
-    private RenderTexture renderTexture_17;
-    private RenderTexture renderTexture_18;
-    private RenderTexture renderTexture_19;
+    public RenderTexture renderTexture_04;
+    public RenderTexture renderTexture_05;
+    public RenderTexture renderTexture_06;
+    public RenderTexture renderTexture_07;
+    public RenderTexture renderTexture_08;
+    public RenderTexture renderTexture_09;
+    public RenderTexture renderTexture_10;
+    public RenderTexture renderTexture_11;
+    public RenderTexture renderTexture_12;
+    public RenderTexture renderTexture_13;
+    public RenderTexture renderTexture_14;
+    public RenderTexture renderTexture_15;
+    public RenderTexture renderTexture_16;
+    public RenderTexture renderTexture_17;
+    public RenderTexture renderTexture_18;
+    public RenderTexture renderTexture_19;
 #endif
     // RW textures 
-    private Color[] m_CPU_Texture00_Buffer;
-    private Color[] m_CPU_Texture01_Buffer;
-    private Color[] m_CPU_Texture02_Buffer;
-    private Color[] m_CPU_Texture03_Buffer;
+    private float4[] m_CPU_Texture00_Buffer;
+    private float4[] m_CPU_Texture01_Buffer;
+    private float4[] m_CPU_Texture02_Buffer;
+    private float4[] m_CPU_Texture03_Buffer;
 #if !UNITY_EDITOR
-    private Color[] texture_04;
-    private Color[] texture_05;
-    private Color[] texture_06;
-    private Color[] texture_07;
-    private Color[] texture_08;
-    private Color[] texture_09;
-    private Color[] texture_10;
-    private Color[] texture_11;
-    private Color[] texture_12;
-    private Color[] texture_13;
-    private Color[] texture_14;
-    private Color[] texture_15;
-    private Color[] texture_16;
-    private Color[] texture_17;
-    private Color[] texture_18;
-    private Color[] texture_19;
+    private float4[] texture_04;
+    private float4[] texture_05;
+    private float4[] texture_06;
+    private float4[] texture_07;
+    private float4[] texture_08;
+    private float4[] texture_09;
+    private float4[] texture_10;
+    private float4[] texture_11;
+    private float4[] texture_12;
+    private float4[] texture_13;
+    private float4[] texture_14;
+    private float4[] texture_15;
+    private float4[] texture_16;
+    private float4[] texture_17;
+    private float4[] texture_18;
+    private float4[] texture_19;
 #endif
     //
     private ComputeBuffer GPU_Texture00_Buffer;
@@ -210,39 +211,39 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         m_DrawOnTexture_Compute.SetInt("_ImageHeight", m_ImageHeight);
     }
     void InitTextureBuffers(){ // Color32 - RGBA, 0 to 255; To convert to Color : Color32.Color
-        m_CPU_Texture00_Buffer = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        m_CPU_Texture00_Buffer = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
         LoadColorInTextureBuffer(ref m_CPU_Texture00_Buffer, Color.blue);
-        m_CPU_Texture01_Buffer = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        m_CPU_Texture01_Buffer = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
         LoadColorInTextureBuffer(ref m_CPU_Texture01_Buffer, Color.yellow);
-        m_CPU_Texture02_Buffer = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        m_CPU_Texture02_Buffer = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
         LoadColorInTextureBuffer(ref m_CPU_Texture02_Buffer, Color.green);
-        m_CPU_Texture03_Buffer = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        m_CPU_Texture03_Buffer = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
         LoadColorInTextureBuffer(ref m_CPU_Texture03_Buffer, Color.white);
 #if !UNITY_EDITOR
-        texture_04 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_05 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_06 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_07 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_08 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_09 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_10 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_11 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_12 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_13 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_14 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_15 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_16 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_17 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_18 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_19 = new Color[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_04 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_05 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_06 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_07 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_08 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_09 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_10 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_11 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_12 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_13 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_14 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_15 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_16 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_17 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_18 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
+        texture_19 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
 #endif
 
     }
 
-    void LoadColorInTextureBuffer(ref Color[] textureBuffer, Color color){
+    void LoadColorInTextureBuffer(ref float4[] textureBuffer, Color color){
         for (var i = 0; i < textureBuffer.Length; i++)
         {
-            textureBuffer[i] = color;
+            textureBuffer[i] = new float4(color.r, color.g, .5f, 1f);
         }
     }
     void InitAllRenderTextures(){
@@ -290,8 +291,11 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         // Kernel
         int kernel = m_DrawOnTexture_Compute.FindKernel("LoadImage");
         GPU_Texture00_Buffer = new ComputeBuffer(m_CPU_Texture00_Buffer.Length, sizeof(float)*4);
+        GPU_Texture00_Buffer.SetData(m_CPU_Texture00_Buffer);
         m_DrawOnTexture_Compute.SetBuffer(kernel, "_Texture00", GPU_Texture00_Buffer);
+
         GPU_Texture01_Buffer = new ComputeBuffer(m_CPU_Texture01_Buffer.Length, sizeof(float)*4);
+        GPU_Texture01_Buffer.SetData(m_CPU_Texture01_Buffer);
         m_DrawOnTexture_Compute.SetBuffer(kernel, "_Texture01", GPU_Texture01_Buffer);
         GPU_Texture02_Buffer = new ComputeBuffer(m_CPU_Texture02_Buffer.Length, sizeof(float)*4);
         m_DrawOnTexture_Compute.SetBuffer(kernel, "_Texture02", GPU_Texture02_Buffer);

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Core.Drawing;
 using Core.SceneManagement;
-
+using UnityEngine.Events;
 namespace Core.Controls{
 
 /// <summary>
@@ -16,11 +16,12 @@ public class UndoRedoButtons : MonoBehaviour, IPrimaryButtonDown, ISecondaryButt
     private ButtonsProcessor m_ButtonsProcessor;
     private ControllerHand m_ControlledBy = ControllerHand.None; 
     public ControllerHand ControlledBy { get => m_ControlledBy; } // This script controlled by Opposite hand of the hand holding the pencil/drawing stick!!
-
+    public UnityEvent UndoEvent;
     public void ProcessPrimaryButtonDown()
     {
         Debug.Log("Primary down on " + m_ControlledBy);
         // Undo
+        UndoEvent?.Invoke();
         // drawing will store undos and redos
         // call drawing - change back to earlier state 
     }

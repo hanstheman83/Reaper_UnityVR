@@ -284,7 +284,8 @@ void LoadImage (uint3 id : SV_DispatchThreadID){
     if(id.x < length1DArray){
         uint pos1D = id.x;
         uint2 pos2D = Calculate2D_Position(pos1D, _TextureWidth);
-        _RenderTexture00[pos2D] = _Texture00[pos1D];
+        // _RenderTexture00[pos2D] = _Texture00[pos1D];
+        _RenderTexture00[pos2D] = float4(.5f, .5f, .5f, .5f);
     }
     else if(id.x < length1DArray * 2 ){
         uint pos1D = id.x - length1DArray;
