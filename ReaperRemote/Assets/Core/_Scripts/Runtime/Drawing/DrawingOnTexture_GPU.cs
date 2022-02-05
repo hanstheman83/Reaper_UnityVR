@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using Core;  
 using Core.Interactions;
 using Unity.Mathematics;
+using UnityEngine.Events;
 
 namespace Core.Drawing{
 
@@ -22,7 +23,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     [SerializeField] GameObject m_TargetPosition;
     [SerializeField] GameObject m_DepthPosition;
     [SerializeField] Transform m_ReleasePosition;
-    [SerializeField] LayerManager_GPU layerManager;
+    public UnityEvent finishedStroke;
     [SerializeField] ComputeShader m_DrawOnTexture_Compute;
     [Header("Exposed Fields")]
     [SerializeField] Color drawingColor;
@@ -160,9 +161,6 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         // a/b x/y - on non pencil controller
         InitComputeShaderInts();
         InitTransforms();
-        InitTextureBuffers(); // order 1
-        SetTextureBuffers(); // order 2
-        LoadImageFromTextureBuffers(); // order 3
     }
     // TODO: release texture when they are not needed- free resources [also on loading another scene!]:
     // RenderTexture.Release()  Releases the RenderTexture.
@@ -197,7 +195,6 @@ public class DrawingOnTexture_GPU : MonoBehaviour
     void InitImageSettings(){
         m_ImageWidth = m_RenderTextureWidth * 4;
         m_ImageHeight = m_RenderTextureHeight * 5;
-        layerManager.InitializeAllLayers(m_ImageWidth, m_ImageHeight);
     }
     void InitTransforms(){
         m_StrokePositionTransform = m_StrokePosition.transform;
@@ -210,42 +207,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         m_DrawOnTexture_Compute.SetInt("_ImageWidth", m_ImageWidth);
         m_DrawOnTexture_Compute.SetInt("_ImageHeight", m_ImageHeight);
     }
-    void InitTextureBuffers(){ // Color32 - RGBA, 0 to 255; To convert to Color : Color32.Color
-        m_CPU_Texture00_Buffer = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        LoadColorInTextureBuffer(ref m_CPU_Texture00_Buffer, Color.blue);
-        m_CPU_Texture01_Buffer = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        LoadColorInTextureBuffer(ref m_CPU_Texture01_Buffer, Color.yellow);
-        m_CPU_Texture02_Buffer = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        LoadColorInTextureBuffer(ref m_CPU_Texture02_Buffer, Color.green);
-        m_CPU_Texture03_Buffer = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        LoadColorInTextureBuffer(ref m_CPU_Texture03_Buffer, Color.white);
-#if !UNITY_EDITOR
-        texture_04 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_05 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_06 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_07 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_08 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_09 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_10 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_11 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_12 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_13 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_14 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_15 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_16 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_17 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_18 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-        texture_19 = new float4[m_RenderTextureWidth * m_RenderTextureHeight];
-#endif
-
-    }
-
-    void LoadColorInTextureBuffer(ref float4[] textureBuffer, Color color){
-        for (var i = 0; i < textureBuffer.Length; i++)
-        {
-            textureBuffer[i] = new float4(color.r, color.g, .5f, 1f);
-        }
-    }
+    
     void InitAllRenderTextures(){
         InitRenderTexture(renderTexture_00_Renderer, ref renderTexture_00,"_RenderTexture00");
         InitRenderTexture(renderTexture_01_Renderer, ref renderTexture_01,"_RenderTexture01");
@@ -283,39 +245,11 @@ public class DrawingOnTexture_GPU : MonoBehaviour
         renderTexture.filterMode = FilterMode.Trilinear;
         renderTexture.Create();
         renderer.material.mainTexture = renderTexture;
-        m_DrawOnTexture_Compute.SetTexture(kernel2, name, renderTexture);
+        //m_DrawOnTexture_Compute.SetTexture(kernel2, name, renderTexture);
         m_DrawOnTexture_Compute.SetTexture(kernel, name, renderTexture);
     }
 
-    void SetTextureBuffers(){
-        // Kernel
-        int kernel = m_DrawOnTexture_Compute.FindKernel("LoadImage");
-        GPU_Texture00_Buffer = new ComputeBuffer(m_CPU_Texture00_Buffer.Length, sizeof(float)*4);
-        GPU_Texture00_Buffer.SetData(m_CPU_Texture00_Buffer);
-        m_DrawOnTexture_Compute.SetBuffer(kernel, "_Texture00", GPU_Texture00_Buffer);
-
-        GPU_Texture01_Buffer = new ComputeBuffer(m_CPU_Texture01_Buffer.Length, sizeof(float)*4);
-        GPU_Texture01_Buffer.SetData(m_CPU_Texture01_Buffer);
-        m_DrawOnTexture_Compute.SetBuffer(kernel, "_Texture01", GPU_Texture01_Buffer);
-        GPU_Texture02_Buffer = new ComputeBuffer(m_CPU_Texture02_Buffer.Length, sizeof(float)*4);
-        m_DrawOnTexture_Compute.SetBuffer(kernel, "_Texture02", GPU_Texture02_Buffer);
-        GPU_Texture03_Buffer = new ComputeBuffer(m_CPU_Texture03_Buffer.Length, sizeof(float)*4);
-        m_DrawOnTexture_Compute.SetBuffer(kernel, "_Texture03", GPU_Texture03_Buffer);
-    }
-
-    void LoadImageFromTextureBuffers(){
-        int kernel = m_DrawOnTexture_Compute.FindKernel("LoadImage");
-        m_DrawOnTexture_Compute.Dispatch(kernel, m_CPU_Texture00_Buffer.Length / 20, 1, 1);
-        GPU_Texture00_Buffer.GetData(m_CPU_Texture00_Buffer);
-        GPU_Texture00_Buffer.GetData(m_CPU_Texture01_Buffer);
-        GPU_Texture00_Buffer.GetData(m_CPU_Texture02_Buffer);
-        GPU_Texture00_Buffer.GetData(m_CPU_Texture03_Buffer);
-        GPU_Texture00_Buffer.Release();
-        GPU_Texture01_Buffer.Release();
-        GPU_Texture02_Buffer.Release();
-        GPU_Texture03_Buffer.Release();
-    }
-
+   
     // -------- Helper methods for Update() ---------- //
     bool HandleDrawing(){
         Vector2 currentStroke = CalculateCanvasCoordinatesRaw(); // scaled/stretched in y dimension
@@ -451,6 +385,7 @@ public class DrawingOnTexture_GPU : MonoBehaviour
             StopHandlingDrawingInput();
             CatchShaderDispatch();
         }
+        finishedStroke?.Invoke(); // For saving state
     }
     Vector3 CalculateReleasePosition(){
         return new Vector3( m_TargetPosition.transform.localPosition.x, 

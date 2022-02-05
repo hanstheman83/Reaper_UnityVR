@@ -1,14 +1,32 @@
-#pragma kernel CSMain
+#pragma kernel SaveUndoPoint
+#pragma kernel Undo
 
 // texture material is set to 100% opaque.. so alpha channel is ignored!
 
-RWTexture2D<float4> _RenderTexture00;
+shared RWTexture2D<float4> _RenderTexture;
+shared RWStructuredBuffer<float4> _TextureData; 
+
+uint Calculate1DPos(uint2 pos2D, uint width){
+    uint pos1D = (width * pos2D.y) + pos2D.x; 
+    return pos1D;
+}
+
 
 [numthreads(1,1,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
-{
-    
-    _RenderTexture00[id.xy] = float4(0, 1, 0, 1);
+void SaveUndoPoint(uint3 id : SV_DispatchThreadID){
+    uint pos1D = Calculate1DPos(id.xy, 1024); // TODO: no magic number!!!!!!
+    _TextureData[pos1D] = _RenderTexture[id.xy];
+}
+
+[numthreads(1,1,1)]
+void Undo (uint3 id : SV_DispatchThreadID){
+    // Go back 1 level to earlier..
+
+    // Test SAVING functionality..
+
+    uint pos1D = Calculate1DPos(id.xy, 1024); // TODO: no magic number!!!!!!
+    // _RenderTexture00[id.xy] = float4(0, 1, 0, 1);
+    _RenderTexture[id.xy] = _TextureData[pos1D];
 
         
     
