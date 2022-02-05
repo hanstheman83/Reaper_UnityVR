@@ -8,7 +8,7 @@ namespace Core.Drawing{
 public class TextureHandler : MonoBehaviour
 {
     [SerializeField] DrawingOnTexture_GPU m_DrawingOnTexture;
-    private RenderTexture m_Texture;
+    //private RenderTexture m_Texture;
     private Color[] m_CPU_TextureData;
     private ComputeBuffer GPU_TextureData;
     private bool isInit = false;
@@ -27,27 +27,31 @@ public class TextureHandler : MonoBehaviour
         
     }
 
+    private void OnDisable() {
+        GPU_TextureData.Release();
+    }
+
     private void SetupDataBuffers()
     {
         SetupCPU_Buffer();
-        SetupGPU_Buffer();
+        //SetupGPU_Buffer();
     }
 
-    private void SetupGPU_Buffer(){
-        int kernel1 = m_TextureHandling_Compute.FindKernel("SaveUndoPoint");
-        int kernel2 = m_TextureHandling_Compute.FindKernel("Undo");
-        GPU_TextureData = new ComputeBuffer(m_CPU_TextureData.Length, sizeof(float) * 4);
-        GPU_TextureData.SetData(m_CPU_TextureData);
-        m_TextureHandling_Compute.SetBuffer(kernel1, "_TextureData", GPU_TextureData);
-        m_TextureHandling_Compute.SetBuffer(kernel2, "_TextureData", GPU_TextureData);
-    }    
+    // private void SetupGPU_Buffer(){
+    //     int kernel1 = m_TextureHandling_Compute.FindKernel("SaveUndoPoint");
+    //     int kernel2 = m_TextureHandling_Compute.FindKernel("Undo");
+    //     GPU_TextureData = new ComputeBuffer(m_CPU_TextureData.Length, sizeof(float) * 4);
+    //     GPU_TextureData.SetData(m_CPU_TextureData);
+    //     m_TextureHandling_Compute.SetBuffer(kernel1, "_TextureData", GPU_TextureData);
+    //     m_TextureHandling_Compute.SetBuffer(kernel2, "_TextureData", GPU_TextureData);
+    // }    
 
     private void SetupCPU_Buffer()
     {
         m_CPU_TextureData = new Color[1024 * 1024]; // TODO: no magic #s
         for (var i = 0; i < m_CPU_TextureData.Length; i++)
         {
-            m_CPU_TextureData[i] = Color.magenta;
+            m_CPU_TextureData[i] = Color.green;
         }
     }
 
@@ -79,9 +83,9 @@ public class TextureHandler : MonoBehaviour
     private void HookTextureToShader(){
         int kernel1 = m_TextureHandling_Compute.FindKernel("SaveUndoPoint");
         int kernel2 = m_TextureHandling_Compute.FindKernel("Undo");
-        m_Texture = m_DrawingOnTexture.renderTexture_00;
-        m_TextureHandling_Compute.SetTexture(kernel1, "_RenderTexture", m_Texture);
-        m_TextureHandling_Compute.SetTexture(kernel2, "_RenderTexture", m_Texture);
+        //m_Texture = m_DrawingOnTexture.renderTexture_00;
+        m_TextureHandling_Compute.SetTexture(kernel1, "_RenderTexture", m_Textures[0]);
+        m_TextureHandling_Compute.SetTexture(kernel2, "_RenderTexture", m_Textures[0]);
 #if !UNITY_EDITOR
         // drawingOnTexture.renderTexture_06; // has access to !UNITY_EDITOR 
 #endif        
@@ -96,8 +100,17 @@ public class TextureHandler : MonoBehaviour
         }
         Debug.Log("Saving state..");
         int kernel = m_TextureHandling_Compute.FindKernel("SaveUndoPoint");
+        m_TextureHandling_Compute.SetTexture(kernel, "_RenderTexture", m_Textures[0]);
+        GPU_TextureData = new ComputeBuffer(m_CPU_TextureData.Length, sizeof(float) * 4);
+        GPU_TextureData.SetData(m_CPU_TextureData);
+        m_TextureHandling_Compute.SetBuffer(kernel, "_TextureData", GPU_TextureData);
         m_TextureHandling_Compute.Dispatch(kernel, 1024, 1024, 1);
         GPU_TextureData.GetData(m_CPU_TextureData);
+        // for (var i = 0; i < m_CPU_TextureData.Length/10; i++)
+        // {
+        //     Debug.Log(m_CPU_TextureData[i]);
+        // }
+        GPU_TextureData.Release();
     }
 #endregion Event Callbacks
 
@@ -108,11 +121,15 @@ public class TextureHandler : MonoBehaviour
         // draw on texture 1 color..
         // dispatch
         int kernel = m_TextureHandling_Compute.FindKernel("Undo");
-
+        m_TextureHandling_Compute.SetTexture(kernel, "_RenderTexture", m_Textures[0]);
+        GPU_TextureData = new ComputeBuffer(m_CPU_TextureData.Length, sizeof(float) * 4);
+        GPU_TextureData.SetData(m_CPU_TextureData);
+        m_TextureHandling_Compute.SetBuffer(kernel, "_TextureData", GPU_TextureData);
         m_TextureHandling_Compute.Dispatch(kernel, 1024, 1024, 1);
         GPU_TextureData.GetData(m_CPU_TextureData);
+        GPU_TextureData.Release();
         // TODO: call data to check dispatch is done!
-        m_Texture.GenerateMips();
+        m_Textures[0].GenerateMips();
         // TODO: setup .Release() at app quit
     }
     public void Redo(){
