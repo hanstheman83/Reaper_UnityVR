@@ -2537,21 +2537,6 @@ MonoBehaviour:
   m_TargetPosition: {fileID: 866149700}
   m_DepthPosition: {fileID: 1470501397}
   m_ReleasePosition: {fileID: 1570906932}
-  finishedStroke:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 802830214}
-        m_TargetAssemblyTypeName: Core.Drawing.TextureHandler, Assembly-CSharp
-        m_MethodName: SaveState
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
   m_DrawOnTexture_Compute: {fileID: 7200000, guid: aa2dd1ca1388bfd42899e963aa3eef47, type: 3}
   drawingColor: {r: 0.5188679, g: 0.19335172, b: 0.19335172, a: 1}
   renderTexture_00_Renderer: {fileID: 685359441}
@@ -5662,6 +5647,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  m_DrawingOnTexture: {fileID: 749001979}
 --- !u!114 &1547235705
 MonoBehaviour:
   m_ObjectHideFlags: 0

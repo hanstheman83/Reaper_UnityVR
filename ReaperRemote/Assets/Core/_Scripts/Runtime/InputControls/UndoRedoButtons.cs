@@ -12,11 +12,12 @@ namespace Core.Controls{
 public class UndoRedoButtons : MonoBehaviour, IPrimaryButtonDown, ISecondaryButtonDown
 {
     [SerializeField]Undo undo;
-    SceneManager sceneManager;
+    SceneManager m_SceneManager;
     private ButtonsProcessor m_ButtonsProcessor;
     private ControllerHand m_ControlledBy = ControllerHand.None; 
     public ControllerHand ControlledBy { get => m_ControlledBy; } // This script controlled by Opposite hand of the hand holding the pencil/drawing stick!!
     public UnityEvent UndoEvent;
+    [SerializeField] private DrawingOnTexture_GPU m_DrawingOnTexture;
     public void ProcessPrimaryButtonDown()
     {
         Debug.Log("Primary down on " + m_ControlledBy);
@@ -36,8 +37,9 @@ public class UndoRedoButtons : MonoBehaviour, IPrimaryButtonDown, ISecondaryButt
     void Start()
     {
         m_ButtonsProcessor = FindObjectOfType<ButtonsProcessor>();
-        sceneManager = SceneManager.Instance;
-        sceneManager.handHoldingPencilChanged += SetupButtons;
+        m_SceneManager = SceneManager.Instance;
+        m_SceneManager.handHoldingPencilChanged += SetupButtons;
+        m_DrawingOnTexture.finishedStroke += SetMarkedTextures;
     }
 
     // Update is called once per frame
@@ -75,11 +77,18 @@ public class UndoRedoButtons : MonoBehaviour, IPrimaryButtonDown, ISecondaryButt
         }
     }
 
+    private void SetMarkedTextures(int[] markedTextures){ // always includes texture 0 - must be starting from there by default ?!
+        for (var i = 0; i < markedTextures.Length; i++)
+        {
+            if(markedTextures[i] == 1) Debug.Log("Mark @ " + i );
+        }
+    }
+
     private void OnEnable() {
         
     }
     private void OnDisable() {
-        sceneManager.handHoldingPencilChanged -= SetupButtons;
+        m_SceneManager.handHoldingPencilChanged -= SetupButtons;
     }
 
 }

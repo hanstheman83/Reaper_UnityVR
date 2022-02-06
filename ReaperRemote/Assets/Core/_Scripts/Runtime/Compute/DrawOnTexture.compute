@@ -4,7 +4,6 @@
 
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain  
-#pragma kernel LoadImage
 
 // TODO: Fix gaps in line  
 
@@ -29,29 +28,8 @@ int _ImageHeight;
 // per update call
 uint _NumberOfBrushStrokesOnLine; // length of _BrushStrokeSizesOnLine_Buffer
 RWStructuredBuffer<int> _JobDone_Buffer; // dummy data to check Kernel job done - full when all id.x are called!
-// Store Image Data in 1D arrays of colors
-RWStructuredBuffer<float4> _Texture00; 
-RWStructuredBuffer<float4> _Texture01; 
-RWStructuredBuffer<float4> _Texture02; 
-RWStructuredBuffer<float4> _Texture03;
-#if !SHADER_API_D3D11
-RWStructuredBuffer<float4> _Texture04; 
-RWStructuredBuffer<float4> _Texture05; 
-RWStructuredBuffer<float4> _Texture06; 
-RWStructuredBuffer<float4> _Texture07; 
-RWStructuredBuffer<float4> _Texture08; 
-RWStructuredBuffer<float4> _Texture09; 
-RWStructuredBuffer<float4> _Texture10; 
-RWStructuredBuffer<float4> _Texture11; 
-RWStructuredBuffer<float4> _Texture12; 
-RWStructuredBuffer<float4> _Texture13; 
-RWStructuredBuffer<float4> _Texture14; 
-RWStructuredBuffer<float4> _Texture15; 
-RWStructuredBuffer<float4> _Texture16; 
-RWStructuredBuffer<float4> _Texture17; 
-RWStructuredBuffer<float4> _Texture18; 
-RWStructuredBuffer<float4> _Texture19; 
-#endif
+RWStructuredBuffer<int> _MarkedTextures_Buffer;
+
 // array of 2D vectors, positions and color in pixels
 StructuredBuffer<_Pixel> _BrushStrokePositionsOnLine_Buffer; 
 // Array of points on line - brush sizes [numbers/indices] 
@@ -192,139 +170,109 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         if(pixelPosition.x < _TextureWidth && pixelPosition.y < _TextureHeight ){ // 00
             pixelPosition = pixelPosition;
             _RenderTexture00[pixelPosition] = brushCenterPosition.color; // TODO: add alpha from other array
+            _MarkedTextures_Buffer[0] = 1;
         }
         else if(pixelPosition.x < (_TextureWidth << 1) && pixelPosition.y < _TextureHeight){ // 01
             pixelPosition = int2(pixelPosition.x - _TextureWidth, pixelPosition.y );  
             _RenderTexture01[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[1] = 1;
         }
         else if( pixelPosition.x < ((_TextureWidth << 1) + _TextureWidth) && pixelPosition.y < _TextureHeight){ //02
             pixelPosition = int2(pixelPosition.x - (_TextureWidth << 1), pixelPosition.y);
             _RenderTexture02[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[2] = 1;
         }
         else if( pixelPosition.x < (_TextureWidth << 2) && pixelPosition.y < _TextureHeight){ //03
             pixelPosition = int2(pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth) , pixelPosition.y); // bit shift (_TextureWidth << 1) + (_TextureWidth) same as _TextureWidth *
             _RenderTexture03[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[3] = 1;
         }
 #if !SHADER_API_D3D11
         else if( pixelPosition.x < _TextureWidth && pixelPosition.y < (_TextureHeight << 1)){ //04
             pixelPosition = int2(pixelPosition.x, pixelPosition.y - _TextureHeight);
             _RenderTexture04[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[4] = 1;
         }
         else if( pixelPosition.x < (_TextureWidth << 1) && pixelPosition.y < (_TextureHeight << 1)){ //05
             pixelPosition = int2(pixelPosition.x - _TextureWidth, pixelPosition.y - _TextureHeight);
             _RenderTexture05[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[5] = 1;
         }
         else if( pixelPosition.x < ((_TextureWidth << 1) + _TextureWidth) && pixelPosition.y < (_TextureHeight << 1) ){ //06 // _TextureHeight * 2
             pixelPosition = int2(pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - _TextureHeight);
             _RenderTexture06[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[6] = 1;
         }
         else if( pixelPosition.x < (_TextureWidth << 2) && pixelPosition.y < (_TextureHeight << 1)){ //07
             pixelPosition = int2(pixelPosition.x - ( (_TextureWidth << 1) + (_TextureWidth) ), pixelPosition.y - _TextureHeight);
             _RenderTexture07[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[7] = 1;
         }
         else if( pixelPosition.x < _TextureWidth && pixelPosition.y < ( (_TextureHeight << 1) + _TextureHeight) ){ //08
             pixelPosition = int2(pixelPosition.x, pixelPosition.y - (_TextureHeight << 1));
             _RenderTexture08[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[8] = 1;
         }
         else if( pixelPosition.x < (_TextureWidth << 1) && pixelPosition.y < ( (_TextureHeight << 1) + _TextureHeight)){ //09
             pixelPosition = int2(pixelPosition.x - _TextureWidth, pixelPosition.y - (_TextureHeight << 1));
             _RenderTexture09[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[9] = 1;
         }
         else if( pixelPosition.x < ((_TextureWidth << 1) + _TextureWidth) && pixelPosition.y < ( (_TextureHeight << 1) + _TextureHeight)){ //10
             pixelPosition = int2(pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - (_TextureHeight << 1));
             _RenderTexture10[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[10] = 1;
         }
         else if( pixelPosition.x < (_TextureWidth << 2) && pixelPosition.y < ( (_TextureHeight << 1) + _TextureHeight)){ //11
             pixelPosition = int2(pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth), pixelPosition.y - (_TextureHeight << 1));
             _RenderTexture11[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[11] = 1;
         }
         else if( pixelPosition.x < _TextureWidth && pixelPosition.y < (_TextureHeight << 2)){ //12
             pixelPosition = int2(pixelPosition.x, pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
             _RenderTexture12[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[12] = 1;
         }
         else if( pixelPosition.x < (_TextureWidth << 1) && pixelPosition.y < (_TextureHeight << 2)){ //13
             pixelPosition = int2(pixelPosition.x - _TextureWidth, pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
             _RenderTexture13[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[13] = 1;
         }
         else if( pixelPosition.x < ((_TextureWidth << 1) + _TextureWidth) && pixelPosition.y < (_TextureHeight << 2)){ //14
             pixelPosition = int2(pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
             _RenderTexture14[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[14] = 1;
         }
         else if( pixelPosition.x < (_TextureWidth << 2) && pixelPosition.y < (_TextureHeight << 2)){ //15
             pixelPosition = int2(pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth), pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
             _RenderTexture15[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[15] = 1;
         }
         //
         else if( pixelPosition.x < _TextureWidth && pixelPosition.y < ((_TextureHeight << 2) + _TextureHeight)){ //16
             pixelPosition = int2(pixelPosition.x, pixelPosition.y - (_TextureHeight << 2));
             _RenderTexture16[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[16] = 1;
         }
         else if( pixelPosition.x < (_TextureWidth << 1) && pixelPosition.y < ((_TextureHeight << 2) + _TextureHeight)){ //17
             pixelPosition = int2(pixelPosition.x - _TextureWidth, pixelPosition.y - (_TextureHeight << 2));
             _RenderTexture17[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[17] = 1;
         }
         else if( pixelPosition.x < ((_TextureWidth << 1) + _TextureWidth) && pixelPosition.y < ((_TextureHeight << 2) + _TextureHeight)){ //18
             pixelPosition = int2(pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - (_TextureHeight << 2));
             _RenderTexture18[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[18] = 1;
         }
         else if( pixelPosition.x < (_TextureWidth << 2) && pixelPosition.y < ((_TextureHeight << 2) + _TextureHeight)){ //19
             pixelPosition = int2(pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth), pixelPosition.y - (_TextureHeight << 2));
             _RenderTexture19[pixelPosition] = brushCenterPosition.color;
+            _MarkedTextures_Buffer[19] = 1;
         }
 #endif
     }
     _JobDone_Buffer[id.x] = 1; 
 }
-
-[numthreads(20,1,1)] // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sv-groupthreadid
-void LoadImage (uint3 id : SV_DispatchThreadID){
-    uint length1DArray = (_TextureWidth * _TextureHeight);
-
-    // from _Texture00 ... 
-    if(id.x < length1DArray){
-        uint pos1D = id.x;
-        uint2 pos2D = Calculate2D_Position(pos1D, _TextureWidth);
-        // _RenderTexture00[pos2D] = _Texture00[pos1D];
-        _RenderTexture00[pos2D] = float4(.5f, .5f, .5f, .5f);
-    }
-    else if(id.x < length1DArray * 2 ){
-        uint pos1D = id.x - length1DArray;
-        uint2 pos2D = Calculate2D_Position(pos1D, _TextureWidth);
-        _RenderTexture01[pos2D] = _Texture01[pos1D];
-    }else if(id.x < length1DArray * 3 ){
-        uint pos1D = id.x - (length1DArray * 2);
-        uint2 pos2D = Calculate2D_Position(pos1D, _TextureWidth);
-        _RenderTexture02[pos2D] = _Texture02[pos1D];
-    }else if(id.x < length1DArray * 4 ){
-        uint pos1D = id.x - (length1DArray * 3);
-        uint2 pos2D = Calculate2D_Position(pos1D, _TextureWidth);
-        _RenderTexture03[pos2D] = _Texture03[pos1D];
-    }
-#if !SHADER_API_D3D11
-    else if(id.x < length1DArray * 5 ){
-        uint pos1D = id.x - (length1DArray * 4);
-        uint2 pos2D = Calculate2D_Position(pos1D, _TextureWidth);
-        _RenderTexture04[pos2D] = _Texture04[pos1D];
-    }else if(id.x < length1DArray * 6 ){
-        uint pos1D = id.x - (length1DArray * 5);
-        uint2 pos2D = Calculate2D_Position(pos1D, _TextureWidth);
-        _RenderTexture05[pos2D] = _Texture05[pos1D];
-    }else if(id.x < length1DArray * 7 ){
-        uint pos1D = id.x - (length1DArray * 6);
-        uint2 pos2D = Calculate2D_Position(pos1D, _TextureWidth);
-        _RenderTexture06[pos2D] = _Texture06[pos1D];
-    }
-#endif
-
-}
-
-
-
-
-
-
-
-
 
 
 
