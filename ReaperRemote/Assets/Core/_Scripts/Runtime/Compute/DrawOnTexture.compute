@@ -170,104 +170,104 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         if(pixelPosition.x < _TextureWidth && pixelPosition.y < _TextureHeight ){ // 00
             pixelPosition = pixelPosition;
             _RenderTexture00[pixelPosition] = brushCenterPosition.color; // TODO: add alpha from other array
-            _MarkedTextures_Buffer[0] = 1;
+            _MarkedTextures_Buffer[0] = 2;
         }
         else if(pixelPosition.x < (_TextureWidth << 1) && pixelPosition.y < _TextureHeight){ // 01
             pixelPosition = int2(pixelPosition.x - _TextureWidth, pixelPosition.y );  
             _RenderTexture01[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[1] = 1;
+            _MarkedTextures_Buffer[1] = 2;
         }
         else if( pixelPosition.x < ((_TextureWidth << 1) + _TextureWidth) && pixelPosition.y < _TextureHeight){ //02
             pixelPosition = int2(pixelPosition.x - (_TextureWidth << 1), pixelPosition.y);
             _RenderTexture02[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[2] = 1;
+            _MarkedTextures_Buffer[2] = 2;
         }
         else if( pixelPosition.x < (_TextureWidth << 2) && pixelPosition.y < _TextureHeight){ //03
             pixelPosition = int2(pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth) , pixelPosition.y); // bit shift (_TextureWidth << 1) + (_TextureWidth) same as _TextureWidth *
             _RenderTexture03[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[3] = 1;
+            _MarkedTextures_Buffer[3] = 2;
         }
 #if !SHADER_API_D3D11
         else if( pixelPosition.x < _TextureWidth && pixelPosition.y < (_TextureHeight << 1)){ //04
             pixelPosition = int2(pixelPosition.x, pixelPosition.y - _TextureHeight);
             _RenderTexture04[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[4] = 1;
+            _MarkedTextures_Buffer[4] = 2;
         }
         else if( pixelPosition.x < (_TextureWidth << 1) && pixelPosition.y < (_TextureHeight << 1)){ //05
             pixelPosition = int2(pixelPosition.x - _TextureWidth, pixelPosition.y - _TextureHeight);
             _RenderTexture05[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[5] = 1;
+            _MarkedTextures_Buffer[5] = 2;
         }
         else if( pixelPosition.x < ((_TextureWidth << 1) + _TextureWidth) && pixelPosition.y < (_TextureHeight << 1) ){ //06 // _TextureHeight * 2
             pixelPosition = int2(pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - _TextureHeight);
             _RenderTexture06[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[6] = 1;
+            _MarkedTextures_Buffer[6] = 2;
         }
         else if( pixelPosition.x < (_TextureWidth << 2) && pixelPosition.y < (_TextureHeight << 1)){ //07
             pixelPosition = int2(pixelPosition.x - ( (_TextureWidth << 1) + (_TextureWidth) ), pixelPosition.y - _TextureHeight);
             _RenderTexture07[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[7] = 1;
+            _MarkedTextures_Buffer[7] = 2;
         }
         else if( pixelPosition.x < _TextureWidth && pixelPosition.y < ( (_TextureHeight << 1) + _TextureHeight) ){ //08
             pixelPosition = int2(pixelPosition.x, pixelPosition.y - (_TextureHeight << 1));
             _RenderTexture08[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[8] = 1;
+            _MarkedTextures_Buffer[8] = 2;
         }
         else if( pixelPosition.x < (_TextureWidth << 1) && pixelPosition.y < ( (_TextureHeight << 1) + _TextureHeight)){ //09
             pixelPosition = int2(pixelPosition.x - _TextureWidth, pixelPosition.y - (_TextureHeight << 1));
             _RenderTexture09[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[9] = 1;
+            _MarkedTextures_Buffer[9] = 2;
         }
         else if( pixelPosition.x < ((_TextureWidth << 1) + _TextureWidth) && pixelPosition.y < ( (_TextureHeight << 1) + _TextureHeight)){ //10
             pixelPosition = int2(pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - (_TextureHeight << 1));
             _RenderTexture10[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[10] = 1;
+            _MarkedTextures_Buffer[10] = 2;
         }
         else if( pixelPosition.x < (_TextureWidth << 2) && pixelPosition.y < ( (_TextureHeight << 1) + _TextureHeight)){ //11
             pixelPosition = int2(pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth), pixelPosition.y - (_TextureHeight << 1));
             _RenderTexture11[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[11] = 1;
+            _MarkedTextures_Buffer[11] = 2;
         }
         else if( pixelPosition.x < _TextureWidth && pixelPosition.y < (_TextureHeight << 2)){ //12
             pixelPosition = int2(pixelPosition.x, pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
             _RenderTexture12[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[12] = 1;
+            _MarkedTextures_Buffer[12] = 2;
         }
         else if( pixelPosition.x < (_TextureWidth << 1) && pixelPosition.y < (_TextureHeight << 2)){ //13
             pixelPosition = int2(pixelPosition.x - _TextureWidth, pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
             _RenderTexture13[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[13] = 1;
+            _MarkedTextures_Buffer[13] = 2;
         }
         else if( pixelPosition.x < ((_TextureWidth << 1) + _TextureWidth) && pixelPosition.y < (_TextureHeight << 2)){ //14
             pixelPosition = int2(pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
             _RenderTexture14[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[14] = 1;
+            _MarkedTextures_Buffer[14] = 2;
         }
         else if( pixelPosition.x < (_TextureWidth << 2) && pixelPosition.y < (_TextureHeight << 2)){ //15
             pixelPosition = int2(pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth), pixelPosition.y - ( (_TextureHeight << 1) + _TextureHeight));
             _RenderTexture15[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[15] = 1;
+            _MarkedTextures_Buffer[15] = 2;
         }
         //
         else if( pixelPosition.x < _TextureWidth && pixelPosition.y < ((_TextureHeight << 2) + _TextureHeight)){ //16
             pixelPosition = int2(pixelPosition.x, pixelPosition.y - (_TextureHeight << 2));
             _RenderTexture16[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[16] = 1;
+            _MarkedTextures_Buffer[16] = 2;
         }
         else if( pixelPosition.x < (_TextureWidth << 1) && pixelPosition.y < ((_TextureHeight << 2) + _TextureHeight)){ //17
             pixelPosition = int2(pixelPosition.x - _TextureWidth, pixelPosition.y - (_TextureHeight << 2));
             _RenderTexture17[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[17] = 1;
+            _MarkedTextures_Buffer[17] = 2;
         }
         else if( pixelPosition.x < ((_TextureWidth << 1) + _TextureWidth) && pixelPosition.y < ((_TextureHeight << 2) + _TextureHeight)){ //18
             pixelPosition = int2(pixelPosition.x - (_TextureWidth << 1), pixelPosition.y - (_TextureHeight << 2));
             _RenderTexture18[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[18] = 1;
+            _MarkedTextures_Buffer[18] = 2;
         }
         else if( pixelPosition.x < (_TextureWidth << 2) && pixelPosition.y < ((_TextureHeight << 2) + _TextureHeight)){ //19
             pixelPosition = int2(pixelPosition.x - ((_TextureWidth << 1) + _TextureWidth), pixelPosition.y - (_TextureHeight << 2));
             _RenderTexture19[pixelPosition] = brushCenterPosition.color;
-            _MarkedTextures_Buffer[19] = 1;
+            _MarkedTextures_Buffer[19] = 2;
         }
 #endif
     }

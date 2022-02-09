@@ -7,17 +7,16 @@ using UnityEngine.Events;
 namespace Core.Controls{
 
 /// <summary>
-/// Called from Drawing Stick - setting right controller btns
+/// Called from Drawing Stick - setting right controller btns </br>
+/// TODO: Disabled during drawing stroke ?
 /// </summary>
 public class UndoRedoButtons : MonoBehaviour, IPrimaryButtonDown, ISecondaryButtonDown
 {
-    [SerializeField]Undo undo;
     SceneManager m_SceneManager;
     private ButtonsProcessor m_ButtonsProcessor;
     private ControllerHand m_ControlledBy = ControllerHand.None; 
     public ControllerHand ControlledBy { get => m_ControlledBy; } // This script controlled by Opposite hand of the hand holding the pencil/drawing stick!!
     public UnityEvent UndoEvent;
-    [SerializeField] private DrawingOnTexture_GPU m_DrawingOnTexture;
     public void ProcessPrimaryButtonDown()
     {
         Debug.Log("Primary down on " + m_ControlledBy);
@@ -39,13 +38,19 @@ public class UndoRedoButtons : MonoBehaviour, IPrimaryButtonDown, ISecondaryButt
         m_ButtonsProcessor = FindObjectOfType<ButtonsProcessor>();
         m_SceneManager = SceneManager.Instance;
         m_SceneManager.handHoldingPencilChanged += SetupButtons;
-        m_DrawingOnTexture.finishedStroke += SetMarkedTextures;
     }
 
     // Update is called once per frame
     void Update()
     {
         
+    }
+
+    private void OnEnable() {
+        
+    }
+    private void OnDisable() {
+        m_SceneManager.handHoldingPencilChanged -= SetupButtons;
     }
 
     void SetupButtons(ControllerHand controllerHand){ // controllerHand is controller hand holding pencil!
@@ -73,24 +78,8 @@ public class UndoRedoButtons : MonoBehaviour, IPrimaryButtonDown, ISecondaryButt
                 m_ButtonsProcessor.RegisterSecondaryButtonDown(this, ControllerHand.Left);
                 m_ControlledBy = ControllerHand.Left;
                 break;
-
         }
     }
-
-    private void SetMarkedTextures(int[] markedTextures){ // always includes texture 0 - must be starting from there by default ?!
-        for (var i = 0; i < markedTextures.Length; i++)
-        {
-            if(markedTextures[i] == 1) Debug.Log("Mark @ " + i );
-        }
-    }
-
-    private void OnEnable() {
-        
-    }
-    private void OnDisable() {
-        m_SceneManager.handHoldingPencilChanged -= SetupButtons;
-    }
-
 }
 
 }

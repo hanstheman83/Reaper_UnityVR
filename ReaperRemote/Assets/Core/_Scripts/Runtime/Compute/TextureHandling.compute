@@ -16,7 +16,6 @@ uint Calculate1DPos(uint2 pos2D, uint width){
 void SaveUndoPoint(uint3 id : SV_DispatchThreadID){
     uint pos1D = Calculate1DPos(id.xy, 1024); // TODO: no magic number!!!!!!
     _TextureData[pos1D] = _RenderTexture[id.xy];
-    // _TextureData[pos1D] = float4(1,0,0,0);
 }
 
 [numthreads(1,1,1)]
