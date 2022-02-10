@@ -41,10 +41,10 @@ public class TextureHandler : MonoBehaviour
     private void SetupCPU_Buffer()
     {
         m_CPU_TextureData = new Color[1024 * 1024]; // TODO: no magic #s
-        for (var i = 0; i < m_CPU_TextureData.Length; i++)
-        {
-            m_CPU_TextureData[i] = Color.green;
-        }
+        // for (var i = 0; i < m_CPU_TextureData.Length; i++)
+        // {
+        //     m_CPU_TextureData[i] = Color.green;
+        // }
     }
 
     private void MakeTextureList(){
@@ -93,7 +93,7 @@ public class TextureHandler : MonoBehaviour
         SetupCPU_Buffer();
         Debug.Log("Saving state..");
         int kernel = m_TextureHandling_Compute.FindKernel("SaveUndoPoint");
-        m_TextureHandling_Compute.SetTexture(kernel, "_RenderTexture", m_Textures[m_RenderTextureIndex]);
+        //m_TextureHandling_Compute.SetTexture(kernel, "_RenderTexture", m_Textures[m_RenderTextureIndex]);
         GPU_TextureData = new ComputeBuffer(m_CPU_TextureData.Length, sizeof(float) * 4);
 
         GPU_TextureData.SetData(m_CPU_TextureData);
@@ -117,6 +117,7 @@ public class TextureHandler : MonoBehaviour
         // TODO: add pre compile defs..
         
         //SetupCPU_Buffer();
+        
         if(m_Undoes.ContainsKey(undoIndex)){
             m_CPU_TextureData = m_Undoes[undoIndex]; 
             if(m_Undoes.Remove(undoIndex)) Debug.Log("undo" + undoIndex + " removed");;
