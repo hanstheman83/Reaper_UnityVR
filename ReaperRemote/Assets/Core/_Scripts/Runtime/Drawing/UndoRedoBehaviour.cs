@@ -46,13 +46,14 @@ public class UndoRedoBehaviour : MonoBehaviour
 #region Button Callbacks
     public void OnUndoPressed(){
         Debug.Log("Undo pressed, processing...");
+        Debug.Log("Current undo level " + m_CurrentUndoLevel);
         // 
         if(m_CurrentUndoLevel == 0){
             Debug.Log("No undoes available!");
         }else{
             // call all TextureHandlers and go to earlier undo level!
             foreach(TextureHandler t in m_TextureHandlers){
-                //t.Undo(m_CurrentUndoLevel);
+                t.Undo(m_CurrentUndoLevel);
             }
             m_CurrentUndoLevel--;
         }
@@ -61,18 +62,15 @@ public class UndoRedoBehaviour : MonoBehaviour
 
 #region Script callbacks
     private void SetMarkedTextures(int[] markedTextures){ // always includes texture 0 - must be starting from there by default ?!
+        m_CurrentUndoLevel++;
+        Debug.Log("Setting Marked.. Current undo level " + m_CurrentUndoLevel);
         for (var i = 0; i < markedTextures.Length; i++)
         {
-            if(markedTextures[i] == 2) Debug.Log("Mark @ " + i );
+            if(markedTextures[i] == 2) {
+                Debug.Log("Mark @ " + i );
+                m_TextureHandlers[i].SaveState(m_CurrentUndoLevel);
+            }
         }
-
-        m_CurrentUndoLevel++;
-        // save undo level in textures
-        foreach(TextureHandler t in m_TextureHandlers){
-            //t.SaveState(m_CurrentUndoLevel); // lowest level is 1, NOT 0!!!
-        }
-
-
     }
 #endregion Script callbacks
 

@@ -119,7 +119,7 @@ public class TextureHandler : MonoBehaviour
         //SetupCPU_Buffer();
         if(m_Undoes.ContainsKey(undoIndex)){
             m_CPU_TextureData = m_Undoes[undoIndex]; 
-            m_Undoes.Remove(undoIndex);
+            if(m_Undoes.Remove(undoIndex)) Debug.Log("undo" + undoIndex + " removed");;
         }else{
             Debug.Log("No undo for texture " + m_RenderTextureIndex);
             return;
