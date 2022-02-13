@@ -14,7 +14,7 @@ public class UndoRedoBehaviour : MonoBehaviour
     // TODO: 1st : Save relevant render textures stacks on finished stroke
     // create undo layer with these textures and store in own stack. 
     // 2nd : on Undo btn, get first layer.. 
-    private int m_CurrentUndoLevel = 0;
+    private int m_CurrentUndoLevel = -1;
     [SerializeField] private List<TextureHandler> m_TextureHandlers = new List<TextureHandler>();
 
 
@@ -25,6 +25,7 @@ public class UndoRedoBehaviour : MonoBehaviour
     void Start()
     {
         m_DrawingOnTexture.finishedStroke += SetMarkedTextures;
+        InitUndoLevelZero();
         
     }
 
@@ -38,8 +39,17 @@ public class UndoRedoBehaviour : MonoBehaviour
         m_DrawingOnTexture.finishedStroke -= SetMarkedTextures;
     }
 
+
+
 #region Initializers
-    
+    private void InitUndoLevelZero(){
+        int numMarkedTextures = 4;
+        int[] allMarked = new int[numMarkedTextures];
+        for(int i = 0; i < allMarked.Length; i++){
+            allMarked[i] = 2;
+        }
+        SetMarkedTextures(allMarked);
+    }
 #endregion Initializers
 
 

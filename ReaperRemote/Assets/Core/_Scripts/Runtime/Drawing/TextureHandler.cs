@@ -20,6 +20,7 @@ public class TextureHandler : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        m_TextureHandling_Compute = Instantiate(m_TextureHandling_Compute);
         SetupDataBuffers();
     }
 
